@@ -1,0 +1,72 @@
+@layer components {
+  .interactive {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  // Respect users who ask for less motion: neutralize the hover lift.
+  // Utility-driven entrance animations use Tailwind's motion-reduce: variant.
+  @media (prefers-reduced-motion: reduce) {
+    .interactive {
+      transition: none;
+
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+
+  .section-header {
+    position: relative;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 2.5rem;
+      height: 2px;
+      margin-top: 0.5rem;
+      background-color: var(--brand-primary);
+      border-radius: 1px;
+    }
+  }
+
+  .prose-research {
+    color: var(--text-color);
+    line-height: 1.625;
+    font-size: inherit;
+
+    p {
+      margin: 0 0 0.75em;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    strong {
+      color: var(--strong-text-color);
+      font-weight: 600;
+    }
+
+    a {
+      color: var(--brand-primary);
+      text-decoration: underline;
+    }
+
+    code {
+      font-family: var(--code-font-family);
+      font-size: 0.875em;
+      color: var(--inline-code-text-color);
+      background-color: var(--inline-code-bg-color);
+      padding: 0.125em 0.25em;
+      border-radius: 0.25rem;
+    }
+  }
+}

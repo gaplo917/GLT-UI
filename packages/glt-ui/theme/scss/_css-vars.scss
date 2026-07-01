@@ -1,0 +1,121 @@
+@use "variables" as *;
+
+@layer base {
+  :root,
+  [data-theme="light"] {
+    --font-family: #{$default-font-family};
+    --code-font-family: #{$default-code-font-family};
+    --blockquote-font-family: #{$default-blockquote-font-family};
+
+    --brand-primary: #{$default-primary-color};
+    --bg-color: #{$default-bg-color};
+    --text-color: #{$default-text-color};
+    --strong-text-color: #{$default-strong-text-color};
+    --border-color: #{$default-border-color};
+    --mark-color: #{$default-mark-color};
+    --secondary-text-color: #{$default-secondary-text-color};
+    --nav-bar-bg-color: #{$default-nav-bar-bg-color};
+    --nav-bar-text-color: #{$default-nav-bar-text-color};
+    --text-selection-color: #{$default-text-selection-color};
+    --excerpt-color: #{$default-excerpt-color};
+    --blockquote-bg-color: #{$default-blockquote-bg-color};
+    --inline-code-text-color: #{$default-inline-code-text-color};
+    --inline-code-bg-color: #{$default-inline-code-bg-color};
+    --code-bg-color: #{$default-code-bg-color};
+    --code-text-color: #{$default-code-text-color};
+    --box-shadow: #{$default-box-shadow};
+    --card-bg-color: #{$default-card-bg-color};
+    --ripple-bg-color: #{$default-ripple-bg-color};
+    --disabled-text-color: #{$default-disabled-text-color};
+    --footer-bg-color: #{$default-footer-bg-color};
+    --image-bg-color: #{$default-image-bg-color};
+
+    --brand-primary-foreground: #ffffff;
+    --radius-card: 0.75rem;
+
+    --color-info: #{$default-info-color};
+    --color-success: #{$default-success-color};
+    --color-warning: #{$default-warning-color};
+    --color-danger: #{$default-danger-color};
+    --color-on-status: #ffffff;
+
+    --background: #{$default-bg-color};
+    --foreground: #{$default-text-color};
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --brand-primary: #{$dark-primary-color};
+      --bg-color: #{$dark-bg-color};
+      --text-color: #{$dark-text-color};
+      --strong-text-color: #{$dark-strong-text-color};
+      --border-color: #{$dark-border-color};
+      --mark-color: #{$dark-mark-color};
+      --secondary-text-color: #{$dark-secondary-text-color};
+      --nav-bar-bg-color: #{$dark-nav-bar-bg-color};
+      --nav-bar-text-color: #{$dark-nav-bar-text-color};
+      --text-selection-color: #{$dark-text-selection-color};
+      --excerpt-color: #{$dark-excerpt-color};
+      --blockquote-bg-color: #{$dark-blockquote-bg-color};
+      --inline-code-text-color: #{$dark-inline-code-text-color};
+      --inline-code-bg-color: #{$dark-inline-code-bg-color};
+      --code-bg-color: #{$dark-code-bg-color};
+      --code-text-color: #{$dark-code-text-color};
+      --box-shadow: #{$dark-box-shadow};
+      --card-bg-color: #{$dark-card-bg-color};
+      --ripple-bg-color: #{$dark-ripple-bg-color};
+      --disabled-text-color: #{$dark-disabled-text-color};
+      --footer-bg-color: #{$dark-footer-bg-color};
+      --image-bg-color: #{$dark-image-bg-color};
+      --brand-primary-foreground: #{$dark-bg-color};
+      --color-info: #{$dark-info-color};
+      --color-success: #{$dark-success-color};
+      --color-warning: #{$dark-warning-color};
+      --color-danger: #{$dark-danger-color};
+      --color-on-status: #ffffff;
+      --background: #{$dark-bg-color};
+      --foreground: #{$dark-text-color};
+      color-scheme: dark;
+    }
+  }
+
+  [data-theme="dark"] {
+    --brand-primary: #{$dark-primary-color};
+    --bg-color: #{$dark-bg-color};
+    --text-color: #{$dark-text-color};
+    --strong-text-color: #{$dark-strong-text-color};
+    --border-color: #{$dark-border-color};
+    --mark-color: #{$dark-mark-color};
+    --secondary-text-color: #{$dark-secondary-text-color};
+    --nav-bar-bg-color: #{$dark-nav-bar-bg-color};
+    --nav-bar-text-color: #{$dark-nav-bar-text-color};
+    --text-selection-color: #{$dark-text-selection-color};
+    --excerpt-color: #{$dark-excerpt-color};
+    --blockquote-bg-color: #{$dark-blockquote-bg-color};
+    --inline-code-text-color: #{$dark-inline-code-text-color};
+    --inline-code-bg-color: #{$dark-inline-code-bg-color};
+    --code-bg-color: #{$dark-code-bg-color};
+    --code-text-color: #{$dark-code-text-color};
+    --box-shadow: #{$dark-box-shadow};
+    --card-bg-color: #{$dark-card-bg-color};
+    --ripple-bg-color: #{$dark-ripple-bg-color};
+    --disabled-text-color: #{$dark-disabled-text-color};
+    --footer-bg-color: #{$dark-footer-bg-color};
+    --image-bg-color: #{$dark-image-bg-color};
+
+    --brand-primary-foreground: #{$dark-bg-color};
+
+    --color-info: #{$dark-info-color};
+    --color-success: #{$dark-success-color};
+    --color-warning: #{$dark-warning-color};
+    --color-danger: #{$dark-danger-color};
+    --color-on-status: #ffffff;
+
+    --background: #{$dark-bg-color};
+    --foreground: #{$dark-text-color};
+
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "glt-research",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "predev": "npm run build:ui",
+    "dev": "next dev",
+    "build": "npm run build:ui && next build",
+    "build:ui": "npm run build -w glt-ui",
+    "build:pages": "npm run build:ui && BASE_PATH=/GLT-UI next build",
+    "start": "next start",
+    "lint": "eslint",
+    "publish:ui": "npm publish -w glt-ui --access public"
+  },
+  "dependencies": {
+    "glt-ui": "workspace:*",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vscode/ripgrep": "^1.18.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "sass": "^1.101.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

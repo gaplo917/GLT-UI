@@ -1,0 +1,40 @@
+@use "../packages/glt-ui/theme/styles";
+
+@use "tailwindcss";
+
+@source "../packages/glt-ui/src";
+@source "../components";
+
+@theme inline {
+  --color-background: var(--bg-color);
+  --color-foreground: var(--text-color);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Map the loaded display serif into the design-system quote token. */
+:root {
+  --blockquote-font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--code-font-family);
+}
+
+blockquote {
+  font-family: var(--blockquote-font-family);
+}
+
+/* Text selection using brand token */
+::selection {
+  background-color: var(--text-selection-color);
+}
