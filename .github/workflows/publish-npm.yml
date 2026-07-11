@@ -1,12 +1,15 @@
 # Publishes packages/glt-ui via npm Trusted Publishing (OIDC).
 # No long-lived NPM_TOKEN secret required.
 #
-# Configure once on npmjs.com → package glt-ui → Settings → Trusted Publisher:
+# One-time on npmjs.com → package glt-ui → Settings → Trusted Publisher:
 #   Organization or user: gaplo917
-#   Repository:           GLT-UI
+#   Repository:           GLT-UI   (exact case)
 #   Workflow filename:    publish-npm.yml
-#   Environment name:     (leave empty unless you add a GitHub Environment below)
+#   Environment name:     (leave empty)
 #   Allowed actions:      npm publish
+#
+# Requires npm CLI >= 11.5.1 for OIDC; Node 22 ships npm 10 → use Node 24
+# or `npx npm@latest publish`. A failed OIDC handshake surfaces as E404.
 #
 # Docs: https://docs.npmjs.com/trusted-publishers/
 
@@ -40,15 +43,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          # Trusted publishing needs Node >= 22.14 and npm CLI >= 11.5.1
-          node-version: "22"
+          # Node 24 ships a newer npm; OIDC still needs >= 11.5.1 (we upgrade below)
+          node-version: "24"
           registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Ensure npm supports OIDC trusted publishing
+      - name: Upgrade npm for Trusted Publishing (OIDC)
         working-directory: .
-        run: npm install -g npm@latest && npm --version
+        run: |
+          npm install -g npm@latest
+          npm --version
+          node --version
 
       - name: Install (workspace root)
         working-directory: .
@@ -59,9 +65,12 @@ jobs:
 
       - name: Pack / publish
         run: |
+          set -euo pipefail
+          NPM_BIN="$(command -v npm)"
+          echo "Using npm at ${NPM_BIN} ($("${NPM_BIN}" --version))"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
-            npm pack
+            "${NPM_BIN}" pack
           else
-            # OIDC is used automatically; provenance is generated for public repos
-            npm publish --access public
+            # Use latest npm explicitly so OIDC token exchange works
+            npx --yes npm@latest publish --access public
           fi

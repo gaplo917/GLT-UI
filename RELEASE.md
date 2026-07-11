@@ -14,15 +14,16 @@ CI uses **npm Trusted Publishing** — short-lived OIDC, no long-lived `NPM_TOKE
 
 ### One-time setup on npmjs.com
 
-1. **Create the package once** (if it does not exist yet):
+1. **Create the package once** (if it does not exist yet), with 2FA OTP if prompted:
 
    ```bash
    npm login
    npm run build:ui
-   npm run publish:ui
+   npm publish -w glt-ui --access public --otp=<code>
    ```
 
-2. Open [npmjs.com/package/glt-ui](https://www.npmjs.com/package/glt-ui) → **Settings** → **Trusted Publisher** → GitHub Actions:
+2. Open [npmjs.com/package/glt-ui](https://www.npmjs.com/package/glt-ui) → **Settings** → **Trusted Publisher** → GitHub Actions  
+   (**required** for CI; without this, publish fails with a misleading **E404**):
 
    | Field | Value |
    | --- | --- |
@@ -34,6 +35,8 @@ CI uses **npm Trusted Publishing** — short-lived OIDC, no long-lived `NPM_TOKE
 
 3. Optional hardening after a successful OIDC publish: package **Publishing access** →  
    “Require two-factor authentication and disallow tokens”.
+
+CI uses **Node 24** + **npm ≥ 11.5.1** so the OIDC handshake works (Node 22’s npm 10 is too old).
 
 Docs: [Trusted publishers](https://docs.npmjs.com/trusted-publishers/)
 
