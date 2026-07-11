@@ -1,14 +1,12 @@
 # Publishes packages/glt-ui via npm Trusted Publishing (OIDC).
-# No long-lived NPM_TOKEN secret required.
+# Based on https://docs.npmjs.com/trusted-publishers/
 #
-# One-time on npmjs.com → package glt-ui → Settings → Trusted Publisher:
+# npmjs.com → glt-ui → Settings → Trusted Publisher → GitHub Actions:
 #   Organization or user: gaplo917
-#   Repository:           GLT-UI   (exact case)
+#   Repository:           GLT-UI
 #   Workflow filename:    publish-npm.yml
-#   Environment name:     (leave empty)
+#   Environment name:     (empty)
 #   Allowed actions:      npm publish
-#
-# Docs: https://docs.npmjs.com/trusted-publishers/
 
 name: Publish glt-ui to npm
 
@@ -19,8 +17,8 @@ on:
   workflow_dispatch:
 
 permissions:
+  id-token: write # Required for OIDC
   contents: read
-  id-token: write # required for OIDC → npm (+ provenance)
 
 jobs:
   publish:
@@ -29,35 +27,18 @@ jobs:
       run:
         working-directory: packages/glt-ui
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          # Node 24 + npm >= 11.5.1 required for OIDC trusted publishing
           node-version: "24"
-          # Do NOT set registry-url here — setup-node injects a dummy
-          # NODE_AUTH_TOKEN + always-auth which breaks OIDC (E404 on publish).
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Upgrade npm for Trusted Publishing (OIDC)
-        working-directory: .
-        run: |
-          npm install -g npm@latest
-          npm --version
-          node --version
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false # never use caching in release builds
 
       - name: Install (workspace root)
         working-directory: .
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - run: npm run build --if-present
 
-      - name: Publish
-        env:
-          # Ensure no placeholder token shadows OIDC
-          NODE_AUTH_TOKEN: ""
-        run: npm publish --provenance
+      - run: npm publish --provenance
