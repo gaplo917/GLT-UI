@@ -162,9 +162,9 @@ Inline code uses the `Code` atom and theme tokens
 | Package | Role |
 | --- | --- |
 | **react** / **react-dom** ≥ 18 | Peer dependencies |
-| **chart.js** | Powering the themed `Chart` organism |
-| **shiki** | `CodeBlock` syntax highlighting |
-| **clsx** + **tailwind-merge** | `cn()` class merging helper |
+| **chart.js** ^4.5 | Powering the themed `Chart` organism |
+| **shiki** ^4 | `CodeBlock` syntax highlighting |
+| **clsx** ^2 + **tailwind-merge** ^3 | `cn()` class merging helper |
 
 Host apps should also provide **Tailwind CSS v4** (utilities in components) and
 typically **Sass** to `@use "glt-ui/theme/styles"`.
@@ -173,11 +173,11 @@ typically **Sass** to `@use "glt-ui/theme/styles"`.
 
 | Package | Role |
 | --- | --- |
-| **next** 16 | App Router, `output: 'export'` static site |
-| **react** 19 | Demo app runtime |
-| **tailwindcss** 4 + **@tailwindcss/postcss** | App styling pipeline |
+| **next** ^16.2 | App Router, `output: 'export'` static site |
+| **react** / **react-dom** ^19.2 | Demo app runtime |
+| **tailwindcss** ^4 + **@tailwindcss/postcss** | App styling pipeline |
 | **sass** | Theme SCSS load |
-| **typescript** / **eslint** | Tooling |
+| **typescript** 5.x / **eslint** 9.x | Tooling (eslint 10 blocked by `eslint-config-next` peers) |
 
 ---
 
