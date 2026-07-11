@@ -19,30 +19,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
 
       - name: Install
         run: npm ci
 
-      - name: Build static docs (GitHub Pages base path)
+      - name: Build library + static docs (GitHub Pages base path)
         env:
           # Project site: https://<owner>.github.io/<repo>/
           BASE_PATH: /${{ github.event.repository.name }}
           NEXT_TELEMETRY_DISABLED: "1"
           CI: "true"
-        # Full lockfile must list optional native packages (lightningcss-*) for Linux CI
-        run: npm run build:ui && npx next build
+        run: npm run build:pages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: out
+          path: demo/out
 
   deploy:
     needs: build

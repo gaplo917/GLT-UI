@@ -1,9 +1,10 @@
-@use "../packages/glt-ui/theme/styles";
+@use "../../theme/styles";
 
 @use "tailwindcss";
 
-@source "../packages/glt-ui/src";
+@source "../../src";
 @source "../components";
+@source ".";
 
 @theme inline {
   --color-background: var(--bg-color);

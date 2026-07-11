@@ -1,4 +1,4 @@
-# Publishes packages/glt-ui via npm Trusted Publishing (OIDC).
+# Publishes glt-ui (repo root) via npm Trusted Publishing (OIDC).
 # Based on https://docs.npmjs.com/trusted-publishers/
 #
 # npmjs.com → glt-ui → Settings → Trusted Publisher → GitHub Actions:
@@ -23,9 +23,6 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/glt-ui
     steps:
       - uses: actions/checkout@v6
 
@@ -35,9 +32,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false # never use caching in release builds
 
-      - name: Install (workspace root)
-        working-directory: .
-        run: npm ci
+      - run: npm ci
 
       - run: npm run build --if-present
 

@@ -48,7 +48,7 @@ Set on `<html>` (and optionally mirror with class `dark`):
 <html data-theme="dark" class="dark">
 ```
 
-Use a before-interactive script to avoid flash (see monorepo `app/layout.tsx`).
+Use a before-interactive script to avoid flash (see monorepo `demo/app/layout.tsx`).
 
 ## Import rules
 
@@ -180,14 +180,14 @@ See [references/components.md](references/components.md) for the full inventory.
 
 ```bash
 npm install
-npm run build:ui    # packages/glt-ui → dist/
-npm run dev         # docs browser at localhost:3000
-npm run build       # static export → ./out (local, no basePath)
-npm run build:pages # static export with BASE_PATH=/GLT-UI
+npm run build       # library root → dist/
+npm run dev         # demo docs browser at localhost:3000
+npm run build:demo  # static export → demo/out
+npm run build:pages # static export with BASE_PATH=/GLT-UI → demo/out
 ```
 
-Package source: `packages/glt-ui/src/components/{atoms,molecules,organisms,templates}/`.
-Docs registry: `components/docs/`.
+Package source: `src/components/{atoms,molecules,organisms,templates}/` (repo root).
+Docs registry: `demo/components/docs/`.
 
 ## Agent checklist before finishing UI work
 

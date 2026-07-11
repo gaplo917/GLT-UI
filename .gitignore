@@ -12,15 +12,18 @@ node_modules/
 /coverage
 *.lcov
 
-# Next.js
-/.next/
-/out/
+# Next.js (demo app)
+demo/.next/
+demo/out/
+.next/
+out/
 
 # Production / build artifacts
 /build
-packages/*/dist/
+/dist/
 *.tsbuildinfo
 next-env.d.ts
+demo/next-env.d.ts
 
 # npm pack / publish artifacts
 *.tgz
