@@ -1,6 +1,6 @@
 {
   "name": "glt-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GLT UI \u2014 production React components with SCSS brand theme tokens (Atomic Design)",
   "license": "MIT",
   "author": "Gary Lo <logap@me.com>",
