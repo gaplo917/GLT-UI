@@ -8,9 +8,6 @@
 #   Environment name:     (leave empty)
 #   Allowed actions:      npm publish
 #
-# Requires npm CLI >= 11.5.1 for OIDC; Node 22 ships npm 10 → use Node 24
-# or `npx npm@latest publish`. A failed OIDC handshake surfaces as E404.
-#
 # Docs: https://docs.npmjs.com/trusted-publishers/
 
 name: Publish glt-ui to npm
@@ -43,9 +40,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          # Node 24 ships a newer npm; OIDC still needs >= 11.5.1 (we upgrade below)
+          # Node 24 + npm >= 11.5.1 required for OIDC trusted publishing
           node-version: "24"
-          registry-url: https://registry.npmjs.org
+          # Do NOT set registry-url here — setup-node injects a dummy
+          # NODE_AUTH_TOKEN + always-auth which breaks OIDC (E404 on publish).
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -64,13 +62,13 @@ jobs:
         run: npm run build
 
       - name: Pack / publish
+        env:
+          # Ensure no placeholder token shadows OIDC
+          NODE_AUTH_TOKEN: ""
         run: |
           set -euo pipefail
-          NPM_BIN="$(command -v npm)"
-          echo "Using npm at ${NPM_BIN} ($("${NPM_BIN}" --version))"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
-            "${NPM_BIN}" pack
+            npx --yes npm@latest pack
           else
-            # Use latest npm explicitly so OIDC token exchange works
-            npx --yes npm@latest publish --access public
+            npx --yes npm@latest publish --access public --registry=https://registry.npmjs.org/
           fi
