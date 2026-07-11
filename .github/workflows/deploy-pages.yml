@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -34,6 +34,9 @@ jobs:
         env:
           # Project site: https://<owner>.github.io/<repo>/
           BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_TELEMETRY_DISABLED: "1"
+          CI: "true"
+        # Full lockfile must list optional native packages (lightningcss-*) for Linux CI
         run: npm run build:ui && npx next build
 
       - name: Upload Pages artifact
