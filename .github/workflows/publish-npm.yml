@@ -60,6 +60,4 @@ jobs:
         env:
           # Ensure no placeholder token shadows OIDC
           NODE_AUTH_TOKEN: ""
-        run: |
-          set -euo pipefail
-          npx --yes npm@latest publish --access public --provenance --registry=https://registry.npmjs.org/
+        run: npm publish --provenance
