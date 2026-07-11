@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { useInView } from '../../../lib/motion.js';
-import { CountUp } from '../CountUp/CountUp.js';
-import { Text } from '../Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { useInView } from '@/lib/motion.js';
+import { CountUp } from '@/components/atoms/CountUp/CountUp.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export type ProgressRingIntent = 'brand' | 'info' | 'success' | 'warning' | 'danger';
 

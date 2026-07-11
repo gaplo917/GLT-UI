@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Title } from '../../atoms/Title/Title.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Button } from '../../atoms/Button/Button.js';
+import { cn } from '@/lib/cn.js';
+import { Title } from '@/components/atoms/Title/Title.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Button } from '@/components/atoms/Button/Button.js';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Visual surface treatment. */

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export type TableAlign = 'left' | 'center' | 'right';
 export type TableVAlign = 'top' | 'middle' | 'bottom';

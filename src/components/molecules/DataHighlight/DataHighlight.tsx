@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Surface } from '../../atoms/Surface/Surface.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Badge } from '../../atoms/Badge/Badge.js';
+import { Surface } from '@/components/atoms/Surface/Surface.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Badge } from '@/components/atoms/Badge/Badge.js';
 
 export interface DataHighlightProps {
   value: string | number;

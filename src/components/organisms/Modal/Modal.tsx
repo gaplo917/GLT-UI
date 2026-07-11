@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Button } from '../../atoms/Button/Button.js';
-import { Surface } from '../../atoms/Surface/Surface.js';
+import { cn } from '@/lib/cn.js';
+import { Button } from '@/components/atoms/Button/Button.js';
+import { Surface } from '@/components/atoms/Surface/Surface.js';
 
 export interface ModalProps {
   triggerLabel: React.ReactNode;

@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { useInView } from '../../../lib/motion.js';
-import { Badge } from '../../atoms/Badge/Badge.js';
-import { CountUp } from '../../atoms/CountUp/CountUp.js';
-import { Stack } from '../../atoms/Stack/Stack.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { useInView } from '@/lib/motion.js';
+import { Badge } from '@/components/atoms/Badge/Badge.js';
+import { CountUp } from '@/components/atoms/CountUp/CountUp.js';
+import { Stack } from '@/components/atoms/Stack/Stack.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export type BenchmarkIntent = 'brand' | 'info' | 'success' | 'warning' | 'danger' | 'neutral';
 

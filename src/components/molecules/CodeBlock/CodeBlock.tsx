@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import type { Highlighter } from 'shiki';
-import { cn } from '../../../lib/cn.js';
-import { Button } from '../../atoms/Button/Button.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Icon } from '../../atoms/Icon/Icon.js';
+import { cn } from '@/lib/cn.js';
+import { Button } from '@/components/atoms/Button/Button.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Icon } from '@/components/atoms/Icon/Icon.js';
 import { gapstyleTheme } from './gapstyle-theme.js';
 
 const THEME_NAME = 'GapStyle VS';

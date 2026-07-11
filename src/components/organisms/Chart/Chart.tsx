@@ -11,9 +11,9 @@ import type {
   Point,
   BubbleDataPoint,
 } from 'chart.js';
-import { cn } from '../../../lib/cn.js';
-import { Stack } from '../../atoms/Stack/Stack.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Stack } from '@/components/atoms/Stack/Stack.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 /**
  * Chart types accepted by the themed wrapper. `'area'` is sugar for a filled

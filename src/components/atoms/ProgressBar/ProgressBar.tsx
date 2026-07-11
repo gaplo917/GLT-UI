@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export type ProgressBarIntent = 'brand' | 'info' | 'success' | 'warning' | 'danger';
 export type ProgressBarSize = 'sm' | 'md' | 'lg';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 /** Vertical rhythm applied between direct children (Tailwind spacing scale). */
 export type BlockSpacing = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export type StackDirection = 'row' | 'column';
 export type StackGap = 0 | 1 | 2 | 3 | 4 | 6 | 8;

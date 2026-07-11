@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { Badge } from '../../atoms/Badge/Badge.js';
-import { Grid } from '../../atoms/Grid/Grid.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../Card/Card.js';
+import { Badge } from '@/components/atoms/Badge/Badge.js';
+import { Grid } from '@/components/atoms/Grid/Grid.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/organisms/Card/Card.js';
 
 export interface TechniqueItem {
   id: string;

@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Container } from '../../atoms/Container/Container.js';
-import { Title } from '../../atoms/Title/Title.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Container } from '@/components/atoms/Container/Container.js';
+import { Title } from '@/components/atoms/Title/Title.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /** Section id for navigation / deep links (research pages often have #thesis etc) */

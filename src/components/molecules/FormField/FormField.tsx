@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Label } from '../../atoms/Label/Label.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Label } from '@/components/atoms/Label/Label.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: React.ReactNode;

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 /**
  * A composable panel for compact controls and grouped lists. Assemble it from:

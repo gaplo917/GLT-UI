@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Button } from '../../atoms/Button/Button.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Button } from '@/components/atoms/Button/Button.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface AccordionItem {
   id: string;

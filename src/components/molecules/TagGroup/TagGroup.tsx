@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Badge } from '../../atoms/Badge/Badge.js';
+import { Badge } from '@/components/atoms/Badge/Badge.js';
 
 export interface TagGroupProps {
   prefix?: React.ReactNode;

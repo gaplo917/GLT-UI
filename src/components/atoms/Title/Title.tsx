@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 /** Heading scale, 1 (largest) through 6 (smallest) — mirrors Bulma's title sizes. */
 export type TitleSize = 1 | 2 | 3 | 4 | 5 | 6;

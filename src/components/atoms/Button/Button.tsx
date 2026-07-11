@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Spinner } from '../Spinner/Spinner.js';
+import { cn } from '@/lib/cn.js';
+import { Spinner } from '@/components/atoms/Spinner/Spinner.js';
 
 export type ButtonVariant =
   | 'primary'

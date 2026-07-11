@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Surface } from '../../atoms/Surface/Surface.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Surface } from '@/components/atoms/Surface/Surface.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface FigureProps extends React.HTMLAttributes<HTMLElement> {
   /** The visual — a Chart, image, table, diagram, etc. */

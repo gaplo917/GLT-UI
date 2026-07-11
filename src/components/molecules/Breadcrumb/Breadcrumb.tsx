@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text } from '../../atoms/Text/Text.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface BreadcrumbProps {
   items: string[];

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   /** Renders a required marker after the label text. */

@@ -2,7 +2,7 @@
 // See https://atomicdesign.bradfrost.com/chapter-2/
 
 // hooks & utilities
-export * from '../lib/motion.js';
+export * from '@/lib/motion.js';
 
 // atoms
 export * from './atoms/Avatar/Avatar.js';

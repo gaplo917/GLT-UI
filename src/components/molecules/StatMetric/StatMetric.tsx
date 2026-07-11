@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { CountUp } from '../../atoms/CountUp/CountUp.js';
-import { Sparkline, type SparklineIntent } from '../../atoms/Sparkline/Sparkline.js';
-import { Surface } from '../../atoms/Surface/Surface.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { CountUp } from '@/components/atoms/CountUp/CountUp.js';
+import { Sparkline, type SparklineIntent } from '@/components/atoms/Sparkline/Sparkline.js';
+import { Surface } from '@/components/atoms/Surface/Surface.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface StatMetricProps {
   label: string;

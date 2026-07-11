@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Surface } from '../../atoms/Surface/Surface.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Markdown } from '../../atoms/Markdown/Markdown.js';
+import { cn } from '@/lib/cn.js';
+import { Surface } from '@/components/atoms/Surface/Surface.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Markdown } from '@/components/atoms/Markdown/Markdown.js';
 
 export type MessageSide = 'left' | 'right';
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Surface, type SurfacePadding } from '../Surface/Surface.js';
+import { Surface, type SurfacePadding } from '@/components/atoms/Surface/Surface.js';
 
 export interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

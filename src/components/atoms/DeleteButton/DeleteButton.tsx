@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '../Button/Button.js';
+import { Button } from '@/components/atoms/Button/Button.js';
 
 export interface DeleteButtonProps {
   label: React.ReactNode;

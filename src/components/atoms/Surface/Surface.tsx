@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export type SurfaceTone = 'card' | 'muted' | 'brand' | 'plain';
 export type SurfacePadding = 'none' | 'sm' | 'md' | 'lg';

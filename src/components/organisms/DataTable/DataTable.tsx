@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 import {
   Table,
   TableBody,
@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-} from '../Table/Table.js';
+} from '@/components/organisms/Table/Table.js';
 
 export interface DataTableColumn<T> {
   key: keyof T | string;

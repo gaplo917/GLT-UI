@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Stack } from '../../atoms/Stack/Stack.js';
+import { cn } from '@/lib/cn.js';
+import { Stack } from '@/components/atoms/Stack/Stack.js';
 
 export interface SiteFooterProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;

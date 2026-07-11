@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 export interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: 'horizontal' | 'vertical';

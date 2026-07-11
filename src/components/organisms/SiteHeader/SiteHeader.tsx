@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Container } from '../../atoms/Container/Container.js';
+import { cn } from '@/lib/cn.js';
+import { Container } from '@/components/atoms/Container/Container.js';
 
 export interface SiteHeaderProps {
   brand: React.ReactNode;

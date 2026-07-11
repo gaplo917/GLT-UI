@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Text } from '../../atoms/Text/Text.js';
-import { Button } from '../../atoms/Button/Button.js';
-import { Icon } from '../../atoms/Icon/Icon.js';
+import { cn } from '@/lib/cn.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { Button } from '@/components/atoms/Button/Button.js';
+import { Icon } from '@/components/atoms/Icon/Icon.js';
 
 export type AlertVariant = 'info' | 'success' | 'warning' | 'danger';
 export type AlertAppearance = 'soft' | 'solid' | 'outline';

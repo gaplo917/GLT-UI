@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { useInView } from '../../../lib/motion.js';
+import { cn } from '@/lib/cn.js';
+import { useInView } from '@/lib/motion.js';
 
 export type RevealAnimation = 'fade' | 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'zoom';
 

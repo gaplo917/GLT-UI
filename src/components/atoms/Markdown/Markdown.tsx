@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Text, type TextTone, type TextSize } from '../Text/Text.js';
-import { Code } from '../Code/Code.js';
-import { List, ListItem } from '../List/List.js';
+import { cn } from '@/lib/cn.js';
+import { Text, type TextTone, type TextSize } from '@/components/atoms/Text/Text.js';
+import { Code } from '@/components/atoms/Code/Code.js';
+import { List, ListItem } from '@/components/atoms/List/List.js';
 
 export interface MarkdownProps {
   /** Raw markdown source. */

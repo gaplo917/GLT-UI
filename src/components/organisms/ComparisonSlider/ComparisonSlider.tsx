@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { Text } from '../../atoms/Text/Text.js';
+import { cn } from '@/lib/cn.js';
+import { Text } from '@/components/atoms/Text/Text.js';
 
 export interface ComparisonSliderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** The panel revealed on the left of the divider (e.g. a baseline). */

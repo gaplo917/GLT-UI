@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
-import { easeOutCubic, useInView, usePrefersReducedMotion } from '../../../lib/motion.js';
+import { cn } from '@/lib/cn.js';
+import { easeOutCubic, useInView, usePrefersReducedMotion } from '@/lib/motion.js';
 
 export interface CountUpProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
   /** Target value to count to. */

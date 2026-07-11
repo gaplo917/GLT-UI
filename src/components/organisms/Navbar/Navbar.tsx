@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../../lib/cn.js';
+import { cn } from '@/lib/cn.js';
 
 /** Breakpoint below which the menu collapses behind the burger. Fixed at `md`. */
 interface NavbarContextValue {
