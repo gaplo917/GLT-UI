@@ -43,7 +43,7 @@ npm install -D tailwindcss @tailwindcss/postcss sass
 ```
 
 ```tsx
-import { Button, Card, CardHeader, CardTitle, Stack } from 'glt-ui';
+import { Button, Card, CardHeader, CardTitle } from 'glt-ui';
 ```
 
 ```scss

@@ -55,7 +55,7 @@ Use a before-interactive script to avoid flash (see monorepo `demo/app/layout.ts
 Always import from the package root barrel:
 
 ```tsx
-import { Button, Card, Stack, FormField, TextInput, Text } from 'glt-ui';
+import { Button, Card, FormField, TextInput, Text } from 'glt-ui';
 ```
 
 Do **not** invent deep paths like `glt-ui/components/Button` unless you verified
@@ -63,15 +63,15 @@ exports — the public API is the root barrel + `glt-ui/theme/*`.
 
 ## Composition rules (Atomic Design)
 
-1. **Atoms first** for text, controls, spacing: `Text`, `Title`, `Button`, `Stack`,
+1. **Atoms first** for text, controls, spacing: `Text`, `Title`, `Button`,
    `Grid`, `Icon`, `Badge`, `Code`, inputs, etc.
 2. **Molecules** for labeled fields and small composites: `FormField`, `Callout`,
    `Alert`, `Message`, `StatMetric`, `Breadcrumb`.
 3. **Organisms** for sections of a page: `Card`, `Modal`, `Navbar`, `DataTable`,
    `Chart`, `SiteHeader` / `SiteFooter`, `PageHero`.
 4. **Templates** for page sections: `Section` + `SectionHeader` / `SectionTitle` / `SectionLead`.
-5. Compose higher layers from lower ones — do not re-implement spacing with one-off
-   wrappers when `Stack` / `Grid` / `Level` exist.
+5. Compose higher layers from lower ones — use `Grid` / `Level` / Tailwind flex
+   utilities (`flex flex-col gap-4`) for spacing; avoid one-off layout wrappers.
 6. Prefer **props** (`variant`, `size`, `tone`) over `className` hacks. Use
    `className` only for layout escape hatches.
 
@@ -80,7 +80,7 @@ exports — the public API is the root barrel + `glt-ui/theme/*`.
 ### Page chrome
 
 ```tsx
-import { SiteHeader, SiteBrand, SiteNavLink, SiteFooter, Stack, Text } from 'glt-ui';
+import { SiteHeader, SiteBrand, SiteNavLink, SiteFooter, Text } from 'glt-ui';
 
 <SiteHeader
   brand={<SiteBrand title="Product" />}
@@ -100,14 +100,14 @@ import { SiteHeader, SiteBrand, SiteNavLink, SiteFooter, Stack, Text } from 'glt
 ### Form field
 
 ```tsx
-import { FormField, TextInput, Stack, Button } from 'glt-ui';
+import { FormField, TextInput, Button } from 'glt-ui';
 
-<Stack gap={4} as="form">
+<form className="flex flex-col gap-4">
   <FormField label="Email" htmlFor="email" required>
     <TextInput id="email" type="email" placeholder="you@example.com" />
   </FormField>
   <Button type="submit">Continue</Button>
-</Stack>
+</form>
 ```
 
 ### Card + metrics
@@ -151,7 +151,7 @@ See [references/components.md](references/components.md) for the full inventory.
 
 | Need | Prefer |
 | --- | --- |
-| Spacing / layout | `Stack`, `Grid`, `Container`, `Section`, `Level`, `Box`, `Surface` |
+| Spacing / layout | `Grid`, `Container`, `Section`, `Level`, `Box`, `Surface`, Tailwind flex/`gap` |
 | Typography | `Text`, `Title`/`Subtitle`, `Heading`, `Code`, `Markdown`, `Quote` |
 | Actions | `Button`, `DeleteButton`, `DropdownMenu` |
 | Forms | `FormField`, `TextInput`, `TextArea`, `SelectField`, `Checkbox`, `Radio`, `Switch` |
@@ -165,7 +165,7 @@ See [references/components.md](references/components.md) for the full inventory.
 **Do**
 
 - Import theme SCSS once; set `data-theme` for light/dark
-- Compose with `Stack`/`Grid` instead of nested div soup
+- Compose with `Grid` / `Level` / Tailwind flex utilities instead of nested div soup
 - Match existing prop APIs (`variant`, `size`) before adding custom styles
 - Keep motion reduced-motion safe (`Reveal`, modal/accordion already respect it)
 
@@ -193,6 +193,6 @@ Docs registry: `demo/components/docs/`.
 
 1. Imports from `glt-ui` only (no stale `glt-design-system` names)
 2. Theme loaded; dark mode works if the app supports it
-3. Layout uses Stack/Grid/Section where appropriate
+3. Layout uses Grid/Section/Level or Tailwind flex utilities where appropriate
 4. Forms use FormField + control atoms
 5. Lint/typecheck clean if the project has those scripts

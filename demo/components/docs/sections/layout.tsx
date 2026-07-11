@@ -11,7 +11,6 @@ import {
   SectionLead,
   Grid,
   GridItem,
-  Stack,
   Divider,
   Level,
   LevelLeft,
@@ -100,23 +99,23 @@ export const layoutSection: DocSection = {
         {
           title: 'Medium & large widths',
           description: 'md and lg sit between the narrow sm and the default xl cap.',
-          code: `<Stack gap={3} className="w-full">
+          code: `<div className="flex flex-col gap-3 w-full">
   <Container max="md">
     <Surface tone="brand" radius="md" padding="sm" align="center">max="md"</Surface>
   </Container>
   <Container max="lg">
     <Surface tone="brand" radius="md" padding="sm" align="center">max="lg"</Surface>
   </Container>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3} className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Container max="md">
                 <Surface tone="brand" radius="md" padding="sm" align="center">max=&quot;md&quot;</Surface>
               </Container>
               <Container max="lg">
                 <Surface tone="brand" radius="md" padding="sm" align="center">max=&quot;lg&quot;</Surface>
               </Container>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -233,7 +232,7 @@ export const layoutSection: DocSection = {
 <Section spacing="normal">…</Section>
 <Section spacing="loose">…</Section>`,
           render: (
-            <Stack gap={3} className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               {(['tight', 'normal', 'loose'] as const).map((s) => (
                 <Section
                   key={s}
@@ -245,7 +244,7 @@ export const layoutSection: DocSection = {
                   </Surface>
                 </Section>
               ))}
-            </Stack>
+            </div>
           ),
         },
         {
@@ -254,7 +253,7 @@ export const layoutSection: DocSection = {
           code: `<Section containerMax="sm">…</Section>
 <Section containerMax="full">…</Section>`,
           render: (
-            <Stack gap={3} className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Section containerMax="sm" spacing="tight" className="rounded-lg bg-[var(--card-bg-color)]">
                 <Surface tone="brand" radius="sm" padding="none" align="center" className="py-2">
                   <Text size="sm" weight="medium" tone="strong">containerMax=&quot;sm&quot;</Text>
@@ -265,7 +264,7 @@ export const layoutSection: DocSection = {
                   <Text size="sm" weight="medium" tone="strong">containerMax=&quot;full&quot;</Text>
                 </Surface>
               </Section>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -324,7 +323,7 @@ export const layoutSection: DocSection = {
         {
           title: 'Fixed column counts',
           description: 'columns accepts 1, 2, 3, 4, 6, and 12 for even fixed tracks.',
-          code: `<Stack gap={3} className="w-full">
+          code: `<div className="flex flex-col gap-3 w-full">
   <Grid columns={2} gap={3}>
     <Surface radius="md" padding="sm" align="center">1</Surface>
     <Surface radius="md" padding="sm" align="center">2</Surface>
@@ -343,9 +342,9 @@ export const layoutSection: DocSection = {
     <Surface radius="md" padding="sm" align="center">5</Surface>
     <Surface radius="md" padding="sm" align="center">6</Surface>
   </Grid>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3} className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Grid columns={2} gap={3}>
                 <Surface radius="md" padding="sm" align="center">1</Surface>
                 <Surface radius="md" padding="sm" align="center">2</Surface>
@@ -364,7 +363,7 @@ export const layoutSection: DocSection = {
                 <Surface radius="md" padding="sm" align="center">5</Surface>
                 <Surface radius="md" padding="sm" align="center">6</Surface>
               </Grid>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -464,139 +463,6 @@ export const layoutSection: DocSection = {
       ],
     },
     {
-      id: 'stack',
-      name: 'Stack',
-      description:
-        'Flexbox layout primitive for vertical or horizontal stacks with token gaps and alignment control.',
-      importLine: "import { Stack } from 'glt-ui';",
-      propsTables: [
-        {
-          title: 'Stack',
-          props: [
-            {
-              name: 'direction',
-              type: "'row' | 'column'",
-              default: "'column'",
-              description: 'Main axis — stack children vertically or horizontally.',
-            },
-            {
-              name: 'gap',
-              type: '0 | 1 | 2 | 3 | 4 | 6 | 8',
-              default: '4',
-              description: 'Token gap between children.',
-            },
-            {
-              name: 'align',
-              type: "'start' | 'center' | 'end' | 'stretch' | 'baseline'",
-              description: 'Cross-axis alignment (align-items).',
-            },
-            {
-              name: 'justify',
-              type: "'start' | 'center' | 'end' | 'between' | 'around'",
-              description: 'Main-axis distribution (justify-content).',
-            },
-            {
-              name: 'wrap',
-              type: 'boolean',
-              default: 'false',
-              description: 'Allow children to wrap onto multiple lines.',
-            },
-            {
-              name: '…rest',
-              type: 'React.HTMLAttributes<HTMLDivElement>',
-              description: 'Forwarded to the underlying <div>.',
-            },
-          ],
-        },
-      ],
-      examples: [
-        {
-          title: 'Vertical stack',
-          description: 'The default column direction stacks children top to bottom.',
-          code: `<Stack gap={2}>
-  <Surface radius="md" padding="md" align="center">First</Surface>
-  <Surface radius="md" padding="md" align="center">Second</Surface>
-  <Surface radius="md" padding="md" align="center">Third</Surface>
-</Stack>`,
-          render: (
-            <Stack gap={2}>
-              <Surface radius="md" padding="md" align="center">
-                First
-              </Surface>
-              <Surface radius="md" padding="md" align="center">
-                Second
-              </Surface>
-              <Surface radius="md" padding="md" align="center">
-                Third
-              </Surface>
-            </Stack>
-          ),
-        },
-        {
-          title: 'Horizontal stack',
-          description: 'Row direction lays children out left to right with a gap.',
-          code: `<Stack direction="row" gap={4}>
-  <Surface radius="md" padding="md" align="center">One</Surface>
-  <Surface radius="md" padding="md" align="center">Two</Surface>
-  <Surface radius="md" padding="md" align="center">Three</Surface>
-</Stack>`,
-          render: (
-            <Stack direction="row" gap={4}>
-              <Surface radius="md" padding="md" align="center">
-                One
-              </Surface>
-              <Surface radius="md" padding="md" align="center">
-                Two
-              </Surface>
-              <Surface radius="md" padding="md" align="center">
-                Three
-              </Surface>
-            </Stack>
-          ),
-        },
-        {
-          title: 'Aligned row',
-          description: 'A row that centers its children and spaces them between the ends.',
-          code: `<Stack direction="row" gap={4} align="center" justify="between">
-  <Surface radius="md" padding="md" align="center">Left</Surface>
-  <Surface radius="md" padding="md" align="center">Right</Surface>
-</Stack>`,
-          render: (
-            <Stack direction="row" gap={4} align="center" justify="between">
-              <Surface radius="md" padding="md" align="center">
-                Left
-              </Surface>
-              <Surface radius="md" padding="md" align="center">
-                Right
-              </Surface>
-            </Stack>
-          ),
-        },
-        {
-          title: 'Wrapping row',
-          description: 'wrap lets a row flow onto multiple lines when space runs out.',
-          code: `<Stack direction="row" gap={2} wrap>
-  <Surface radius="md" padding="sm" align="center">alpha</Surface>
-  <Surface radius="md" padding="sm" align="center">beta</Surface>
-  <Surface radius="md" padding="sm" align="center">gamma</Surface>
-  <Surface radius="md" padding="sm" align="center">delta</Surface>
-  <Surface radius="md" padding="sm" align="center">epsilon</Surface>
-  <Surface radius="md" padding="sm" align="center">zeta</Surface>
-</Stack>`,
-          render: (
-            <Stack direction="row" gap={2} wrap>
-              <Surface radius="md" padding="sm" align="center">alpha</Surface>
-              <Surface radius="md" padding="sm" align="center">beta</Surface>
-              <Surface radius="md" padding="sm" align="center">gamma</Surface>
-              <Surface radius="md" padding="sm" align="center">delta</Surface>
-              <Surface radius="md" padding="sm" align="center">epsilon</Surface>
-              <Surface radius="md" padding="sm" align="center">zeta</Surface>
-            </Stack>
-          ),
-        },
-      ],
-    },
-    {
       id: 'divider',
       name: 'Divider',
       description:
@@ -641,13 +507,13 @@ export const layoutSection: DocSection = {
         {
           title: 'Vertical',
           description: 'A vertical rule separating inline items.',
-          code: `<Stack direction="row" align="center" gap={4} className="h-12">
+          code: `<div className="flex flex-row gap-4 items-center h-12">
   A<Divider orientation="vertical" />B
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" align="center" gap={4} className="h-12">
+            <div className="flex flex-row gap-4 items-center h-12">
               A<Divider orientation="vertical" />B
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -1083,19 +949,19 @@ export const layoutSection: DocSection = {
         {
           title: 'Padding',
           description: 'Control the inner padding with the padding prop (defaults to sm).',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Box padding="none"><Text align="center">none</Text></Box>
   <Box padding="sm"><Text align="center">sm (default)</Text></Box>
   <Box padding="md"><Text align="center">md</Text></Box>
   <Box padding="lg"><Text align="center">lg</Text></Box>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <Box padding="none"><Text align="center">none</Text></Box>
               <Box padding="sm"><Text align="center">sm (default)</Text></Box>
               <Box padding="md"><Text align="center">md</Text></Box>
               <Box padding="lg"><Text align="center">lg</Text></Box>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -1151,81 +1017,81 @@ export const layoutSection: DocSection = {
         {
           title: 'Tones',
           description: 'card · muted · brand · plain background tokens side by side.',
-          code: `<Stack direction="row" gap={3}>
+          code: `<div className="flex flex-row gap-3">
   <Surface tone="card" align="center" className="flex-1"><Text size="sm">card</Text></Surface>
   <Surface tone="muted" align="center" className="flex-1"><Text size="sm">muted</Text></Surface>
   <Surface tone="brand" align="center" className="flex-1"><Text size="sm">brand</Text></Surface>
   <Surface tone="plain" align="center" className="flex-1"><Text size="sm">plain</Text></Surface>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={3}>
+            <div className="flex flex-row gap-3">
               <Surface tone="card" align="center" className="flex-1"><Text size="sm">card</Text></Surface>
               <Surface tone="muted" align="center" className="flex-1"><Text size="sm">muted</Text></Surface>
               <Surface tone="brand" align="center" className="flex-1"><Text size="sm">brand</Text></Surface>
               <Surface tone="plain" align="center" className="flex-1"><Text size="sm">plain</Text></Surface>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Padding & radius',
           description: 'padding sizes the inset (sm · md · lg); radius sets the corner rounding (none · md · xl · full).',
-          code: `<Stack gap={3}>
-  <Stack direction="row" gap={3}>
+          code: `<div className="flex flex-col gap-3">
+  <div className="flex flex-row gap-3">
     <Surface padding="sm" align="center" className="flex-1"><Text size="sm">sm</Text></Surface>
     <Surface padding="md" align="center" className="flex-1"><Text size="sm">md</Text></Surface>
     <Surface padding="lg" align="center" className="flex-1"><Text size="sm">lg</Text></Surface>
-  </Stack>
-  <Stack direction="row" gap={3}>
+  </div>
+  <div className="flex flex-row gap-3">
     <Surface radius="none" align="center" className="flex-1"><Text size="sm">none</Text></Surface>
     <Surface radius="md" align="center" className="flex-1"><Text size="sm">md</Text></Surface>
     <Surface radius="xl" align="center" className="flex-1"><Text size="sm">xl</Text></Surface>
     <Surface radius="full" align="center" className="flex-1"><Text size="sm">full</Text></Surface>
-  </Stack>
-</Stack>`,
+  </div>
+</div>`,
           render: (
-            <Stack gap={3}>
-              <Stack direction="row" gap={3}>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-row gap-3">
                 <Surface padding="sm" align="center" className="flex-1"><Text size="sm">sm</Text></Surface>
                 <Surface padding="md" align="center" className="flex-1"><Text size="sm">md</Text></Surface>
                 <Surface padding="lg" align="center" className="flex-1"><Text size="sm">lg</Text></Surface>
-              </Stack>
-              <Stack direction="row" gap={3}>
+              </div>
+              <div className="flex flex-row gap-3">
                 <Surface radius="none" align="center" className="flex-1"><Text size="sm">none</Text></Surface>
                 <Surface radius="md" align="center" className="flex-1"><Text size="sm">md</Text></Surface>
                 <Surface radius="xl" align="center" className="flex-1"><Text size="sm">xl</Text></Surface>
                 <Surface radius="full" align="center" className="flex-1"><Text size="sm">full</Text></Surface>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           ),
         },
         {
           title: 'Bordered',
           description: 'Add a token border with the bordered flag — works with any tone.',
-          code: `<Stack direction="row" gap={3}>
+          code: `<div className="flex flex-row gap-3">
   <Surface bordered align="center" className="flex-1"><Text size="sm">bordered</Text></Surface>
   <Surface bordered tone="plain" align="center" className="flex-1"><Text size="sm">plain + border</Text></Surface>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={3}>
+            <div className="flex flex-row gap-3">
               <Surface bordered align="center" className="flex-1"><Text size="sm">bordered</Text></Surface>
               <Surface bordered tone="plain" align="center" className="flex-1"><Text size="sm">plain + border</Text></Surface>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Text alignment',
           description: 'align controls how text sits inside the surface — left · center · right.',
-          code: `<Stack gap={3} className="w-full">
+          code: `<div className="flex flex-col gap-3 w-full">
   <Surface tone="muted" align="left"><Text size="sm">left</Text></Surface>
   <Surface tone="muted" align="center"><Text size="sm">center</Text></Surface>
   <Surface tone="muted" align="right"><Text size="sm">right</Text></Surface>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3} className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Surface tone="muted" align="left"><Text size="sm">left</Text></Surface>
               <Surface tone="muted" align="center"><Text size="sm">center</Text></Surface>
               <Surface tone="muted" align="right"><Text size="sm">right</Text></Surface>
-            </Stack>
+            </div>
           ),
         },
       ],

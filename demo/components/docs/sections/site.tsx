@@ -15,7 +15,6 @@ import {
   PanelBlock,
   Callout,
   Text,
-  Stack,
 } from 'glt-ui';
 import type { DocSection } from '../types';
 
@@ -111,17 +110,17 @@ export const siteSection: DocSection = {
         {
           title: 'Nav row',
           description: 'A horizontal row of navigation links.',
-          code: `<Stack direction="row" align="center" gap={4}>
+          code: `<div className="flex flex-row gap-4 items-center">
   <SiteNavLink href="#">Overview</SiteNavLink>
   <SiteNavLink href="#">Components</SiteNavLink>
   <SiteNavLink href="#">Changelog</SiteNavLink>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" align="center" gap={4}>
+            <div className="flex flex-row gap-4 items-center">
               <SiteNavLink href="#">Overview</SiteNavLink>
               <SiteNavLink href="#">Components</SiteNavLink>
               <SiteNavLink href="#">Changelog</SiteNavLink>
-            </Stack>
+            </div>
           ),
         },
       ],

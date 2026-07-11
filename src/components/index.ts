@@ -35,7 +35,6 @@ export * from './atoms/SiteNavLink/SiteNavLink.js';
 export * from './atoms/Skeleton/Skeleton.js';
 export * from './atoms/Sparkline/Sparkline.js';
 export * from './atoms/Spinner/Spinner.js';
-export * from './atoms/Stack/Stack.js';
 export * from './atoms/Surface/Surface.js';
 export * from './atoms/Switch/Switch.js';
 export * from './atoms/Text/Text.js';

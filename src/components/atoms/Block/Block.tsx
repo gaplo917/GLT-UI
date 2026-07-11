@@ -34,7 +34,7 @@ const spacingClasses: Record<BlockSpacing, string> = {
  * children so stacked elements — paragraphs, cards, media objects, anything —
  * keep an even vertical rhythm without bespoke margins on each item.
  *
- * Unlike `Stack` (a flex column with `gap`), Block spaces children with plain
+ * Unlike a flex column with `gap`, Block spaces children with plain
  * bottom margins, so it works with elements whose own display matters (floats,
  * inline-block, mixed block content) and collapses margins the way prose does.
  */

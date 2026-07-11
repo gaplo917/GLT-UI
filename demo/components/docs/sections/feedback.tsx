@@ -12,7 +12,6 @@ import {
   Quote,
   Skeleton,
   Spinner,
-  Stack,
   Text,
   Tooltip,
 } from 'glt-ui';
@@ -72,14 +71,14 @@ export const feedbackSection: DocSection = {
           title: 'Appearances',
           description:
             'The same variant rendered with each of the four accent treatments.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Callout variant="info" appearance="soft" title="Soft">Tinted background.</Callout>
   <Callout variant="info" appearance="outline" title="Outline">Bordered, transparent fill.</Callout>
   <Callout variant="info" appearance="solid" title="Solid">Filled accent surface.</Callout>
   <Callout variant="info" appearance="plain" title="Plain">Minimal, borderless.</Callout>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <Callout variant="info" appearance="soft" title="Soft">
                 Tinted background.
               </Callout>
@@ -92,7 +91,7 @@ export const feedbackSection: DocSection = {
               <Callout variant="info" appearance="plain" title="Plain">
                 Minimal, borderless.
               </Callout>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -132,19 +131,19 @@ export const feedbackSection: DocSection = {
         {
           title: 'Sizes',
           description: 'Compact sm through roomy lg for different densities.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Callout variant="note" size="sm" title="Small">Tight spacing for dense layouts.</Callout>
   <Callout variant="note" size="lg" title="Large">Generous spacing for emphasis.</Callout>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <Callout variant="note" size="sm" title="Small">
                 Tight spacing for dense layouts.
               </Callout>
               <Callout variant="note" size="lg" title="Large">
                 Generous spacing for emphasis.
               </Callout>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -159,35 +158,35 @@ export const feedbackSection: DocSection = {
         {
           title: 'Variants',
           description: 'Four semantic variants; each shows its default icon badge.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Alert variant="info" title="Heads up">A new version is available.</Alert>
   <Alert variant="success" title="Saved">Your changes have been stored.</Alert>
   <Alert variant="warning" title="Careful">Your session expires soon.</Alert>
   <Alert variant="danger" title="Failed">We could not process the request.</Alert>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <Alert variant="info" title="Heads up">A new version is available.</Alert>
               <Alert variant="success" title="Saved">Your changes have been stored.</Alert>
               <Alert variant="warning" title="Careful">Your session expires soon.</Alert>
               <Alert variant="danger" title="Failed">We could not process the request.</Alert>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Appearances',
           description: 'soft (default), solid, and outline.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Alert variant="success" title="Soft">Tinted surface with a colored badge.</Alert>
   <Alert variant="success" appearance="solid" title="Solid">Filled, high-contrast banner.</Alert>
   <Alert variant="success" appearance="outline" title="Outline">Bordered, transparent banner.</Alert>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <Alert variant="success" title="Soft">Tinted surface with a colored badge.</Alert>
               <Alert variant="success" appearance="solid" title="Solid">Filled, high-contrast banner.</Alert>
               <Alert variant="success" appearance="outline" title="Outline">Bordered, transparent banner.</Alert>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -251,7 +250,7 @@ export const feedbackSection: DocSection = {
           description:
             'Left and right bubbles with avatars, timestamps, and Markdown bodies form a thread.',
           previewClassName: 'w-full max-w-xl',
-          code: `<Stack gap={4}>
+          code: `<div className="flex flex-col gap-4">
   <Message
     side="left"
     author="Ava"
@@ -266,9 +265,9 @@ export const feedbackSection: DocSection = {
     avatar={<Avatar initials="ME" />}
     markdown="Nice. Can you share the *breakdown* by region?"
   />
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={4}>
+            <div className="flex flex-col gap-4">
               <Message
                 side="left"
                 author="Ava"
@@ -283,7 +282,7 @@ export const feedbackSection: DocSection = {
                 avatar={<Avatar initials="ME" />}
                 markdown="Nice. Can you share the *breakdown* by region?"
               />
-            </Stack>
+            </div>
           ),
         },
         {
@@ -420,39 +419,39 @@ See the [full dashboard](#) for details.`}
         {
           title: 'Intents',
           description: 'Each semantic colour intent applied to the spinner.',
-          code: `<Stack direction="row" gap={4} align="center" wrap>
+          code: `<div className="flex flex-row gap-4 items-center flex-wrap">
   <Spinner intent="brand" label="Loading" />
   <Spinner intent="info" label="Loading" />
   <Spinner intent="success" label="Loading" />
   <Spinner intent="warning" label="Loading" />
   <Spinner intent="danger" label="Loading" />
   <Spinner intent="current" label="Loading" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={4} align="center" wrap>
+            <div className="flex flex-row gap-4 items-center flex-wrap">
               <Spinner intent="brand" label="Loading" />
               <Spinner intent="info" label="Loading" />
               <Spinner intent="success" label="Loading" />
               <Spinner intent="warning" label="Loading" />
               <Spinner intent="danger" label="Loading" />
               <Spinner intent="current" label="Loading" />
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Sizes',
           description: 'From sm to lg for different contexts.',
-          code: `<Stack direction="row" gap={4} align="center" wrap>
+          code: `<div className="flex flex-row gap-4 items-center flex-wrap">
   <Spinner size="sm" label="Loading" />
   <Spinner size="md" label="Loading" />
   <Spinner size="lg" label="Loading" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={4} align="center" wrap>
+            <div className="flex flex-row gap-4 items-center flex-wrap">
               <Spinner size="sm" label="Loading" />
               <Spinner size="md" label="Loading" />
               <Spinner size="lg" label="Loading" />
-            </Stack>
+            </div>
           ),
         },
       ],

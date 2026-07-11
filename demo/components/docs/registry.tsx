@@ -41,7 +41,7 @@ const atomsSection = layer('atoms', 'Atoms', 'Indivisible UI primitives.', [
   // text & content
   'text', 'title', 'heading', 'code', 'label', 'icon', 'content', 'markdown', 'list', 'block',
   // layout
-  'box', 'container', 'grid', 'stack', 'surface', 'divider', 'level', 'media-object',
+  'box', 'container', 'grid', 'surface', 'divider', 'level', 'media-object',
   // controls
   'button', 'delete-button', 'text-input', 'text-area', 'select-field', 'checkbox', 'radio', 'switch',
   // display

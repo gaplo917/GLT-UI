@@ -6,7 +6,7 @@ and atoms, a molecule may compose atoms, and atoms compose nothing but raw HTML.
 
 | Layer | What lives here | Examples |
 | --- | --- | --- |
-| **atoms** | Indivisible primitives — a single element or the smallest useful wrapper. | `Text`, `Title`, `Icon`, `Button`, `Badge`, `Surface`, `Block`, `Stack`, `Grid` |
+| **atoms** | Indivisible primitives — a single element or the smallest useful wrapper. | `Text`, `Title`, `Icon`, `Button`, `Badge`, `Surface`, `Block`, `Grid` |
 | **molecules** | A small group of atoms working as one unit. | `FormField`, `MediaObject`, `Callout`, `StatMetric`, `TagGroup`, `DropdownMenu` |
 | **organisms** | Distinct, self-contained sections built from molecules and atoms. | `Card`, `Navbar`, `Tabs`, `Accordion`, `DataTable`, `PageHero` |
 | **templates** | Page-level layout scaffolds that arrange organisms — content-agnostic. | `Section` |

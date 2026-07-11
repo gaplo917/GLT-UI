@@ -5,7 +5,6 @@ import {
   Title,
   Subtitle,
   Text,
-  Stack,
   Content,
   Code,
   Markdown,
@@ -39,12 +38,12 @@ export const typographySection: DocSection = {
 <Heading level={3}>Heading level 3</Heading>
 <Heading level={4}>Heading level 4</Heading>`,
           render: (
-            <Stack gap={2}>
+            <div className="flex flex-col gap-2">
               <Heading level={1}>Heading level 1</Heading>
               <Heading level={2}>Heading level 2</Heading>
               <Heading level={3}>Heading level 3</Heading>
               <Heading level={4}>Heading level 4</Heading>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -72,53 +71,53 @@ export const typographySection: DocSection = {
         {
           title: 'Title & Subtitle lockup',
           description: 'A Title followed directly by a Subtitle — the classic two-line heading.',
-          code: `<Stack gap={1}>
+          code: `<div className="flex flex-col gap-1">
   <Title size={2}>Model Evaluation</Title>
   <Subtitle size={4}>Rolling 24-hour window across all regions</Subtitle>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={1}>
+            <div className="flex flex-col gap-1">
               <Title size={2}>Model Evaluation</Title>
               <Subtitle size={4}>Rolling 24-hour window across all regions</Subtitle>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Title sizes 1–6',
           description: 'The full title scale, largest to smallest.',
-          code: `<Stack gap={2}>
+          code: `<div className="flex flex-col gap-2">
   <Title size={1}>Title 1</Title>
   <Title size={2}>Title 2</Title>
   <Title size={3}>Title 3</Title>
   <Title size={4}>Title 4</Title>
   <Title size={5}>Title 5</Title>
   <Title size={6}>Title 6</Title>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={2}>
+            <div className="flex flex-col gap-2">
               {([1, 2, 3, 4, 5, 6] as const).map((s) => (
                 <Title key={s} size={s}>Title {s}</Title>
               ))}
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Subtitle sizes 1–6',
           description: 'The matching subtitle scale, lighter in weight and colour.',
-          code: `<Stack gap={2}>
+          code: `<div className="flex flex-col gap-2">
   <Subtitle size={1}>Subtitle 1</Subtitle>
   <Subtitle size={2}>Subtitle 2</Subtitle>
   <Subtitle size={3}>Subtitle 3</Subtitle>
   <Subtitle size={4}>Subtitle 4</Subtitle>
   <Subtitle size={5}>Subtitle 5</Subtitle>
   <Subtitle size={6}>Subtitle 6</Subtitle>
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={2}>
+            <div className="flex flex-col gap-2">
               {([1, 2, 3, 4, 5, 6] as const).map((s) => (
                 <Subtitle key={s} size={s}>Subtitle {s}</Subtitle>
               ))}
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -138,12 +137,12 @@ export const typographySection: DocSection = {
 <Text tone="strong">Strong tone</Text>
 <Text tone="brand">Brand tone</Text>`,
           render: (
-            <Stack gap={1}>
+            <div className="flex flex-col gap-1">
               <Text tone="default">Default tone</Text>
               <Text tone="secondary">Secondary tone</Text>
               <Text tone="strong">Strong tone</Text>
               <Text tone="brand">Brand tone</Text>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -154,12 +153,12 @@ export const typographySection: DocSection = {
 <Text size="base">Base text</Text>
 <Text size="lg">Large text</Text>`,
           render: (
-            <Stack gap={1}>
+            <div className="flex flex-col gap-1">
               <Text size="xs">Extra small text</Text>
               <Text size="sm">Small text</Text>
               <Text size="base">Base text</Text>
               <Text size="lg">Large text</Text>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -169,11 +168,11 @@ export const typographySection: DocSection = {
 <Text weight="medium">Medium weight</Text>
 <Text weight="semibold">Semibold weight</Text>`,
           render: (
-            <Stack gap={1}>
+            <div className="flex flex-col gap-1">
               <Text weight="normal">Normal weight</Text>
               <Text weight="medium">Medium weight</Text>
               <Text weight="semibold">Semibold weight</Text>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -202,7 +201,7 @@ export const typographySection: DocSection = {
   Centered supporting line
 </Text>`,
           render: (
-            <Stack gap={2}>
+            <div className="flex flex-col gap-2">
               <Text size="3xl" weight="bold" tone="brand">
                 Guided Latent Tuning
               </Text>
@@ -212,7 +211,7 @@ export const typographySection: DocSection = {
               <Text size="xl" align="center">
                 Centered supporting line
               </Text>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -384,7 +383,7 @@ The **cost of change** curve is now *flatter*.
       id: 'block',
       name: 'Block',
       description:
-        'The most basic spacer. Block inserts a consistent bottom margin between its direct children so stacked elements keep an even vertical rhythm — no bespoke margins per item. Unlike Stack (a flex column with gap), it spaces with plain margins, so it plays nicely with mixed block content and prose.',
+        'The most basic spacer. Block inserts a consistent bottom margin between its direct children so stacked elements keep an even vertical rhythm — no bespoke margins per item. Unlike a flex column with gap, it spaces with plain margins, so it plays nicely with mixed block content and prose.',
       importLine: "import { Block } from 'glt-ui';",
       examples: [
         {

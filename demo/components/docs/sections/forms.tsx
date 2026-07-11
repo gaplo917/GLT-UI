@@ -7,7 +7,6 @@ import {
   Checkbox,
   Radio,
   Switch,
-  Stack,
 } from 'glt-ui';
 import type { DocSection } from '../types';
 
@@ -80,17 +79,17 @@ export const formsSection: DocSection = {
           title: 'Sizes',
           description: 'The inputSize prop scales padding and typography.',
           previewClassName: 'max-w-md',
-          code: `<Stack direction="column" gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <TextInput inputSize="sm" placeholder="Small" />
   <TextInput inputSize="md" placeholder="Medium (default)" />
   <TextInput inputSize="lg" placeholder="Large" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" gap={3}>
+            <div className="flex flex-col gap-3">
               <TextInput inputSize="sm" placeholder="Small" />
               <TextInput inputSize="md" placeholder="Medium (default)" />
               <TextInput inputSize="lg" placeholder="Large" />
-            </Stack>
+            </div>
           ),
         },
         {
@@ -203,19 +202,19 @@ export const formsSection: DocSection = {
         {
           title: 'States',
           description: 'Checked, unchecked, and disabled variants.',
-          code: `<Stack direction="column" gap={2}>
+          code: `<div className="flex flex-col gap-2">
   <Checkbox label="Unchecked" />
   <Checkbox label="Checked" defaultChecked />
   <Checkbox label="Disabled" disabled />
   <Checkbox label="Disabled & checked" disabled defaultChecked />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" gap={2}>
+            <div className="flex flex-col gap-2">
               <Checkbox label="Unchecked" />
               <Checkbox label="Checked" defaultChecked />
               <Checkbox label="Disabled" disabled />
               <Checkbox label="Disabled & checked" disabled defaultChecked />
-            </Stack>
+            </div>
           ),
         },
         {
@@ -236,17 +235,17 @@ export const formsSection: DocSection = {
         {
           title: 'Radio group',
           description: 'Radios sharing name="mode" form a single selection.',
-          code: `<Stack direction="column" gap={2}>
+          code: `<div className="flex flex-col gap-2">
   <Radio name="mode" label="Automatic" defaultChecked />
   <Radio name="mode" label="Manual" />
   <Radio name="mode" label="Scheduled" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" gap={2}>
+            <div className="flex flex-col gap-2">
               <Radio name="mode" label="Automatic" defaultChecked />
               <Radio name="mode" label="Manual" />
               <Radio name="mode" label="Scheduled" />
-            </Stack>
+            </div>
           ),
         },
         {
@@ -267,17 +266,17 @@ export const formsSection: DocSection = {
         {
           title: 'States',
           description: 'On, off, and disabled toggles.',
-          code: `<Stack direction="column" gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Switch label="Notifications on" defaultChecked />
   <Switch label="Notifications off" />
   <Switch label="Disabled" disabled />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" gap={3}>
+            <div className="flex flex-col gap-3">
               <Switch label="Notifications on" defaultChecked />
               <Switch label="Notifications off" />
               <Switch label="Disabled" disabled />
-            </Stack>
+            </div>
           ),
         },
         {

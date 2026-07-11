@@ -1,12 +1,12 @@
 'use client';
 import * as React from 'react';
-import { Button, DeleteButton, DropdownMenu, Stack, Text } from 'glt-ui';
+import { Button, DeleteButton, DropdownMenu, Text } from 'glt-ui';
 import type { DocPropsTable, DocSection } from '../types';
 
 function LoadingDemo() {
   const [loading, setLoading] = React.useState(false);
   return (
-    <Stack direction="row" wrap align="center" gap={3}>
+    <div className="flex flex-row gap-3 items-center flex-wrap">
       <Button
         variant="primary"
         loading={loading}
@@ -17,7 +17,7 @@ function LoadingDemo() {
       <Button variant="outline" onClick={() => setLoading((v) => !v)}>
         Toggle loading
       </Button>
-    </Stack>
+    </div>
   );
 }
 
@@ -100,7 +100,7 @@ export const actionsSection: DocSection = {
         {
           title: 'Variants',
           description: 'All seven visual styles for different levels of emphasis.',
-          code: `<Stack direction="row" wrap align="center" gap={3}>
+          code: `<div className="flex flex-row gap-3 items-center flex-wrap">
   <Button variant="primary">Primary</Button>
   <Button variant="secondary">Secondary</Button>
   <Button variant="outline">Outline</Button>
@@ -108,9 +108,9 @@ export const actionsSection: DocSection = {
   <Button variant="link">Link</Button>
   <Button variant="danger">Danger</Button>
   <Button variant="success">Success</Button>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" wrap align="center" gap={3}>
+            <div className="flex flex-row gap-3 items-center flex-wrap">
               <Button variant="primary">Primary</Button>
               <Button variant="secondary">Secondary</Button>
               <Button variant="outline">Outline</Button>
@@ -118,22 +118,22 @@ export const actionsSection: DocSection = {
               <Button variant="link">Link</Button>
               <Button variant="danger">Danger</Button>
               <Button variant="success">Success</Button>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Sizes',
           description:
             'From xs to lg, plus a square icon size that requires an aria-label.',
-          code: `<Stack direction="row" wrap align="center" gap={3}>
+          code: `<div className="flex flex-row gap-3 items-center flex-wrap">
   <Button size="xs">Extra small</Button>
   <Button size="sm">Small</Button>
   <Button size="md">Medium</Button>
   <Button size="lg">Large</Button>
   <Button size="icon" aria-label="Add item">+</Button>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" wrap align="center" gap={3}>
+            <div className="flex flex-row gap-3 items-center flex-wrap">
               <Button size="xs">Extra small</Button>
               <Button size="sm">Small</Button>
               <Button size="md">Medium</Button>
@@ -141,29 +141,29 @@ export const actionsSection: DocSection = {
               <Button size="icon" aria-label="Add item">
                 +
               </Button>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'With icons',
           description: 'Attach leading or trailing icons via leftIcon and rightIcon.',
-          code: `<Stack direction="row" wrap align="center" gap={3}>
+          code: `<div className="flex flex-row gap-3 items-center flex-wrap">
   <Button variant="primary" leftIcon={<Text as="span" aria-hidden>↓</Text>}>
     Download
   </Button>
   <Button variant="outline" rightIcon={<Text as="span" aria-hidden>→</Text>}>
     Continue
   </Button>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" wrap align="center" gap={3}>
+            <div className="flex flex-row gap-3 items-center flex-wrap">
               <Button variant="primary" leftIcon={<Text as="span" aria-hidden>↓</Text>}>
                 Download
               </Button>
               <Button variant="outline" rightIcon={<Text as="span" aria-hidden>→</Text>}>
                 Continue
               </Button>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -194,7 +194,7 @@ export const actionsSection: DocSection = {
           code: `function LoadingDemo() {
   const [loading, setLoading] = React.useState(false);
   return (
-    <Stack direction="row" wrap align="center" gap={3}>
+    <div className="flex flex-row gap-3 items-center flex-wrap">
       <Button
         variant="primary"
         loading={loading}
@@ -205,7 +205,7 @@ export const actionsSection: DocSection = {
       <Button variant="outline" onClick={() => setLoading((v) => !v)}>
         Toggle loading
       </Button>
-    </Stack>
+    </div>
   );
 }`,
           render: <LoadingDemo />,
@@ -215,23 +215,23 @@ export const actionsSection: DocSection = {
           description:
             'Stretch a button to fill its container, and disable it to block interaction.',
           previewClassName: 'max-w-sm',
-          code: `<Stack direction="column" gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <Button variant="primary" fullWidth>
     Full width
   </Button>
   <Button variant="primary" fullWidth disabled>
     Disabled
   </Button>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" gap={3}>
+            <div className="flex flex-col gap-3">
               <Button variant="primary" fullWidth>
                 Full width
               </Button>
               <Button variant="primary" fullWidth disabled>
                 Disabled
               </Button>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -273,17 +273,17 @@ export const actionsSection: DocSection = {
           title: 'In a list of items',
           description:
             'A compact ghost button, well suited to dismissing chips or rows without stealing emphasis.',
-          code: `<Stack direction="column" align="start" gap={2}>
+          code: `<div className="flex flex-col gap-2 items-start">
   <DeleteButton label="design-system.fig" onDelete={() => alert('Removed file')} />
   <DeleteButton label="brand-guidelines.pdf" onDelete={() => alert('Removed file')} />
   <DeleteButton label="logo-final-v3.svg" onDelete={() => alert('Removed file')} />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="column" align="start" gap={2}>
+            <div className="flex flex-col gap-2 items-start">
               <DeleteButton label="design-system.fig" onDelete={() => alert('Removed file')} />
               <DeleteButton label="brand-guidelines.pdf" onDelete={() => alert('Removed file')} />
               <DeleteButton label="logo-final-v3.svg" onDelete={() => alert('Removed file')} />
-            </Stack>
+            </div>
           ),
         },
       ],

@@ -1,15 +1,14 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
-import { Stack } from '@/components/atoms/Stack/Stack.js';
 
 export interface SiteFooterProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
 /**
- * A page footer landmark. Lays its children out as a centered, wrapping row via
- * the Stack atom so the copyright note and secondary links stay spaced apart
- * (and stack cleanly on mobile) instead of running together.
+ * A page footer landmark. Lays its children out as a centered, wrapping row so
+ * the copyright note and secondary links stay spaced apart (and stack cleanly
+ * on mobile) instead of running together.
  */
 export function SiteFooter({ children, className, ...props }: SiteFooterProps) {
   return (
@@ -20,9 +19,7 @@ export function SiteFooter({ children, className, ...props }: SiteFooterProps) {
       )}
       {...props}
     >
-      <Stack direction="row" gap={4} wrap align="center" justify="center">
-        {children}
-      </Stack>
+      <div className="flex flex-row flex-wrap items-center justify-center gap-4">{children}</div>
     </footer>
   );
 }

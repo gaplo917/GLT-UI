@@ -26,7 +26,6 @@ import {
   Grid,
   ImagePlaceholder,
   ProgressBar,
-  Stack,
   StatGrid,
   StatMetric,
   Table,
@@ -47,7 +46,7 @@ import type { DocSection } from '../types';
 function ChipsDemo() {
   const [tags, setTags] = React.useState(['latency', 'agents', 'scaling']);
   return (
-    <Stack direction="row" gap={2} wrap>
+    <div className="flex flex-row gap-2 flex-wrap">
       {tags.map((t) => (
         <Badge
           key={t}
@@ -58,7 +57,7 @@ function ChipsDemo() {
           {t}
         </Badge>
       ))}
-    </Stack>
+    </div>
   );
 }
 
@@ -530,10 +529,10 @@ export const dataSection: DocSection = {
   <TableBody>
     <TableRow>
       <TableCell valign="top">
-        <Stack direction="row" gap={2} className="items-center">
+        <div className="flex flex-row gap-2 items-center">
           <Avatar initials="A7" size="sm" />
           <Text weight="semibold">Atlas-7B</Text>
-        </Stack>
+        </div>
       </TableCell>
       <TableCell valign="top">
         <Text>
@@ -546,10 +545,10 @@ export const dataSection: DocSection = {
     </TableRow>
     <TableRow>
       <TableCell valign="top">
-        <Stack gap={2}>
+        <div className="flex flex-col gap-2">
           <ImagePlaceholder label="Preview" ratio="video" className="w-32" />
           <Text weight="semibold">Atlas-70B</Text>
-        </Stack>
+        </div>
       </TableCell>
       <TableCell valign="top">
         <Text>
@@ -575,10 +574,10 @@ export const dataSection: DocSection = {
               <TableBody>
                 <TableRow>
                   <TableCell valign="top">
-                    <Stack direction="row" gap={2} className="items-center">
+                    <div className="flex flex-row gap-2 items-center">
                       <Avatar initials="A7" size="sm" />
                       <Text weight="semibold">Atlas-7B</Text>
-                    </Stack>
+                    </div>
                   </TableCell>
                   <TableCell valign="top">
                     <Text>
@@ -593,10 +592,10 @@ export const dataSection: DocSection = {
                 </TableRow>
                 <TableRow>
                   <TableCell valign="top">
-                    <Stack gap={2}>
+                    <div className="flex flex-col gap-2">
                       <ImagePlaceholder label="Preview" ratio="video" className="w-32" />
                       <Text weight="semibold">Atlas-70B</Text>
-                    </Stack>
+                    </div>
                   </TableCell>
                   <TableCell valign="top">
                     <Text>
@@ -697,7 +696,7 @@ export const dataSection: DocSection = {
       id: 'chart',
       name: 'Chart',
       description:
-        "A themed wrapper around chart.js. Feed it labels + series for the common case — palette, fonts, grid, tooltip, and legend are all pulled from theme tokens and re-read automatically when the theme switches between light and dark. Colors accept palette tokens ('brand', 'success', …), CSS custom-property names, or raw CSS colors. Drop down to raw chart.js any time via the data, options, and plugins escape hatches. type=\"area\" is sugar for a filled line chart.",
+        "A themed wrapper around chart.js. Feed it labels + series for the common case — palette, fonts, grid, tooltip, and legend are all pulled from theme tokens and re-read automatically when the theme switches between light and dark. By default, pie/doughnut slices and single-series bars use a different palette color per category; multi-series and stacked charts use one color per series. Category label + numeric value are drawn on every bar, slice, and point (dataLabels={false} to hide). Colors accept palette tokens ('brand', 'success', …), CSS custom-property names, or raw CSS colors. Drop down to raw chart.js any time via the data, options, and plugins escape hatches. type=\"area\" is sugar for a filled line chart.",
       importLine: "import { Chart } from 'glt-ui';",
       examples: [
         {
@@ -755,6 +754,78 @@ export const dataSection: DocSection = {
           ),
         },
         {
+          title: 'Categorical bar (multi-color)',
+          description:
+            'A single bar series without color paints each category from the default palette (brand, info, success, …) — the same pattern as pie slices. Set series[].color for monochrome bars; multi-series / stacked charts keep one color per series.',
+          code: `<Chart
+  type="bar"
+  height={260}
+  legend={false}
+  title="Human-first (pre-agent)"
+  labels={[
+    'Implementation / coding',
+    'Review & verification',
+    'Specification & design',
+    'Coordination & orchestration',
+    'Coherence, architecture & harness',
+  ]}
+  series={[{ data: [48, 15, 14, 13, 10] }]}
+  options={{
+    indexAxis: 'y',
+    scales: { x: { max: 55, ticks: { callback: (v) => \`\${v}%\` } } },
+  }}
+/>`,
+          render: (
+            <Chart
+              type="bar"
+              height={260}
+              legend={false}
+              title="Human-first (pre-agent)"
+              labels={[
+                'Implementation / coding',
+                'Review & verification',
+                'Specification & design',
+                'Coordination & orchestration',
+                'Coherence, architecture & harness',
+              ]}
+              series={[{ data: [48, 15, 14, 13, 10] }]}
+              options={{
+                indexAxis: 'y',
+                scales: { x: { max: 55, ticks: { callback: (v) => `${v}%` } } },
+              }}
+            />
+          ),
+        },
+        {
+          title: 'Stacked bar',
+          description:
+            'stacked stacks series on the category axis; each series still takes a different palette slot by index when color is omitted.',
+          code: `<Chart
+  type="bar"
+  stacked
+  height={240}
+  labels={['Mon', 'Tue', 'Wed', 'Thu', 'Fri']}
+  series={[
+    { label: 'Build', data: [12, 15, 11, 14, 13] },
+    { label: 'Test', data: [8, 7, 9, 6, 8] },
+    { label: 'Review', data: [5, 6, 4, 7, 5] },
+  ]}
+/>`,
+          render: (
+            <Chart
+              type="bar"
+              stacked
+              height={240}
+              labels={['Mon', 'Tue', 'Wed', 'Thu', 'Fri']}
+              series={[
+                { label: 'Build', data: [12, 15, 11, 14, 13] },
+                { label: 'Test', data: [8, 7, 9, 6, 8] },
+                { label: 'Review', data: [5, 6, 4, 7, 5] },
+              ]}
+            />
+          ),
+        },
+        {
           title: 'Doughnut',
           description:
             'Circular charts (pie / doughnut / polarArea) colour each slice from the palette automatically. A title and caption render via the Text atom.',
@@ -782,7 +853,7 @@ export const dataSection: DocSection = {
         {
           title: 'Mixed bar + line',
           description:
-            'Set type on a single series to override it — here a line rides on top of bars. The chart-level type is the default for the rest.',
+            'Set type on a single series to override it — here a line rides on top of bars. The chart-level type is the default for the rest. Explicit color keeps the bar series monochrome.',
           code: `<Chart
   type="bar"
   height={240}
@@ -843,7 +914,7 @@ export const dataSection: DocSection = {
             { name: 'series', type: 'ChartSeries[]', description: 'Themed series. Ignored when data is provided.' },
             { name: 'data', type: 'ChartData', description: 'Escape hatch: full chart.js data. Takes precedence over labels/series.' },
             { name: 'options', type: 'ChartOptions', description: 'Escape hatch: chart.js options, deep-merged over the themed defaults.' },
-            { name: 'palette', type: 'Array<ChartColorToken | string>', default: "['brand','info','success','warning','danger','neutral']", description: 'Ordered palette of tokens / CSS colors used when a series omits its color.' },
+            { name: 'palette', type: 'Array<ChartColorToken | string>', default: "['brand','info','success','warning','danger','neutral']", description: 'Ordered palette for series without color, and for per-category bars / pie slices.' },
             { name: 'legend', type: "boolean | 'top' | 'bottom' | 'left' | 'right'", default: "'top'", description: 'Legend visibility/position (hidden by default for scatter/bubble).' },
             { name: 'title', type: 'React.ReactNode', description: 'Heading rendered above the canvas via the Text atom.' },
             { name: 'caption', type: 'React.ReactNode', description: 'Caption rendered below the canvas via the Text atom.' },
@@ -852,6 +923,7 @@ export const dataSection: DocSection = {
             { name: 'height', type: 'number', description: 'Fixed pixel height. When omitted the chart keeps aspectRatio.' },
             { name: 'aspectRatio', type: 'number', default: '2', description: 'Width ÷ height ratio when height is not set.' },
             { name: 'ariaLabel', type: 'string', description: 'Accessible label for the canvas image; falls back to title.' },
+            { name: 'dataLabels', type: 'boolean', default: 'true', description: 'Draw category/series label + numeric value on each bar, slice, and point.' },
             { name: 'plugins', type: 'Plugin[]', description: 'Extra chart.js plugins.' },
           ],
         },
@@ -860,7 +932,7 @@ export const dataSection: DocSection = {
           props: [
             { name: 'label', type: 'string', description: 'Legend label for the series.' },
             { name: 'data', type: 'Array<number | { x; y; r? }>', required: true, description: 'Y-values, or {x, y, r?} points for scatter/bubble.' },
-            { name: 'color', type: 'ChartColorToken | string', description: 'Palette token, CSS var name, or CSS color. Defaults to the palette slot at this index.' },
+            { name: 'color', type: 'ChartColorToken | string', description: 'Palette token, CSS var name, or CSS color. Defaults to the palette slot at this index. Omit on a single-series bar to multi-color each category.' },
             { name: 'fill', type: 'boolean', description: "Fill under a line. Defaults to true for type='area'." },
             { name: 'type', type: "'line' | 'bar'", description: 'Override the rendered type for this series (mixed charts).' },
             { name: 'dataset', type: 'Partial<ChartDataset>', description: 'Escape hatch: raw chart.js dataset options, deep-merged last.' },
@@ -878,13 +950,13 @@ export const dataSection: DocSection = {
         {
           title: 'Counting metrics',
           description: 'Each value counts up once on scroll. Supports decimals, separators, prefixes, and suffixes.',
-          code: `<Stack direction="row" gap={8} wrap>
+          code: `<div className="flex flex-row gap-8 flex-wrap">
   <Text size="5xl" weight="semibold" tone="strong"><CountUp to={128500} separator="," /></Text>
   <Text size="5xl" weight="semibold" tone="brand"><CountUp to={99.4} decimals={1} suffix="%" /></Text>
   <Text size="5xl" weight="semibold" tone="strong"><CountUp to={2.1} decimals={1} prefix="×" /></Text>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={8} wrap>
+            <div className="flex flex-row gap-8 flex-wrap">
               <Text size="5xl" weight="semibold" tone="strong">
                 <CountUp to={128500} separator="," />
               </Text>
@@ -894,7 +966,7 @@ export const dataSection: DocSection = {
               <Text size="5xl" weight="semibold" tone="strong">
                 <CountUp to={2.1} decimals={1} prefix="×" />
               </Text>
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -925,17 +997,17 @@ export const dataSection: DocSection = {
         {
           title: 'Shapes & intents',
           description: 'The same series as area, line, and bars, each in a different intent color.',
-          code: `<Stack direction="row" gap={6} className="items-center" wrap>
+          code: `<div className="flex flex-row gap-6 flex-wrap items-center">
   <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="area" intent="brand" />
   <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="line" intent="success" />
   <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="bar" intent="info" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={6} className="items-center" wrap>
+            <div className="flex flex-row gap-6 flex-wrap items-center">
               <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="area" intent="brand" />
               <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="line" intent="success" />
               <Sparkline data={[4, 6, 5, 8, 7, 11, 13]} shape="bar" intent="info" />
-            </Stack>
+            </div>
           ),
         },
         {
@@ -982,17 +1054,17 @@ export const dataSection: DocSection = {
         {
           title: 'Ring gallery',
           description: 'Different values, intents, and an optional caption label.',
-          code: `<Stack direction="row" gap={6} wrap>
+          code: `<div className="flex flex-row gap-6 flex-wrap">
   <ProgressRing value={72} intent="brand" label="Coverage" />
   <ProgressRing value={94} intent="success" label="Uptime" />
   <ProgressRing value={38} intent="warning" label="Budget" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={6} wrap>
+            <div className="flex flex-row gap-6 flex-wrap">
               <ProgressRing value={72} intent="brand" label="Coverage" />
               <ProgressRing value={94} intent="success" label="Uptime" />
               <ProgressRing value={38} intent="warning" label="Budget" />
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -1018,7 +1090,7 @@ export const dataSection: DocSection = {
       id: 'benchmark-chart',
       name: 'BenchmarkChart',
       description:
-        'A horizontal bar comparison built for research results — "our method vs. the baselines". Bars grow from zero and values count up when scrolled into view; the winning row is highlighted automatically (or force it per row) with a brand bar and a badge. Set betterIs="lower" for latency-style metrics. Composes the Stack, Text, Badge, and CountUp atoms.',
+        'A horizontal bar comparison built for research results — "our method vs. the baselines". Bars grow from zero and values count up when scrolled into view; the winning row is highlighted automatically (or force it per row) with a brand bar and a badge. Set betterIs="lower" for latency-style metrics. Composes the Text, Badge, and CountUp atoms.',
       importLine: "import { BenchmarkChart } from 'glt-ui';",
       examples: [
         {
@@ -1288,13 +1360,13 @@ export const dataSection: DocSection = {
         {
           title: 'Headline numbers',
           description: 'A row of highlights combining prefixes, suffixes, and change deltas.',
-          code: `<Stack direction="row" gap={6} wrap>
+          code: `<div className="flex flex-row gap-6 flex-wrap">
   <DataHighlight value={42} label="Productivity" suffix="%" change="+8% MoM" />
   <DataHighlight value="1.9" label="Cost per 1M tokens" prefix="$" change="-12%" />
   <DataHighlight value={99.98} label="Uptime" suffix="%" change="stable" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={6} wrap>
+            <div className="flex flex-row gap-6 flex-wrap">
               <DataHighlight value={42} label="Productivity" suffix="%" change="+8% MoM" />
               <DataHighlight
                 value="1.9"
@@ -1303,7 +1375,7 @@ export const dataSection: DocSection = {
                 change="-12%"
               />
               <DataHighlight value={99.98} label="Uptime" suffix="%" change="stable" />
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -1333,37 +1405,37 @@ export const dataSection: DocSection = {
         {
           title: 'Intents',
           description: 'All five semantic intents stacked with labels and a value readout.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <ProgressBar intent="brand" label="Brand" value={72} suffix="%" />
   <ProgressBar intent="info" label="Info" value={54} suffix="%" />
   <ProgressBar intent="success" label="Success" value={88} suffix="%" />
   <ProgressBar intent="warning" label="Warning" value={40} suffix="%" />
   <ProgressBar intent="danger" label="Danger" value={18} suffix="%" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <ProgressBar intent="brand" label="Brand" value={72} suffix="%" />
               <ProgressBar intent="info" label="Info" value={54} suffix="%" />
               <ProgressBar intent="success" label="Success" value={88} suffix="%" />
               <ProgressBar intent="warning" label="Warning" value={40} suffix="%" />
               <ProgressBar intent="danger" label="Danger" value={18} suffix="%" />
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Sizes',
           description: 'The three track sizes from sm to lg.',
-          code: `<Stack gap={3}>
+          code: `<div className="flex flex-col gap-3">
   <ProgressBar size="sm" label="Small" value={60} suffix="%" />
   <ProgressBar size="md" label="Medium" value={60} suffix="%" />
   <ProgressBar size="lg" label="Large" value={60} suffix="%" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack gap={3}>
+            <div className="flex flex-col gap-3">
               <ProgressBar size="sm" label="Small" value={60} suffix="%" />
               <ProgressBar size="md" label="Medium" value={60} suffix="%" />
               <ProgressBar size="lg" label="Large" value={60} suffix="%" />
-            </Stack>
+            </div>
           ),
         },
       ],
@@ -1395,15 +1467,15 @@ export const dataSection: DocSection = {
         {
           title: 'Semantic variants',
           description: 'The semantic variants, each with a leading status dot.',
-          code: `<Stack direction="row" gap={2} wrap>
+          code: `<div className="flex flex-row gap-2 flex-wrap">
   <Badge variant="info" dot>Info</Badge>
   <Badge variant="success" dot>Success</Badge>
   <Badge variant="warning" dot>Warning</Badge>
   <Badge variant="danger" dot>Danger</Badge>
   <Badge variant="neutral" dot>Neutral</Badge>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={2} wrap>
+            <div className="flex flex-row gap-2 flex-wrap">
               <Badge variant="info" dot>
                 Info
               </Badge>
@@ -1419,21 +1491,21 @@ export const dataSection: DocSection = {
               <Badge variant="neutral" dot>
                 Neutral
               </Badge>
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Sizes',
           description: 'The two badge sizes side by side.',
-          code: `<Stack direction="row" gap={2} wrap align="center">
+          code: `<div className="flex flex-row gap-2 items-center flex-wrap">
   <Badge size="sm">Small</Badge>
   <Badge size="md">Medium</Badge>
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={2} wrap align="center">
+            <div className="flex flex-row gap-2 items-center flex-wrap">
               <Badge size="sm">Small</Badge>
               <Badge size="md">Medium</Badge>
-            </Stack>
+            </div>
           ),
         },
         {
@@ -1442,7 +1514,7 @@ export const dataSection: DocSection = {
           code: `function ChipsDemo() {
   const [tags, setTags] = React.useState(['latency', 'agents', 'scaling']);
   return (
-    <Stack direction="row" gap={2} wrap>
+    <div className="flex flex-row gap-2 flex-wrap">
       {tags.map((t) => (
         <Badge
           key={t}
@@ -1453,7 +1525,7 @@ export const dataSection: DocSection = {
           {t}
         </Badge>
       ))}
-    </Stack>
+    </div>
   );
 }`,
           render: <ChipsDemo />,
@@ -1470,37 +1542,37 @@ export const dataSection: DocSection = {
         {
           title: 'Statuses',
           description: 'Initials avatars carrying each of the four presence states.',
-          code: `<Stack direction="row" gap={4} wrap align="center">
+          code: `<div className="flex flex-row gap-4 items-center flex-wrap">
   <Avatar initials="ON" status="online" />
   <Avatar initials="OF" status="offline" />
   <Avatar initials="BS" status="busy" />
   <Avatar initials="AW" status="away" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={4} wrap align="center">
+            <div className="flex flex-row gap-4 items-center flex-wrap">
               <Avatar initials="ON" status="online" />
               <Avatar initials="OF" status="offline" />
               <Avatar initials="BS" status="busy" />
               <Avatar initials="AW" status="away" />
-            </Stack>
+            </div>
           ),
         },
         {
           title: 'Shapes & sizes',
           description: 'Circle and square shapes across the sm through xl size scale.',
-          code: `<Stack direction="row" gap={4} wrap align="center">
+          code: `<div className="flex flex-row gap-4 items-center flex-wrap">
   <Avatar initials="SM" size="sm" />
   <Avatar initials="MD" size="md" />
   <Avatar initials="LG" size="lg" />
   <Avatar initials="XL" size="xl" shape="square" />
-</Stack>`,
+</div>`,
           render: (
-            <Stack direction="row" gap={4} wrap align="center">
+            <div className="flex flex-row gap-4 items-center flex-wrap">
               <Avatar initials="SM" size="sm" />
               <Avatar initials="MD" size="md" />
               <Avatar initials="LG" size="lg" />
               <Avatar initials="XL" size="xl" shape="square" />
-            </Stack>
+            </div>
           ),
         },
       ],

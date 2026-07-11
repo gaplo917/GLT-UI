@@ -26,7 +26,6 @@ import {
   TechniqueGrid,
   SimulationPanel,
   Content,
-  Stack,
   Text,
   Code,
   List,
@@ -67,9 +66,9 @@ function Stepper({
   onChange: (v: number) => void;
 }) {
   return (
-    <Stack direction="row" justify="between" align="center" gap={3}>
+    <div className="flex flex-row gap-3 items-center justify-between">
       <Text weight="medium">{label}</Text>
-      <Stack direction="row" align="center" gap={2}>
+      <div className="flex flex-row gap-2 items-center">
         <Button
           size="icon"
           variant="outline"
@@ -92,8 +91,8 @@ function Stepper({
         >
           +
         </Button>
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 }
 
@@ -155,7 +154,7 @@ export function PracticalDemo() {
   ];
 
   return (
-    <Stack gap={0} className="pb-16">
+    <div className="flex flex-col gap-0 pb-16">
       <Section spacing="loose" className="pt-10 pb-8 border-b border-[var(--border-color)]">
         <PageHero
           badge={<Badge variant="fact">Research Report • 2026</Badge>}
@@ -253,6 +252,6 @@ export function PracticalDemo() {
         </SectionHeader>
         <Accordion items={accordionItems} multiple defaultOpen={['thesis']} />
       </Section>
-    </Stack>
+    </div>
   );
 }

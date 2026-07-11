@@ -5,7 +5,6 @@ import { cn } from '@/lib/cn.js';
 import { useInView } from '@/lib/motion.js';
 import { Badge } from '@/components/atoms/Badge/Badge.js';
 import { CountUp } from '@/components/atoms/CountUp/CountUp.js';
-import { Stack } from '@/components/atoms/Stack/Stack.js';
 import { Text } from '@/components/atoms/Text/Text.js';
 
 export type BenchmarkIntent = 'brand' | 'info' | 'success' | 'warning' | 'danger' | 'neutral';
@@ -59,7 +58,7 @@ const intentBar: Record<BenchmarkIntent, string> = {
  * A horizontal bar comparison built for research results — "our method vs. the
  * baselines". Bars grow from zero and values count up when scrolled into view;
  * the winning row is highlighted with a brand bar and a badge. Composes the
- * Stack / Text / Badge / CountUp atoms and honors `prefers-reduced-motion`.
+ * Text / Badge / CountUp atoms and honors `prefers-reduced-motion`.
  */
 export const BenchmarkChart = React.forwardRef<HTMLDivElement, BenchmarkChartProps>(
   (
@@ -103,13 +102,13 @@ export const BenchmarkChart = React.forwardRef<HTMLDivElement, BenchmarkChartPro
     const active = !animate || inView;
 
     return (
-      <Stack ref={setRefs} gap={2} className={cn('w-full', className)} {...props}>
+      <div ref={setRefs} className={cn('flex w-full flex-col gap-2', className)} {...props}>
         {title != null && (
           <Text as="div" size="lg" weight="semibold" tone="strong">
             {title}
           </Text>
         )}
-        <Stack gap={3} role="list" className="w-full">
+        <div role="list" className="flex w-full flex-col gap-3">
           {rows.map((item, i) => {
             const isBest = item.highlight ?? (!anyExplicit && item.value === bestValue);
             const intent: BenchmarkIntent = item.intent ?? (isBest ? 'brand' : 'neutral');
@@ -117,7 +116,7 @@ export const BenchmarkChart = React.forwardRef<HTMLDivElement, BenchmarkChartPro
             return (
               <div key={`${item.label}-${i}`} role="listitem" className="w-full">
                 <div className="mb-1 flex items-baseline justify-between gap-3">
-                  <Stack direction="row" gap={2} align="baseline" className="min-w-0">
+                  <div className="flex min-w-0 flex-row items-baseline gap-2">
                     <Text as="span" weight={isBest ? 'semibold' : 'normal'} tone={isBest ? 'strong' : 'default'} className="truncate">
                       {item.label}
                     </Text>
@@ -131,7 +130,7 @@ export const BenchmarkChart = React.forwardRef<HTMLDivElement, BenchmarkChartPro
                         {item.note}
                       </Text>
                     )}
-                  </Stack>
+                  </div>
                   <Text as="span" weight={isBest ? 'semibold' : 'medium'} tone={isBest ? 'brand' : 'default'} className="shrink-0 tabular-nums">
                     <CountUp to={item.value} decimals={decimals} suffix={unit} startOnView={animate} />
                   </Text>
@@ -148,13 +147,13 @@ export const BenchmarkChart = React.forwardRef<HTMLDivElement, BenchmarkChartPro
               </div>
             );
           })}
-        </Stack>
+        </div>
         {caption != null && (
           <Text as="div" size="sm" tone="secondary">
             {caption}
           </Text>
         )}
-      </Stack>
+      </div>
     );
   }
 );

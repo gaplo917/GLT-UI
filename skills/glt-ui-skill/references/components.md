@@ -36,7 +36,6 @@ All names export from `import { … } from 'glt-ui'`.
 | Skeleton | Loading placeholder |
 | Sparkline | Tiny trend chart |
 | Spinner | Loading spinner |
-| Stack | Flex stack with gap |
 | Surface | Elevated surface |
 | Switch | Toggle |
 | Text | Body text (`size`, `muted`, etc.) |
@@ -72,7 +71,7 @@ All names export from `import { … } from 'glt-ui'`.
 | Accordion | Expand/collapse sections |
 | BenchmarkChart | Method vs baselines bars |
 | Card (+ Header/Title/Image/Content/Footer…) | Composable card |
-| Chart | Themed chart.js wrapper |
+| Chart | Themed chart.js wrapper (multi-color palette; on-chart label + value by default) |
 | ComparisonSlider | Before/after wipe |
 | DataTable | Data table helper |
 | Modal | Dialog overlay |

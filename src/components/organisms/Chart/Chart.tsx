@@ -12,7 +12,6 @@ import type {
   BubbleDataPoint,
 } from 'chart.js';
 import { cn } from '@/lib/cn.js';
-import { Stack } from '@/components/atoms/Stack/Stack.js';
 import { Text } from '@/components/atoms/Text/Text.js';
 
 /**
@@ -46,7 +45,8 @@ export interface ChartSeries {
   /**
    * A palette token (`'brand'`, `'success'`, …), a CSS custom property name
    * (`'--brand-primary'`), or any CSS color. Defaults to the palette slot at
-   * this series' index.
+   * this series' index. For a single-series bar without `color`, each bar is
+   * coloured from the palette by category (set `color` for monochrome bars).
    */
   color?: ChartColorToken | string;
   /** Fill the area under a line. Defaults to `true` for `type="area"`. */
@@ -86,6 +86,11 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   aspectRatio?: number;
   /** Accessible label for the canvas image. Falls back to `title`. */
   ariaLabel?: string;
+  /**
+   * Draw category label + value on each data point / slice / bar.
+   * Defaults to `true`. Set `false` to hide on-chart annotations.
+   */
+  dataLabels?: boolean;
   /** Extra chart.js plugins. */
   plugins?: Plugin[];
 }
@@ -171,6 +176,25 @@ function deepMerge<T>(target: T, source: unknown): T {
   return base as T;
 }
 
+/**
+ * True when a series should paint each data point a different palette color
+ * (categorical bars, pie slices) rather than one color for the whole series.
+ *
+ * - Circular charts always multi-color by slice.
+ * - Single-series bars multi-color by category unless `color` is set (then
+ *   the whole series stays monochrome). Multi-series / stacked bars keep
+ *   one color per series so segments stay distinguishable.
+ */
+function usesPerPointColors(
+  type: ChartType,
+  series: ChartSeries[],
+  seriesItem: ChartSeries
+): boolean {
+  if (CIRCULAR.has(type)) return true;
+  const renderedAsBar = type === 'bar' || seriesItem.type === 'bar';
+  return renderedAsBar && series.length === 1 && seriesItem.color == null;
+}
+
 function buildData(
   type: ChartType,
   labels: Array<string | number> | undefined,
@@ -180,22 +204,35 @@ function buildData(
 ): ChartData {
   const circular = CIRCULAR.has(type);
   const datasets = series.map((s, i) => {
-    const base = resolveColor(s.color ?? palette[i % palette.length], styles);
-
-    if (circular) {
-      const sliceColors = s.data.map((_, di) => resolveColor(palette[di % palette.length], styles));
+    if (usesPerPointColors(type, series, s)) {
+      const pointColors = s.data.map((_, di) => resolveColor(palette[di % palette.length], styles));
+      if (circular) {
+        return deepMerge<ChartDataset>(
+          {
+            label: s.label,
+            data: s.data,
+            backgroundColor: pointColors.map((c) => withAlpha(c, 0.85)),
+            borderColor: readVar(styles, '--bg-color', '#ffffff'),
+            borderWidth: 2,
+          } as ChartDataset,
+          s.dataset
+        );
+      }
+      // Categorical single-series bar: one solid palette color per bar.
       return deepMerge<ChartDataset>(
         {
+          ...(s.type ? { type: s.type } : {}),
           label: s.label,
           data: s.data,
-          backgroundColor: sliceColors.map((c) => withAlpha(c, 0.85)),
-          borderColor: readVar(styles, '--bg-color', '#ffffff'),
-          borderWidth: 2,
+          backgroundColor: pointColors,
+          borderColor: pointColors,
+          borderWidth: 0,
         } as ChartDataset,
         s.dataset
       );
     }
 
+    const base = resolveColor(s.color ?? palette[i % palette.length], styles);
     const wantFill = s.fill ?? type === 'area';
     return deepMerge<ChartDataset>(
       {
@@ -230,6 +267,8 @@ function buildThemedOptions(theme: Theme, props: ChartProps): ChartOptions {
     responsive: true,
     maintainAspectRatio: height == null,
     aspectRatio,
+    // Leave room so end-of-bar / above-point labels are not clipped.
+    layout: { padding: { top: 12, right: 28, bottom: 4, left: 4 } },
     color: theme.text,
     font: { family: fontFamily },
     plugins: {
@@ -292,11 +331,209 @@ function buildThemedOptions(theme: Theme, props: ChartProps): ChartOptions {
   return options;
 }
 
+// ── On-chart data labels ────────────────────────────────────────────────────
+
+function formatDataValue(raw: unknown): string {
+  if (raw == null) return '';
+  if (typeof raw === 'number') {
+    if (!Number.isFinite(raw)) return '';
+    if (Number.isInteger(raw)) return String(raw);
+    return raw.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  if (typeof raw === 'object') {
+    const p = raw as Point & BubbleDataPoint & { y?: number; r?: number };
+    if (typeof p.y === 'number') return formatDataValue(p.y);
+  }
+  return String(raw);
+}
+
+function isBarLikeElement(el: { x: number; y: number; base?: number; horizontal?: boolean }): boolean {
+  return typeof el.base === 'number';
+}
+
+function isArcLikeElement(el: {
+  startAngle?: number;
+  endAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+}): boolean {
+  return (
+    typeof el.startAngle === 'number' &&
+    typeof el.endAngle === 'number' &&
+    typeof el.outerRadius === 'number'
+  );
+}
+
+/**
+ * Built-in plugin: paints a name + numeric value on every visible element
+ * (bars, slices, points). Theme-aware; skip with `dataLabels={false}`.
+ *
+ * Text content:
+ * - **Circular** (pie / doughnut / polarArea): category label + value
+ * - **Multi-series** cartesian: series label + value
+ * - **Single-series** cartesian: category label + value
+ */
+function createDataLabelsPlugin(theme: Theme): Plugin {
+  const lineHeight = 13;
+  const fontSize = 11;
+
+  return {
+    id: 'gltDataLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data } = chart;
+      const multiSeries = data.datasets.length > 1;
+
+      ctx.save();
+      ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
+      ctx.textBaseline = 'middle';
+
+      for (let di = 0; di < data.datasets.length; di++) {
+        const meta = chart.getDatasetMeta(di);
+        if (meta.hidden) continue;
+        const dataset = data.datasets[di];
+
+        for (let i = 0; i < meta.data.length; i++) {
+          const el = meta.data[i] as {
+            x: number;
+            y: number;
+            base?: number;
+            horizontal?: boolean;
+            startAngle?: number;
+            endAngle?: number;
+            innerRadius?: number;
+            outerRadius?: number;
+            skip?: boolean;
+          };
+          if (!el || el.skip) continue;
+
+          const raw = Array.isArray(dataset.data) ? dataset.data[i] : undefined;
+          if (raw == null || (typeof raw === 'number' && !Number.isFinite(raw))) continue;
+
+          const valueText = formatDataValue(raw);
+          if (!valueText) continue;
+
+          const category =
+            data.labels && data.labels[i] != null ? String(data.labels[i]) : undefined;
+          const seriesName = dataset.label ? String(dataset.label) : undefined;
+          const arc = isArcLikeElement(el);
+
+          // Prefer the most useful name for this geometry.
+          const nameText = arc
+            ? category ?? seriesName
+            : multiSeries
+              ? seriesName ?? category
+              : category ?? seriesName;
+
+          const lines = nameText ? [nameText, valueText] : [valueText];
+
+          let x = el.x;
+          let y = el.y;
+          let align: CanvasTextAlign = 'center';
+          let fillStyle = theme.text;
+          let useStroke = false;
+
+          if (arc) {
+            const start = el.startAngle!;
+            const end = el.endAngle!;
+            // Skip tiny slices — label would overflow.
+            if (end - start < 0.2) continue;
+            const mid = (start + end) / 2;
+            const inner = el.innerRadius ?? 0;
+            const outer = el.outerRadius!;
+            const r = inner + (outer - inner) * 0.62;
+            // ArcElement.x/y is the chart center.
+            x = el.x + Math.cos(mid) * r;
+            y = el.y + Math.sin(mid) * r;
+            align = 'center';
+            fillStyle = '#ffffff';
+            useStroke = true;
+          } else if (isBarLikeElement(el)) {
+            const horizontal = Boolean(el.horizontal);
+            const base = el.base!;
+            if (horizontal) {
+              const goingRight = el.x >= base;
+              const outsideX = el.x + (goingRight ? 8 : -8);
+              const chartRight = chart.chartArea.right;
+              const chartLeft = chart.chartArea.left;
+              const fitsOutside = goingRight
+                ? outsideX < chartRight + 20
+                : outsideX > chartLeft - 20;
+              if (fitsOutside) {
+                x = outsideX;
+                align = goingRight ? 'left' : 'right';
+                fillStyle = theme.text;
+                useStroke = false;
+              } else {
+                x = (el.x + base) / 2;
+                align = 'center';
+                fillStyle = '#ffffff';
+                useStroke = true;
+              }
+              y = el.y;
+            } else {
+              const goingUp = el.y <= base;
+              const outsideY = el.y + (goingUp ? -8 : 8);
+              if (goingUp ? outsideY > chart.chartArea.top - 4 : outsideY < chart.chartArea.bottom + 4) {
+                y = outsideY;
+                fillStyle = theme.text;
+                useStroke = false;
+              } else {
+                y = (el.y + base) / 2;
+                fillStyle = '#ffffff';
+                useStroke = true;
+              }
+              x = el.x;
+              align = 'center';
+            }
+          } else {
+            // Line / radar / scatter / bubble — sit just above the marker.
+            x = el.x;
+            y = el.y - 14;
+            align = 'center';
+            fillStyle = theme.text;
+            useStroke = false;
+          }
+
+          const blockHeight = lines.length * lineHeight;
+          let textY = y - blockHeight / 2 + lineHeight / 2;
+
+          ctx.textAlign = align;
+          ctx.fillStyle = fillStyle;
+          if (useStroke) {
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+          }
+
+          for (const line of lines) {
+            const maxChars = arc ? 12 : multiSeries ? 16 : 18;
+            const drawn = line.length > maxChars ? `${line.slice(0, maxChars - 1)}…` : line;
+            if (useStroke) ctx.strokeText(drawn, x, textY);
+            ctx.fillText(drawn, x, textY);
+            textY += lineHeight;
+          }
+        }
+      }
+
+      ctx.restore();
+    },
+  };
+}
+
 /**
  * A themed wrapper around chart.js. Feed it `labels` + `series` for the common
  * case — colors, fonts, grid, tooltip, and legend are pulled from the design
- * system's theme tokens and re-read automatically on light/dark switches. Drop
- * down to raw chart.js at any point via `data`, `options`, and `plugins`.
+ * system's theme tokens and re-read automatically on light/dark switches.
+ *
+ * Default colouring:
+ * - **Pie / doughnut / polarArea** — each slice from the palette by index
+ * - **Single-series bar** — each bar from the palette by category (set
+ *   `series[].color` for monochrome)
+ * - **Multi-series / stacked bar or area** — one palette color per series
+ *
+ * On-chart **label + value** annotations are drawn by default for every type
+ * (`dataLabels={false}` to hide). Drop down to raw chart.js via `data`,
+ * `options`, and `plugins`.
  */
 export function Chart({
   type,
@@ -313,6 +550,7 @@ export function Chart({
   height,
   aspectRatio,
   ariaLabel,
+  dataLabels = true,
   plugins,
   className,
   ...rest
@@ -354,12 +592,16 @@ export function Chart({
     } as ChartProps);
     const finalOptions = deepMerge<ChartOptions>(themedOptions, options);
     const jsType: ChartJsType = (type === 'area' ? 'line' : type) as ChartJsType;
+    const resolvedPlugins: Plugin[] = [
+      ...(dataLabels ? [createDataLabelsPlugin(theme)] : []),
+      ...(plugins ?? []),
+    ];
 
     const chart = new ChartJS(canvas, {
       type: jsType,
       data: chartData,
       options: finalOptions,
-      plugins,
+      plugins: resolvedPlugins,
     });
     chartRef.current = chart;
 
@@ -379,12 +621,13 @@ export function Chart({
     showGrid,
     height,
     aspectRatio,
+    dataLabels,
     plugins,
     themeTick,
   ]);
 
   return (
-    <Stack gap={2} className={cn('w-full', className)} {...rest}>
+    <div className={cn('flex w-full flex-col gap-2', className)} {...rest}>
       {title != null && (
         <Text as="div" size="lg" weight="semibold" tone="strong">
           {title}
@@ -402,7 +645,7 @@ export function Chart({
           {caption}
         </Text>
       )}
-    </Stack>
+    </div>
   );
 }
 
