@@ -91,9 +91,13 @@ npm run build   # tsc → dist/
 
 ## Publish
 
-From the monorepo root (requires npm login):
+**CI (recommended):** npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)
+from GitHub Actions (`.github/workflows/publish-npm.yml`) — OIDC, no long-lived token.
+
+**Local (first package create / emergency):**
 
 ```bash
+npm login
 npm run build:ui
 npm publish -w glt-ui --access public
 ```

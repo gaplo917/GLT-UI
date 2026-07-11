@@ -1,3 +1,15 @@
+# Publishes packages/glt-ui via npm Trusted Publishing (OIDC).
+# No long-lived NPM_TOKEN secret required.
+#
+# Configure once on npmjs.com → package glt-ui → Settings → Trusted Publisher:
+#   Organization or user: gaplo917
+#   Repository:           GLT-UI
+#   Workflow filename:    publish-npm.yml
+#   Environment name:     (leave empty unless you add a GitHub Environment below)
+#   Allowed actions:      npm publish
+#
+# Docs: https://docs.npmjs.com/trusted-publishers/
+
 name: Publish glt-ui to npm
 
 on:
@@ -13,7 +25,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+  id-token: write # required for OIDC → npm
 
 jobs:
   publish:
@@ -28,9 +40,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
+          # Trusted publishing needs Node >= 22.14 and npm CLI >= 11.5.1
           node-version: "22"
-          cache: npm
           registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Ensure npm supports OIDC trusted publishing
+        working-directory: .
+        run: npm install -g npm@latest && npm --version
 
       - name: Install (workspace root)
         working-directory: .
@@ -40,11 +58,10 @@ jobs:
         run: npm run build
 
       - name: Pack / publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
             npm pack
           else
+            # OIDC is used automatically; provenance is generated for public repos
             npm publish --access public
           fi

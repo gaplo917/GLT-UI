@@ -47,19 +47,34 @@ Toggle light/dark with `data-theme="light" | "dark"` on `<html>`.
 See [`packages/glt-ui/README.md`](packages/glt-ui/README.md) and the agent skill under
 [`skills/glt-ui-skill/`](skills/glt-ui-skill/).
 
-### Publish to npm
+### Publish to npm (Trusted Publishing / OIDC)
 
-1. Log in: `npm login` (local) **or** set repo secret `NPM_TOKEN` for CI.
-2. Bump version in `packages/glt-ui/package.json` when ready.
-3. Publish:
+CI publishes with **npm Trusted Publishing** — short-lived OIDC, no `NPM_TOKEN` secret.
+
+1. **First-time only:** create the package once so npm has package settings
+   (e.g. local `npm login` + `npm run publish:ui`), **or** publish `0.1.0` once
+   from the CLI if the name is free.
+2. On [npmjs.com](https://www.npmjs.com) → package **glt-ui** → **Settings** →
+   **Trusted Publisher** → GitHub Actions:
+   - Organization or user: `gaplo917`
+   - Repository: `GLT-UI` (exact case)
+   - Workflow filename: `publish-npm.yml` (filename only)
+   - Environment: leave empty (unless you add a GitHub Environment)
+   - Allowed actions: **npm publish**
+3. Bump version in `packages/glt-ui/package.json`, commit, then:
 
 ```bash
-npm run build:ui
-npm run publish:ui
-# or tag + CI: git tag glt-ui-v0.1.0 && git push origin glt-ui-v0.1.0
+git tag glt-ui-v0.1.0
+git push origin glt-ui-v0.1.0
 ```
 
-Workflow: [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml).
+Or **Actions → Publish glt-ui to npm → Run workflow** (uncheck dry run to publish).
+
+Optional hardening after OIDC works: package **Publishing access** →
+“Require two-factor authentication and disallow tokens”.
+
+Workflow: [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml).  
+Docs: https://docs.npmjs.com/trusted-publishers/
 
 ## Docs browser (GitHub Pages)
 
