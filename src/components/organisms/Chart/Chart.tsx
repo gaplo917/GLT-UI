@@ -93,8 +93,57 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
    * custom label plugin already annotates the chart.
    */
   dataLabels?: boolean;
+  /**
+   * Wrap long category tick labels to at most this many characters per line
+   * (chart.js multi-line ticks). Breaks prefer `, `, ` & `, ` / `, then spaces.
+   * Use on horizontal bars / narrow layouts so names are not clipped.
+   */
+  categoryLabelMaxChars?: number;
   /** Extra chart.js plugins. */
   plugins?: Plugin[];
+}
+
+/**
+ * Split a long category label into chart.js multi-line tick text.
+ * Short labels are returned unchanged; longer ones break at natural
+ * boundaries so axis text stays readable in narrow panels.
+ */
+export function wrapCategoryLabel(
+  label: string,
+  maxCharsPerLine = 18,
+): string | string[] {
+  const text = String(label).trim();
+  if (maxCharsPerLine < 1 || text.length <= maxCharsPerLine) return text;
+
+  // Keep delimiters so ", " / " & " / " / " reattach to the preceding line.
+  const tokens = text.split(/(\s*&\s*|,\s*|\s*\/\s*|\s+)/).filter((t) => t.length > 0);
+  const lines: string[] = [];
+  let current = '';
+
+  for (const token of tokens) {
+    const candidate = current + token;
+    const trimmedLen = candidate.trimEnd().length;
+    if (current && trimmedLen > maxCharsPerLine && !/^[\s,]+$/.test(token)) {
+      lines.push(current.trimEnd());
+      current = token.replace(/^\s+/, '');
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines.length <= 1 ? text : lines;
+}
+
+function withWrappedCategoryLabels(data: ChartData, maxChars: number): ChartData {
+  if (!data.labels?.length) return data;
+  return {
+    ...data,
+    labels: data.labels.map((label) => {
+      if (Array.isArray(label)) return label;
+      if (label == null) return label;
+      return wrapCategoryLabel(String(label), maxChars);
+    }),
+  };
 }
 
 const TOKEN_VARS: Record<ChartColorToken, string> = {
@@ -534,8 +583,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
  *
  * On-chart annotations are drawn by default (`dataLabels={false}` to hide):
  * **category + value** on circular charts, **value only** on cartesian charts
- * so axis ticks are not duplicated. Drop down to raw chart.js via `data`,
- * `options`, and `plugins`.
+ * so axis ticks are not duplicated. Long category names can wrap via
+ * `categoryLabelMaxChars` (multi-line ticks). Drop down to raw chart.js via
+ * `data`, `options`, and `plugins`.
  */
 export function Chart({
   type,
@@ -553,6 +603,7 @@ export function Chart({
   aspectRatio,
   ariaLabel,
   dataLabels = true,
+  categoryLabelMaxChars,
   plugins,
   className,
   ...rest
@@ -583,7 +634,15 @@ export function Chart({
     const styles = getComputedStyle(canvas);
     const theme = resolveTheme(styles);
     const resolvedPalette = palette ?? DEFAULT_PALETTE;
-    const chartData = data ?? buildData(type, labels, series ?? [], resolvedPalette, styles);
+    let chartData = data ?? buildData(type, labels, series ?? [], resolvedPalette, styles);
+    // Multi-line ticks are a cartesian-axis concern; circular charts label on slices.
+    if (
+      categoryLabelMaxChars != null &&
+      categoryLabelMaxChars > 0 &&
+      !CIRCULAR.has(type)
+    ) {
+      chartData = withWrappedCategoryLabels(chartData, categoryLabelMaxChars);
+    }
     const themedOptions = buildThemedOptions(theme, {
       type,
       legend,
@@ -593,6 +652,20 @@ export function Chart({
       aspectRatio,
     } as ChartProps);
     const finalOptions = deepMerge<ChartOptions>(themedOptions, options);
+    // Multi-line category ticks need the category axis not to auto-skip labels.
+    if (categoryLabelMaxChars != null && categoryLabelMaxChars > 0 && !CIRCULAR.has(type)) {
+      const indexAxis = (finalOptions as { indexAxis?: 'x' | 'y' }).indexAxis === 'y' ? 'y' : 'x';
+      finalOptions.scales = finalOptions.scales ?? {};
+      const scale = (finalOptions.scales[indexAxis] ?? {}) as Record<string, unknown>;
+      const ticks = (scale.ticks ?? {}) as Record<string, unknown>;
+      finalOptions.scales[indexAxis] = {
+        ...scale,
+        ticks: {
+          ...ticks,
+          autoSkip: ticks.autoSkip ?? false,
+        },
+      } as (typeof finalOptions.scales)[typeof indexAxis];
+    }
     const jsType: ChartJsType = (type === 'area' ? 'line' : type) as ChartJsType;
     const resolvedPlugins: Plugin[] = [
       ...(dataLabels ? [createDataLabelsPlugin(theme)] : []),
@@ -624,6 +697,7 @@ export function Chart({
     height,
     aspectRatio,
     dataLabels,
+    categoryLabelMaxChars,
     plugins,
     themeTick,
   ]);
