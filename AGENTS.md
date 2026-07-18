@@ -11,7 +11,7 @@ Next.js for this project lives only under **`demo/`**.
 Always include Grok as a co-author on every commit created or amended by an agent:
 
 ```
-Co-Authored-By: Grok <noreply@x.ai>
+Co-Authored-By: Grok Build <noreply@x.ai>
 ```
 
 Do not omit this trailer. Use it in addition to any other co-authors when relevant.
