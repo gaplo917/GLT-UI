@@ -106,7 +106,8 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
 /**
  * Split a long category label into chart.js multi-line tick text.
  * Short labels are returned unchanged; longer ones break at natural
- * boundaries so axis text stays readable in narrow panels.
+ * boundaries (`, ` / ` & ` / ` / `, then spaces) so axis text stays
+ * readable in narrow panels instead of clipping off the canvas edge.
  */
 export function wrapCategoryLabel(
   label: string,
@@ -144,6 +145,30 @@ function withWrappedCategoryLabels(data: ChartData, maxChars: number): ChartData
       return wrapCategoryLabel(String(label), maxChars);
     }),
   };
+}
+
+/** Approx. monospaced-ish width of a UI label character in CSS pixels. */
+const CATEGORY_LABEL_CHAR_PX = 7.2;
+
+/**
+ * Clamp the requested max line length to what the chart panel can actually
+ * show on the category axis so mobile widths wrap instead of clipping.
+ */
+export function resolveCategoryLabelMaxChars(
+  requested: number,
+  containerWidth: number,
+  indexAxis: 'x' | 'y',
+): number {
+  if (requested < 1) return requested;
+  // Before the panel is measured, prefer a mobile-safe wrap so the first
+  // paint does not clip long labels on narrow viewports.
+  if (containerWidth <= 0) return Math.min(requested, 14);
+  // Horizontal bars: category labels sit on the left (~40% budget).
+  // Vertical: x-axis labels can use most of the width.
+  const share = indexAxis === 'y' ? 0.4 : 0.85;
+  const budget = Math.floor((containerWidth * share) / CATEGORY_LABEL_CHAR_PX);
+  // Never go below a readable short line; never above the caller's request.
+  return Math.min(requested, Math.max(10, budget));
 }
 
 const TOKEN_VARS: Record<ChartColorToken, string> = {
@@ -610,7 +635,9 @@ export function Chart({
 }: ChartProps) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const chartRef = React.useRef<ChartJS | null>(null);
+  const frameRef = React.useRef<HTMLDivElement | null>(null);
   const [themeTick, setThemeTick] = React.useState(0);
+  const [frameWidth, setFrameWidth] = React.useState(0);
 
   // Re-read theme tokens whenever the active theme changes.
   React.useEffect(() => {
@@ -627,6 +654,19 @@ export function Chart({
     };
   }, []);
 
+  // Track panel width so category label wrapping can tighten on mobile.
+  React.useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? 0;
+      setFrameWidth((prev) => (Math.abs(prev - w) < 1 ? prev : w));
+    });
+    ro.observe(frame);
+    setFrameWidth(frame.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
   React.useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -635,14 +675,6 @@ export function Chart({
     const theme = resolveTheme(styles);
     const resolvedPalette = palette ?? DEFAULT_PALETTE;
     let chartData = data ?? buildData(type, labels, series ?? [], resolvedPalette, styles);
-    // Multi-line ticks are a cartesian-axis concern; circular charts label on slices.
-    if (
-      categoryLabelMaxChars != null &&
-      categoryLabelMaxChars > 0 &&
-      !CIRCULAR.has(type)
-    ) {
-      chartData = withWrappedCategoryLabels(chartData, categoryLabelMaxChars);
-    }
     const themedOptions = buildThemedOptions(theme, {
       type,
       legend,
@@ -652,20 +684,43 @@ export function Chart({
       aspectRatio,
     } as ChartProps);
     const finalOptions = deepMerge<ChartOptions>(themedOptions, options);
-    // Multi-line category ticks need the category axis not to auto-skip labels.
-    if (categoryLabelMaxChars != null && categoryLabelMaxChars > 0 && !CIRCULAR.has(type)) {
-      const indexAxis = (finalOptions as { indexAxis?: 'x' | 'y' }).indexAxis === 'y' ? 'y' : 'x';
+    const indexAxis =
+      (finalOptions as { indexAxis?: 'x' | 'y' }).indexAxis === 'y' ? 'y' : 'x';
+
+    // Multi-line ticks are a cartesian-axis concern; circular charts label on slices.
+    // Clamp the caller's max to the real panel width so narrow viewports wrap
+    // (and stop clipping) without shrinking the tick font size.
+    if (
+      categoryLabelMaxChars != null &&
+      categoryLabelMaxChars > 0 &&
+      !CIRCULAR.has(type)
+    ) {
+      const effectiveMax = resolveCategoryLabelMaxChars(
+        categoryLabelMaxChars,
+        frameWidth || frameRef.current?.clientWidth || 0,
+        indexAxis,
+      );
+      chartData = withWrappedCategoryLabels(chartData, effectiveMax);
       finalOptions.scales = finalOptions.scales ?? {};
       const scale = (finalOptions.scales[indexAxis] ?? {}) as Record<string, unknown>;
       const ticks = (scale.ticks ?? {}) as Record<string, unknown>;
+      const prevAfterFit = scale.afterFit as ((s: { width: number }) => void) | undefined;
+      // Longest wrapped line ≈ effectiveMax chars; reserve that many CSS px on the axis
+      // so Chart.js does not draw past the left canvas edge on small screens.
+      const minAxisPx = Math.ceil(effectiveMax * CATEGORY_LABEL_CHAR_PX) + 12;
       finalOptions.scales[indexAxis] = {
         ...scale,
         ticks: {
           ...ticks,
           autoSkip: ticks.autoSkip ?? false,
         },
+        afterFit(axis: { width: number }) {
+          prevAfterFit?.(axis);
+          axis.width = Math.max(axis.width, minAxisPx);
+        },
       } as (typeof finalOptions.scales)[typeof indexAxis];
     }
+
     const jsType: ChartJsType = (type === 'area' ? 'line' : type) as ChartJsType;
     const resolvedPlugins: Plugin[] = [
       ...(dataLabels ? [createDataLabelsPlugin(theme)] : []),
@@ -700,6 +755,7 @@ export function Chart({
     categoryLabelMaxChars,
     plugins,
     themeTick,
+    frameWidth,
   ]);
 
   return (
@@ -709,7 +765,11 @@ export function Chart({
           {title}
         </Text>
       )}
-      <div className="relative w-full" style={height != null ? { height } : undefined}>
+      <div
+        ref={frameRef}
+        className="relative w-full min-w-0"
+        style={height != null ? { height } : undefined}
+      >
         <canvas
           ref={canvasRef}
           role="img"
