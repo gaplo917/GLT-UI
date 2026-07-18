@@ -71,6 +71,7 @@ export * from './organisms/Modal/Modal.js';
 export * from './organisms/Navbar/Navbar.js';
 export * from './organisms/PageHero/PageHero.js';
 export * from './organisms/Panel/Panel.js';
+export * from './organisms/ProcessPipeline/ProcessPipeline.js';
 export * from './organisms/SimulationPanel/SimulationPanel.js';
 export * from './organisms/SiteFooter/SiteFooter.js';
 export * from './organisms/SiteHeader/SiteHeader.js';

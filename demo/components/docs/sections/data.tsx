@@ -39,6 +39,7 @@ import {
   TagGroup,
   Text,
   TechniqueGrid,
+  ProcessPipeline,
 } from 'glt-ui';
 import type { DocSection } from '../types';
 
@@ -1614,6 +1615,52 @@ export const dataSection: DocSection = {
 <TechniqueGrid items={items} onSelect={() => alert('selected')} />`,
           render: (
             <TechniqueGrid items={techniqueItems} onSelect={() => alert('selected')} />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'process-pipeline',
+      name: 'ProcessPipeline',
+      description:
+        'Horizontal process diagram with optional dual-direction quality loop between two steps. Caption pill includes top margin and internal padding so labels never clip; node titles sit below the loop band with derived viewBox height. Animations honor prefers-reduced-motion.',
+      importLine: "import { ProcessPipeline } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Linear + quality loop',
+          description:
+            'Four stages; Grok Build ⇄ Review forms an iterative refine/feedback loop under a padded caption pill.',
+          code: `<ProcessPipeline
+  nodes={[
+    { id: 'observe', label: 'Observe', sublabel: 'Industry' },
+    { id: 'build', label: 'Grok Build', sublabel: 'Trusted sources' },
+    { id: 'review', label: 'Review', sublabel: 'Human' },
+    { id: 'publish', label: 'Publish', sublabel: 'Portal' },
+  ]}
+  loop={{
+    from: 'build',
+    to: 'review',
+    caption: 'QUALITY LOOP · raise the bar',
+    forwardLabel: 'refine →',
+    backLabel: '← feedback',
+  }}
+/>`,
+          render: (
+            <ProcessPipeline
+              nodes={[
+                { id: 'observe', label: 'Observe', sublabel: 'Industry' },
+                { id: 'build', label: 'Grok Build', sublabel: 'Trusted sources' },
+                { id: 'review', label: 'Review', sublabel: 'Human' },
+                { id: 'publish', label: 'Publish', sublabel: 'Portal' },
+              ]}
+              loop={{
+                from: 'build',
+                to: 'review',
+                caption: 'QUALITY LOOP · raise the bar',
+                forwardLabel: 'refine →',
+                backLabel: '← feedback',
+              }}
+            />
           ),
         },
       ],
