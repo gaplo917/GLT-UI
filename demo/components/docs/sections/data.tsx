@@ -697,7 +697,7 @@ export const dataSection: DocSection = {
       id: 'chart',
       name: 'Chart',
       description:
-        "A themed wrapper around chart.js. Feed it labels + series for the common case — palette, fonts, grid, tooltip, and legend are all pulled from theme tokens and re-read automatically when the theme switches between light and dark. By default, pie/doughnut slices and single-series bars use a different palette color per category; multi-series and stacked charts use one color per series. Category label + numeric value are drawn on every bar, slice, and point (dataLabels={false} to hide). Colors accept palette tokens ('brand', 'success', …), CSS custom-property names, or raw CSS colors. Drop down to raw chart.js any time via the data, options, and plugins escape hatches. type=\"area\" is sugar for a filled line chart.",
+        "A themed wrapper around chart.js. Feed it labels + series for the common case — palette, fonts, grid, tooltip, and legend are all pulled from theme tokens and re-read automatically when the theme switches between light and dark. By default, pie/doughnut slices and single-series bars use a different palette color per category; multi-series and stacked charts use one color per series. On-chart annotations default on: category + value on circular charts, value only on bars/lines/points so axis ticks are not duplicated (dataLabels={false} to hide — use that when a custom label plugin already annotates). Colors accept palette tokens ('brand', 'success', …), CSS custom-property names, or raw CSS colors. Drop down to raw chart.js any time via the data, options, and plugins escape hatches. type=\"area\" is sugar for a filled line chart.",
       importLine: "import { Chart } from 'glt-ui';",
       examples: [
         {
@@ -924,7 +924,7 @@ export const dataSection: DocSection = {
             { name: 'height', type: 'number', description: 'Fixed pixel height. When omitted the chart keeps aspectRatio.' },
             { name: 'aspectRatio', type: 'number', default: '2', description: 'Width ÷ height ratio when height is not set.' },
             { name: 'ariaLabel', type: 'string', description: 'Accessible label for the canvas image; falls back to title.' },
-            { name: 'dataLabels', type: 'boolean', default: 'true', description: 'Draw category/series label + numeric value on each bar, slice, and point.' },
+            { name: 'dataLabels', type: 'boolean', default: 'true', description: 'Draw on-chart annotations: category + value on pie/doughnut slices; value only on bars, lines, and points. Set false when a custom plugin already labels the chart.' },
             { name: 'plugins', type: 'Plugin[]', description: 'Extra chart.js plugins.' },
           ],
         },

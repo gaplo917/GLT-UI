@@ -87,8 +87,10 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   /** Accessible label for the canvas image. Falls back to `title`. */
   ariaLabel?: string;
   /**
-   * Draw category label + value on each data point / slice / bar.
-   * Defaults to `true`. Set `false` to hide on-chart annotations.
+   * Draw on-chart annotations: category + value on pie/doughnut slices;
+   * value only on bars, lines, and points (axis ticks / legend already name
+   * the mark). Defaults to `true`. Set `false` to hide — recommended when a
+   * custom label plugin already annotates the chart.
    */
   dataLabels?: boolean;
   /** Extra chart.js plugins. */
@@ -365,13 +367,16 @@ function isArcLikeElement(el: {
 }
 
 /**
- * Built-in plugin: paints a name + numeric value on every visible element
- * (bars, slices, points). Theme-aware; skip with `dataLabels={false}`.
+ * Built-in plugin: paints a numeric value (and a name where needed) on every
+ * visible element (bars, slices, points). Theme-aware; skip with
+ * `dataLabels={false}`.
  *
  * Text content:
  * - **Circular** (pie / doughnut / polarArea): category label + value
- * - **Multi-series** cartesian: series label + value
- * - **Single-series** cartesian: category label + value
+ *   (slices have no axis ticks, so the name is required).
+ * - **Cartesian** (bar / line / scatter / …): value only. Category names
+ *   already live on the axis ticks; re-drawing them on the mark duplicates
+ *   and truncates long labels. Series identity comes from the legend.
  */
 function createDataLabelsPlugin(theme: Theme): Plugin {
   const lineHeight = 13;
@@ -417,12 +422,8 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           const seriesName = dataset.label ? String(dataset.label) : undefined;
           const arc = isArcLikeElement(el);
 
-          // Prefer the most useful name for this geometry.
-          const nameText = arc
-            ? category ?? seriesName
-            : multiSeries
-              ? seriesName ?? category
-              : category ?? seriesName;
+          // Names only on arcs — cartesian axes / legends already identify marks.
+          const nameText = arc ? (category ?? seriesName) : undefined;
 
           const lines = nameText ? [nameText, valueText] : [valueText];
 
@@ -531,8 +532,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
  *   `series[].color` for monochrome)
  * - **Multi-series / stacked bar or area** — one palette color per series
  *
- * On-chart **label + value** annotations are drawn by default for every type
- * (`dataLabels={false}` to hide). Drop down to raw chart.js via `data`,
+ * On-chart annotations are drawn by default (`dataLabels={false}` to hide):
+ * **category + value** on circular charts, **value only** on cartesian charts
+ * so axis ticks are not duplicated. Drop down to raw chart.js via `data`,
  * `options`, and `plugins`.
  */
 export function Chart({
