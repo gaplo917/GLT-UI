@@ -356,7 +356,8 @@ function resolveTheme(styles: CSSStyleDeclaration): Theme {
   return {
     text: readVar(styles, '--text-color', '#1a1a1a'),
     secondaryText: readVar(styles, '--secondary-text-color', '#707070'),
-    grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.6),
+    // Axis grid at 50% opacity of the border token (readable but quiet).
+    grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.5),
     surface,
     tooltipBg: readVar(styles, '--strong-text-color', '#1a1a1a'),
     tooltipText: readVar(styles, '--bg-color', '#ffffff'),
@@ -643,14 +644,24 @@ function clipBoxToArea(box: LabelBox, area: LabelBox): LabelBox {
   };
 }
 
+type PointLabelLine = {
+  text: string;
+  /** Canvas font-weight (e.g. 600 primary, 400 secondary / effort). */
+  weight: number;
+  /** Font size in CSS px. */
+  size: number;
+  /** Line box height for layout. */
+  height: number;
+};
+
 type PointLabelCandidate = {
   /** Anchor (data point) in canvas space. */
   px: number;
   py: number;
-  /** Text lines to draw. */
-  lines: string[];
-  /** Line height in px. */
-  lineHeight: number;
+  /** Text lines to draw (line 0 = title, line 1+ = effort / meta, thinner). */
+  lines: PointLabelLine[];
+  /** Total block height in px. */
+  blockHeight: number;
   /** Measured max line width. */
   textWidth: number;
   /** Point radius so leader lines start outside the marker. */
@@ -821,7 +832,7 @@ function placePointLabels(
     .sort((a, b) => a.item.py - b.item.py || a.item.px - b.item.px);
 
   for (const { item, index: itemIndex } of order) {
-    const textHeight = item.lines.length * item.lineHeight;
+    const textHeight = item.blockHeight;
     const defaultSlot = offsets[0];
     let best: PlacedPointLabel | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
@@ -961,6 +972,14 @@ function placePointLabels(
 function createDataLabelsPlugin(theme: Theme): Plugin {
   const lineHeight = 13;
   const fontSize = 11;
+  /** Primary scatter title line. */
+  const titleSize = 11;
+  const titleWeight = 600;
+  const titleLineHeight = 13;
+  /** Secondary line (thinking effort / meta) — thinner, slightly smaller. */
+  const metaSize = 10;
+  const metaWeight = 400;
+  const metaLineHeight = 12;
 
   return {
     id: 'gltDataLabels',
@@ -1027,11 +1046,30 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
             if (!name) continue;
             const narrow = (chart.width ?? 400) < 480;
             const maxChars = narrow ? 16 : 22;
-            const drawn =
-              name.length > maxChars ? `${name.slice(0, maxChars - 1)}…` : name;
-            const lines = [drawn];
-            ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
-            const textWidth = Math.max(...lines.map((l) => ctx.measureText(l).width));
+            // Multi-line labels: "Title\neffort" — first line semibold, rest thinner.
+            const rawLines = name
+              .split('\n')
+              .map((s) => s.trim())
+              .filter(Boolean);
+            const lines: PointLabelLine[] = rawLines.map((line, li) => {
+              const isMeta = li > 0;
+              const size = isMeta ? metaSize : titleSize;
+              const weight = isMeta ? metaWeight : titleWeight;
+              const height = isMeta ? metaLineHeight : titleLineHeight;
+              const max = isMeta ? Math.min(maxChars, 14) : maxChars;
+              const text = line.length > max ? `${line.slice(0, max - 1)}…` : line;
+              return { text, weight, size, height };
+            });
+            if (lines.length === 0) continue;
+
+            let textWidth = 0;
+            let blockHeight = 0;
+            for (const line of lines) {
+              ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
+              textWidth = Math.max(textWidth, ctx.measureText(line.text).width);
+              blockHeight += line.height;
+            }
+
             const pointRadius =
               el.getProps?.(['radius'], true)?.radius ??
               el.options?.radius ??
@@ -1061,7 +1099,7 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               px: el.x,
               py: el.y,
               lines,
-              lineHeight,
+              blockHeight,
               textWidth,
               pointRadius: Number(pointRadius) || 4,
               color,
@@ -1170,7 +1208,6 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
         // Leader lines first (under text).
         for (const label of placed) {
           if (!label.offset) continue;
-          const textHeight = label.lines.length * label.lineHeight;
           // Aim at the center of the label box.
           const lx = (label.box.left + label.box.right) / 2;
           const ly = (label.box.top + label.box.bottom) / 2;
@@ -1214,30 +1251,29 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           ctx.globalAlpha = 0.85;
           ctx.fill();
           ctx.globalAlpha = 1;
-
-          void textHeight;
         }
 
-        // Text on top — match each series marker color.
-        ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
+        // Text on top — series color; line 0 semibold, line 1+ thinner (effort).
         for (const label of placed) {
           ctx.fillStyle = label.color || theme.text;
           ctx.textAlign = label.align;
-          ctx.textBaseline = label.baseline;
-          let textY = label.y;
-          // When baseline is middle/bottom/top, draw multi-line relative to anchor.
-          if (label.lines.length > 1) {
-            const block = label.lines.length * label.lineHeight;
-            if (label.baseline === 'middle') textY = label.y - block / 2 + label.lineHeight / 2;
-            else if (label.baseline === 'bottom') textY = label.y - block + label.lineHeight / 2;
-            else textY = label.y + label.lineHeight / 2;
-            ctx.textBaseline = 'middle';
-            for (const line of label.lines) {
-              ctx.fillText(line, label.x, textY);
-              textY += label.lineHeight;
-            }
+          const block = label.blockHeight;
+          let textY: number;
+          if (label.baseline === 'middle') {
+            textY = label.y - block / 2;
+          } else if (label.baseline === 'bottom') {
+            textY = label.y - block;
           } else {
-            ctx.fillText(label.lines[0] ?? '', label.x, label.y);
+            textY = label.y;
+          }
+          ctx.textBaseline = 'top';
+          for (const line of label.lines) {
+            ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
+            // Slightly quieter alpha on meta lines keeps hierarchy without losing hue.
+            ctx.globalAlpha = line.weight < 500 ? 0.88 : 1;
+            ctx.fillText(line.text, label.x, textY);
+            ctx.globalAlpha = 1;
+            textY += line.height;
           }
         }
       }
