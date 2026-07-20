@@ -198,24 +198,143 @@ function resolveColor(color: ChartColorToken | string, styles: CSSStyleDeclarati
   return color;
 }
 
-/** Add an alpha channel to a hex color; non-hex colors pass through unchanged. */
-function withAlpha(color: string, alpha: number): string {
-  const hex = color.trim();
-  let r: number;
-  let g: number;
-  let b: number;
-  if (/^#[0-9a-f]{6}$/i.test(hex)) {
-    r = parseInt(hex.slice(1, 3), 16);
-    g = parseInt(hex.slice(3, 5), 16);
-    b = parseInt(hex.slice(5, 7), 16);
-  } else if (/^#[0-9a-f]{3}$/i.test(hex)) {
-    r = parseInt(hex[1] + hex[1], 16);
-    g = parseInt(hex[2] + hex[2], 16);
-    b = parseInt(hex[3] + hex[3], 16);
-  } else {
-    return color;
+type Rgba = { r: number; g: number; b: number; a: number };
+
+/** Parse hex / rgb(a) / hsl(a) into channels. Returns null for gradients/unknown. */
+function parseCssColor(color: string): Rgba | null {
+  const c = color.trim();
+  if (/^#[0-9a-f]{6}$/i.test(c)) {
+    return {
+      r: parseInt(c.slice(1, 3), 16),
+      g: parseInt(c.slice(3, 5), 16),
+      b: parseInt(c.slice(5, 7), 16),
+      a: 1,
+    };
   }
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  if (/^#[0-9a-f]{3}$/i.test(c)) {
+    return {
+      r: parseInt(c[1] + c[1], 16),
+      g: parseInt(c[2] + c[2], 16),
+      b: parseInt(c[3] + c[3], 16),
+      a: 1,
+    };
+  }
+  if (/^#[0-9a-f]{8}$/i.test(c)) {
+    return {
+      r: parseInt(c.slice(1, 3), 16),
+      g: parseInt(c.slice(3, 5), 16),
+      b: parseInt(c.slice(5, 7), 16),
+      a: parseInt(c.slice(7, 9), 16) / 255,
+    };
+  }
+  const rgb = c.match(
+    /^rgba?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)\s*[, ]\s*([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?\s*\)$/i,
+  );
+  if (rgb) {
+    const aRaw = rgb[4];
+    let a = 1;
+    if (aRaw != null) {
+      a = aRaw.endsWith('%') ? parseFloat(aRaw) / 100 : parseFloat(aRaw);
+    }
+    return {
+      r: Math.min(255, parseFloat(rgb[1])),
+      g: Math.min(255, parseFloat(rgb[2])),
+      b: Math.min(255, parseFloat(rgb[3])),
+      a: Number.isFinite(a) ? a : 1,
+    };
+  }
+  return null;
+}
+
+function formatRgba({ r, g, b, a }: Rgba): string {
+  const R = Math.round(Math.min(255, Math.max(0, r)));
+  const G = Math.round(Math.min(255, Math.max(0, g)));
+  const B = Math.round(Math.min(255, Math.max(0, b)));
+  if (a >= 0.999) return `rgb(${R}, ${G}, ${B})`;
+  return `rgba(${R}, ${G}, ${B}, ${Math.round(a * 1000) / 1000})`;
+}
+
+/** Relative luminance (sRGB, WCAG). */
+function relativeLuminance({ r, g, b }: Rgba): number {
+  const lin = [r, g, b].map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+}
+
+function contrastRatio(a: Rgba, b: Rgba): number {
+  const L1 = relativeLuminance(a);
+  const L2 = relativeLuminance(b);
+  const lighter = Math.max(L1, L2);
+  const darker = Math.min(L1, L2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function mixToward(from: Rgba, to: Rgba, t: number): Rgba {
+  return {
+    r: from.r + (to.r - from.r) * t,
+    g: from.g + (to.g - from.g) * t,
+    b: from.b + (to.b - from.b) * t,
+    a: from.a + (to.a - from.a) * t,
+  };
+}
+
+/**
+ * Nudge a series color so it stays readable on the chart surface (light or dark).
+ * Dark surfaces get brighter series colors; light surfaces get deeper ones when needed.
+ * CSS variables should already be theme tokens — this mainly fixes raw hex palettes.
+ */
+function adaptColorForSurface(
+  color: string,
+  surface: string,
+  minRatio = 3.0,
+): string {
+  const fg = parseCssColor(color);
+  const bg = parseCssColor(surface);
+  if (!fg || !bg) return color;
+
+  const surfaceDark = relativeLuminance(bg) < 0.45;
+  const target = surfaceDark
+    ? { r: 255, g: 255, b: 255, a: fg.a }
+    : { r: 0, g: 0, b: 0, a: fg.a };
+
+  let best = fg;
+  if (contrastRatio(fg, bg) >= minRatio) {
+    // Still slightly lift very dark colors on dark surfaces (and dim near-white on light)
+    // so multi-series stays distinct without becoming pure white/black.
+    if (surfaceDark && relativeLuminance(fg) < 0.22) {
+      best = mixToward(fg, target, 0.35);
+    } else if (!surfaceDark && relativeLuminance(fg) > 0.82) {
+      best = mixToward(fg, target, 0.28);
+    }
+    return formatRgba(best);
+  }
+
+  // Binary-search mix toward white/black until contrast is acceptable.
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 12; i++) {
+    const mid = (lo + hi) / 2;
+    const candidate = mixToward(fg, target, mid);
+    if (contrastRatio(candidate, bg) >= minRatio) {
+      best = candidate;
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  // Cap mix so brand hues are not washed out completely.
+  const maxMix = surfaceDark ? 0.72 : 0.65;
+  const usedT = Math.min(hi, maxMix);
+  return formatRgba(mixToward(fg, target, usedT));
+}
+
+/** Add an alpha channel; hex / rgb(a) supported, others pass through. */
+function withAlpha(color: string, alpha: number): string {
+  const parsed = parseCssColor(color);
+  if (!parsed) return color;
+  return formatRgba({ ...parsed, a: alpha });
 }
 
 interface Theme {
@@ -226,17 +345,70 @@ interface Theme {
   tooltipBg: string;
   tooltipText: string;
   fontFamily: string;
+  /** True when chart surface is dark (for color adaptation). */
+  isDark: boolean;
 }
 
 function resolveTheme(styles: CSSStyleDeclaration): Theme {
+  const surface = readVar(styles, '--bg-color', '#ffffff');
+  const surfaceParsed = parseCssColor(surface);
+  const isDark = surfaceParsed ? relativeLuminance(surfaceParsed) < 0.45 : false;
   return {
     text: readVar(styles, '--text-color', '#1a1a1a'),
     secondaryText: readVar(styles, '--secondary-text-color', '#707070'),
     grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.6),
-    surface: readVar(styles, '--bg-color', '#ffffff'),
+    surface,
     tooltipBg: readVar(styles, '--strong-text-color', '#1a1a1a'),
     tooltipText: readVar(styles, '--bg-color', '#ffffff'),
     fontFamily: readVar(styles, '--font-family', 'system-ui, sans-serif'),
+    isDark,
+  };
+}
+
+/**
+ * Resolve a palette token / CSS var / raw color, then adapt for the active
+ * surface so charts stay legible in light and dark themes.
+ */
+function resolveChartColor(
+  color: ChartColorToken | string,
+  styles: CSSStyleDeclaration,
+  theme: Theme,
+): string {
+  const resolved = resolveColor(color, styles);
+  return adaptColorForSurface(resolved, theme.surface);
+}
+
+/** Walk chart.js dataset color fields and adapt string colors for the surface. */
+function adaptDatasetColors<T extends ChartDataset>(dataset: T, theme: Theme): T {
+  const keys = [
+    'backgroundColor',
+    'borderColor',
+    'pointBackgroundColor',
+    'pointBorderColor',
+    'hoverBackgroundColor',
+    'hoverBorderColor',
+  ] as const;
+
+  const src = dataset as unknown as Record<string, unknown>;
+  const next: Record<string, unknown> = { ...src };
+  for (const key of keys) {
+    const value = src[key];
+    if (typeof value === 'string') {
+      next[key] = adaptColorForSurface(value, theme.surface);
+    } else if (Array.isArray(value)) {
+      next[key] = value.map((entry) =>
+        typeof entry === 'string' ? adaptColorForSurface(entry, theme.surface) : entry,
+      );
+    }
+  }
+  return next as T;
+}
+
+function adaptChartDataColors(data: ChartData, theme: Theme): ChartData {
+  if (!data.datasets?.length) return data;
+  return {
+    ...data,
+    datasets: data.datasets.map((ds) => adaptDatasetColors(ds, theme)),
   };
 }
 
@@ -278,19 +450,23 @@ function buildData(
   labels: Array<string | number> | undefined,
   series: ChartSeries[],
   palette: Array<ChartColorToken | string>,
-  styles: CSSStyleDeclaration
+  styles: CSSStyleDeclaration,
+  theme: Theme,
 ): ChartData {
   const circular = CIRCULAR.has(type);
   const datasets = series.map((s, i) => {
     if (usesPerPointColors(type, series, s)) {
-      const pointColors = s.data.map((_, di) => resolveColor(palette[di % palette.length], styles));
+      const pointColors = s.data.map((_, di) =>
+        resolveChartColor(palette[di % palette.length], styles, theme),
+      );
       if (circular) {
         return deepMerge<ChartDataset>(
           {
             label: s.label,
             data: s.data,
             backgroundColor: pointColors.map((c) => withAlpha(c, 0.85)),
-            borderColor: readVar(styles, '--bg-color', '#ffffff'),
+            // Slice ring matches the active surface (light or dark card).
+            borderColor: theme.surface,
             borderWidth: 2,
           } as ChartDataset,
           s.dataset
@@ -310,7 +486,7 @@ function buildData(
       );
     }
 
-    const base = resolveColor(s.color ?? palette[i % palette.length], styles);
+    const base = resolveChartColor(s.color ?? palette[i % palette.length], styles, theme);
     const wantFill = s.fill ?? type === 'area';
     return deepMerge<ChartDataset>(
       {
@@ -869,7 +1045,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               pointBackgroundColor?: unknown;
               pointBorderColor?: unknown;
             };
-            const color = resolveDatasetColor(
+            // Dataset colors are already surface-adapted at chart create time;
+            // re-adapt here so custom plugins / live updates stay theme-safe.
+            const rawColor = resolveDatasetColor(
               ds.pointBackgroundColor ?? ds.backgroundColor,
               i,
               resolveDatasetColor(
@@ -878,6 +1056,7 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
                 theme.text,
               ),
             );
+            const color = adaptColorForSurface(rawColor, theme.surface);
             pendingPoints.push({
               px: el.x,
               py: el.y,
@@ -1079,6 +1258,11 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
  *   `series[].color` for monochrome)
  * - **Multi-series / stacked bar or area** — one palette color per series
  *
+ * **Dark / light awareness:** series colors (tokens, CSS vars, or raw hex) are
+ * adapted against `--bg-color` so markers, fills, scatter labels, and leader
+ * lines keep readable contrast when the theme flips. Theme changes rebuild the
+ * chart via `data-theme` / class observers.
+ *
  * On-chart annotations are drawn by default (`dataLabels={false}` to hide):
  * **category + value** on circular charts, **value only** on bar/line charts,
  * and **series labels with leader lines** on scatter/bubble charts when labels
@@ -1148,7 +1332,11 @@ export function Chart({
     const styles = getComputedStyle(canvas);
     const theme = resolveTheme(styles);
     const resolvedPalette = palette ?? DEFAULT_PALETTE;
-    let chartData = data ?? buildData(type, labels, series ?? [], resolvedPalette, styles);
+    // series path resolves tokens; raw `data` escape hatch still gets surface adaptation
+    // so hard-coded hex palettes stay readable in dark mode (labels + markers).
+    let chartData = data
+      ? adaptChartDataColors(data, theme)
+      : buildData(type, labels, series ?? [], resolvedPalette, styles, theme);
     const themedOptions = buildThemedOptions(theme, {
       type,
       legend,
