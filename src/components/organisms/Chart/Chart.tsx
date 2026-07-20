@@ -1094,7 +1094,11 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
                 theme.text,
               ),
             );
-            const color = adaptColorForSurface(rawColor, theme.surface);
+            // Labels/leaders stay fully opaque even when markers are translucent.
+            const color = withAlpha(
+              adaptColorForSurface(rawColor, theme.surface),
+              1,
+            );
             pendingPoints.push({
               px: el.x,
               py: el.y,
