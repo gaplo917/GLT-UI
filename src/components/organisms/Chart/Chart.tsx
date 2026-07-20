@@ -569,10 +569,42 @@ function measureLabelBox(
   };
 }
 
+/** Square hit-box around a scatter marker (circle approximated as AABB). */
+function dataPointBox(px: number, py: number, pointRadius: number, pad = 4): LabelBox {
+  const r = Math.max(pointRadius, 3) + pad;
+  return {
+    left: px - r,
+    top: py - r,
+    right: px + r,
+    bottom: py + r,
+  };
+}
+
+function accumulateOverlap(
+  box: LabelBox,
+  obstacles: LabelBox[],
+): { count: number; area: number } {
+  let count = 0;
+  let area = 0;
+  for (const other of obstacles) {
+    if (boxesOverlap(box, other)) {
+      count += 1;
+      const inter: LabelBox = {
+        left: Math.max(box.left, other.left),
+        top: Math.max(box.top, other.top),
+        right: Math.min(box.right, other.right),
+        bottom: Math.min(box.bottom, other.bottom),
+      };
+      area += boxArea(inter);
+    }
+  }
+  return { count, area };
+}
+
 /**
- * Place point labels so their bounding boxes do not overlap. When a label
- * cannot sit in the default slot above the marker, it is moved to a free
- * candidate and a leader line is drawn from the point to the label.
+ * Place point labels so their bounding boxes do not overlap each other **or**
+ * any data-point markers. When a label cannot sit in the default slot above
+ * the marker, it is moved to a free candidate and a leader line is drawn.
  */
 function placePointLabels(
   items: PointLabelCandidate[],
@@ -582,19 +614,30 @@ function placePointLabels(
   const narrow = chartWidth < 480;
   const baseRadius = narrow ? 22 : 28;
   const placed: PlacedPointLabel[] = [];
-  const placedBoxes: LabelBox[] = [];
+  const placedLabelBoxes: LabelBox[] = [];
   const offsets = pointLabelOffsets(baseRadius);
+
+  // Every scatter marker is an obstacle — labels must not cover data points
+  // (including a label's own marker when the text would sit on top of it).
+  const pointBoxes: LabelBox[] = items.map((it) =>
+    dataPointBox(it.px, it.py, it.pointRadius),
+  );
 
   // Place denser (higher) points first so top-of-chart labels settle cleanly.
   const order = items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => a.item.py - b.item.py || a.item.px - b.item.px);
 
-  for (const { item } of order) {
+  for (const { item, index: itemIndex } of order) {
     const textHeight = item.lines.length * item.lineHeight;
     const defaultSlot = offsets[0];
     let best: PlacedPointLabel | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
+
+    // Other markers only (own marker handled with a lighter penalty so default
+    // "above" placement can still win when the box clears the disc).
+    const otherPointBoxes = pointBoxes.filter((_, i) => i !== itemIndex);
+    const ownPointBox = pointBoxes[itemIndex]!;
 
     for (let oi = 0; oi < offsets.length; oi++) {
       const slot = offsets[oi];
@@ -638,24 +681,27 @@ function placePointLabels(
       const visible = clipBoxToArea(box, area);
       if (boxArea(visible) < bw * bh * 0.55) continue;
 
-      let overlapCount = 0;
-      let overlapArea = 0;
-      for (const other of placedBoxes) {
-        if (boxesOverlap(box, other)) {
-          overlapCount += 1;
-          const inter: LabelBox = {
-            left: Math.max(box.left, other.left),
-            top: Math.max(box.top, other.top),
-            right: Math.min(box.right, other.right),
-            bottom: Math.min(box.bottom, other.bottom),
-          };
-          overlapArea += boxArea(inter);
-        }
-      }
+      // Obstacles: already-placed labels + all other data points + own marker.
+      const labelHit = accumulateOverlap(box, placedLabelBoxes);
+      const otherPointHit = accumulateOverlap(box, otherPointBoxes);
+      const ownPointHit = accumulateOverlap(box, [ownPointBox]);
+
+      // Hard-prefer no label-on-label or label-on-foreign-point collisions.
+      const hardCount = labelHit.count + otherPointHit.count;
+      const hardArea = labelHit.area + otherPointHit.area;
+      // Covering the home marker is discouraged but allowed if nothing else fits.
+      const softCount = ownPointHit.count;
+      const softArea = ownPointHit.area;
 
       // Prefer earlier slots (default above) and less travel from the point.
       const travel = Math.hypot(x - item.px, y - item.py);
-      const score = overlapCount * 1e6 + overlapArea * 10 + oi * 40 + travel;
+      const score =
+        hardCount * 1e7 +
+        hardArea * 100 +
+        softCount * 1e5 +
+        softArea * 20 +
+        oi * 40 +
+        travel;
 
       if (score < bestScore) {
         bestScore = score;
@@ -671,7 +717,8 @@ function placePointLabels(
           box,
           offset: offset || travel > item.pointRadius + 14,
         };
-        if (overlapCount === 0) break; // first free slot wins
+        // First slot free of labels + other points (own marker may still soft-hit).
+        if (hardCount === 0 && softCount === 0) break;
       }
     }
 
@@ -700,7 +747,7 @@ function placePointLabels(
     }
 
     placed.push(best);
-    placedBoxes.push(best.box);
+    placedLabelBoxes.push(best.box);
   }
 
   return placed;
@@ -716,8 +763,8 @@ function placePointLabels(
  *   (slices have no axis ticks, so the name is required).
  * - **Bar / line / radar**: value only (axes / legend identify marks).
  * - **Scatter / bubble**: series label (dataset name). Labels are collision-
- *   resolved with bounding-box checks; when a label must move, a leader line
- *   connects the data point to the free placement.
+ *   resolved against other labels **and** data-point markers; when a label
+ *   must move, a leader line connects the point to the free placement.
  */
 function createDataLabelsPlugin(theme: Theme): Plugin {
   const lineHeight = 13;
