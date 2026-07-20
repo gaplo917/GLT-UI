@@ -356,8 +356,8 @@ function resolveTheme(styles: CSSStyleDeclaration): Theme {
   return {
     text: readVar(styles, '--text-color', '#1a1a1a'),
     secondaryText: readVar(styles, '--secondary-text-color', '#707070'),
-    // Axis grid at 50% opacity of the border token (readable but quiet).
-    grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.5),
+    // Axis grid: quiet guide lines (25% of border token).
+    grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.25),
     surface,
     tooltipBg: readVar(styles, '--strong-text-color', '#1a1a1a'),
     tooltipText: readVar(styles, '--bg-color', '#ffffff'),
