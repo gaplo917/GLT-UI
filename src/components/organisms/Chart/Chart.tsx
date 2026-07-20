@@ -479,7 +479,23 @@ type PointLabelCandidate = {
   textWidth: number;
   /** Point radius so leader lines start outside the marker. */
   pointRadius: number;
+  /** Marker color — label text + leader line match this. */
+  color: string;
 };
+
+/** Resolve a chart.js color option (string | string[] | …) for one index. */
+function resolveDatasetColor(
+  value: unknown,
+  index: number,
+  fallback: string,
+): string {
+  if (typeof value === 'string' && value.trim()) return value;
+  if (Array.isArray(value) && value[index] != null) {
+    const entry = value[index];
+    if (typeof entry === 'string' && entry.trim()) return entry;
+  }
+  return fallback;
+}
 
 type PlacedPointLabel = PointLabelCandidate & {
   /** Text anchor (chart.js textAlign center → mid-x of box). */
@@ -846,6 +862,22 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               (typeof (dataset as { pointRadius?: number }).pointRadius === 'number'
                 ? (dataset as { pointRadius: number }).pointRadius
                 : 4);
+            // Prefer the painted marker color (bg → border → theme text).
+            const ds = dataset as {
+              backgroundColor?: unknown;
+              borderColor?: unknown;
+              pointBackgroundColor?: unknown;
+              pointBorderColor?: unknown;
+            };
+            const color = resolveDatasetColor(
+              ds.pointBackgroundColor ?? ds.backgroundColor,
+              i,
+              resolveDatasetColor(
+                ds.pointBorderColor ?? ds.borderColor,
+                i,
+                theme.text,
+              ),
+            );
             pendingPoints.push({
               px: el.x,
               py: el.y,
@@ -853,6 +885,7 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               lineHeight,
               textWidth,
               pointRadius: Number(pointRadius) || 4,
+              color,
             });
             continue;
           }
@@ -985,30 +1018,31 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
             ex = Math.min(box.right - 2, Math.max(box.left + 2, ex));
           }
 
+          const lineColor = label.color || theme.secondaryText;
           ctx.beginPath();
           ctx.moveTo(sx, sy);
           ctx.lineTo(ex, ey);
-          ctx.strokeStyle = theme.secondaryText;
-          ctx.globalAlpha = 0.55;
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = lineColor;
+          ctx.globalAlpha = 0.75;
+          ctx.lineWidth = 1.25;
           ctx.stroke();
           ctx.globalAlpha = 1;
 
-          // Small cap at the label end.
+          // Small cap at the label end (same series color).
           ctx.beginPath();
-          ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = theme.secondaryText;
-          ctx.globalAlpha = 0.55;
+          ctx.arc(ex, ey, 1.75, 0, Math.PI * 2);
+          ctx.fillStyle = lineColor;
+          ctx.globalAlpha = 0.85;
           ctx.fill();
           ctx.globalAlpha = 1;
 
           void textHeight;
         }
 
-        // Text on top.
+        // Text on top — match each series marker color.
         ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
-        ctx.fillStyle = theme.text;
         for (const label of placed) {
+          ctx.fillStyle = label.color || theme.text;
           ctx.textAlign = label.align;
           ctx.textBaseline = label.baseline;
           let textY = label.y;
