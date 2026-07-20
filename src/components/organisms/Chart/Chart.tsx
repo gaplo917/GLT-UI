@@ -87,10 +87,12 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   /** Accessible label for the canvas image. Falls back to `title`. */
   ariaLabel?: string;
   /**
-   * Draw on-chart annotations: category + value on pie/doughnut slices;
-   * value only on bars, lines, and points (axis ticks / legend already name
-   * the mark). Defaults to `true`. Set `false` to hide — recommended when a
-   * custom label plugin already annotates the chart.
+   * Draw on-chart annotations. Defaults to `true`. Set `false` to hide.
+   * - Pie / doughnut / polarArea: category + value on slices
+   * - Bar / line / radar: numeric value only
+   * - Scatter / bubble: series labels with bounding-box collision resolution;
+   *   overlapping labels are moved to free slots and connected with a leader
+   *   line from the data point
    */
   dataLabels?: boolean;
   /**
@@ -440,6 +442,270 @@ function isArcLikeElement(el: {
   );
 }
 
+/** Axis-aligned box used for label collision. */
+type LabelBox = { left: number; top: number; right: number; bottom: number };
+
+function boxesOverlap(a: LabelBox, b: LabelBox, pad = 3): boolean {
+  return !(
+    a.right + pad < b.left ||
+    a.left - pad > b.right ||
+    a.bottom + pad < b.top ||
+    a.top - pad > b.bottom
+  );
+}
+
+function boxArea(b: LabelBox): number {
+  return Math.max(0, b.right - b.left) * Math.max(0, b.bottom - b.top);
+}
+
+function clipBoxToArea(box: LabelBox, area: LabelBox): LabelBox {
+  return {
+    left: Math.max(box.left, area.left),
+    top: Math.max(box.top, area.top),
+    right: Math.min(box.right, area.right),
+    bottom: Math.min(box.bottom, area.bottom),
+  };
+}
+
+type PointLabelCandidate = {
+  /** Anchor (data point) in canvas space. */
+  px: number;
+  py: number;
+  /** Text lines to draw. */
+  lines: string[];
+  /** Line height in px. */
+  lineHeight: number;
+  /** Measured max line width. */
+  textWidth: number;
+  /** Point radius so leader lines start outside the marker. */
+  pointRadius: number;
+};
+
+type PlacedPointLabel = PointLabelCandidate & {
+  /** Text anchor (chart.js textAlign center → mid-x of box). */
+  x: number;
+  y: number;
+  align: CanvasTextAlign;
+  baseline: CanvasTextBaseline;
+  box: LabelBox;
+  /** True when the label was moved off the default slot. */
+  offset: boolean;
+};
+
+/**
+ * Candidate offsets around a point (dx/dy from the marker to the text anchor).
+ * Prefer above, then side, then below — rings grow outward when crowded.
+ */
+function pointLabelOffsets(radius: number): Array<{
+  dx: number;
+  dy: number;
+  align: CanvasTextAlign;
+  baseline: CanvasTextBaseline;
+}> {
+  const r = radius;
+  const r2 = radius * 1.65;
+  const r3 = radius * 2.4;
+  return [
+    { dx: 0, dy: -r, align: 'center', baseline: 'bottom' },
+    { dx: r * 0.85, dy: -r * 0.75, align: 'left', baseline: 'bottom' },
+    { dx: -r * 0.85, dy: -r * 0.75, align: 'right', baseline: 'bottom' },
+    { dx: r, dy: 0, align: 'left', baseline: 'middle' },
+    { dx: -r, dy: 0, align: 'right', baseline: 'middle' },
+    { dx: r * 0.85, dy: r * 0.75, align: 'left', baseline: 'top' },
+    { dx: -r * 0.85, dy: r * 0.75, align: 'right', baseline: 'top' },
+    { dx: 0, dy: r, align: 'center', baseline: 'top' },
+    // Wider ring
+    { dx: 0, dy: -r2, align: 'center', baseline: 'bottom' },
+    { dx: r2 * 0.9, dy: -r2 * 0.55, align: 'left', baseline: 'bottom' },
+    { dx: -r2 * 0.9, dy: -r2 * 0.55, align: 'right', baseline: 'bottom' },
+    { dx: r2, dy: r2 * 0.15, align: 'left', baseline: 'middle' },
+    { dx: -r2, dy: r2 * 0.15, align: 'right', baseline: 'middle' },
+    { dx: r2 * 0.9, dy: r2 * 0.55, align: 'left', baseline: 'top' },
+    { dx: -r2 * 0.9, dy: r2 * 0.55, align: 'right', baseline: 'top' },
+    { dx: 0, dy: r2, align: 'center', baseline: 'top' },
+    // Outer ring for dense clusters
+    { dx: 0, dy: -r3, align: 'center', baseline: 'bottom' },
+    { dx: r3, dy: -r3 * 0.35, align: 'left', baseline: 'middle' },
+    { dx: -r3, dy: -r3 * 0.35, align: 'right', baseline: 'middle' },
+    { dx: r3, dy: r3 * 0.35, align: 'left', baseline: 'middle' },
+    { dx: -r3, dy: r3 * 0.35, align: 'right', baseline: 'middle' },
+    { dx: 0, dy: r3, align: 'center', baseline: 'top' },
+  ];
+}
+
+function measureLabelBox(
+  px: number,
+  py: number,
+  dx: number,
+  dy: number,
+  align: CanvasTextAlign,
+  baseline: CanvasTextBaseline,
+  textWidth: number,
+  textHeight: number,
+  padX = 3,
+  padY = 2,
+): { x: number; y: number; box: LabelBox } {
+  const x = px + dx;
+  const y = py + dy;
+  let left = x;
+  if (align === 'center') left = x - textWidth / 2;
+  else if (align === 'right') left = x - textWidth;
+  // 'left' → left = x
+
+  let top = y;
+  if (baseline === 'middle') top = y - textHeight / 2;
+  else if (baseline === 'bottom') top = y - textHeight;
+  // 'top' → top = y
+
+  return {
+    x,
+    y,
+    box: {
+      left: left - padX,
+      top: top - padY,
+      right: left + textWidth + padX,
+      bottom: top + textHeight + padY,
+    },
+  };
+}
+
+/**
+ * Place point labels so their bounding boxes do not overlap. When a label
+ * cannot sit in the default slot above the marker, it is moved to a free
+ * candidate and a leader line is drawn from the point to the label.
+ */
+function placePointLabels(
+  items: PointLabelCandidate[],
+  area: LabelBox,
+  chartWidth: number,
+): PlacedPointLabel[] {
+  const narrow = chartWidth < 480;
+  const baseRadius = narrow ? 22 : 28;
+  const placed: PlacedPointLabel[] = [];
+  const placedBoxes: LabelBox[] = [];
+  const offsets = pointLabelOffsets(baseRadius);
+
+  // Place denser (higher) points first so top-of-chart labels settle cleanly.
+  const order = items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => a.item.py - b.item.py || a.item.px - b.item.px);
+
+  for (const { item } of order) {
+    const textHeight = item.lines.length * item.lineHeight;
+    const defaultSlot = offsets[0];
+    let best: PlacedPointLabel | null = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    for (let oi = 0; oi < offsets.length; oi++) {
+      const slot = offsets[oi];
+      const measured = measureLabelBox(
+        item.px,
+        item.py,
+        slot.dx,
+        slot.dy,
+        slot.align,
+        slot.baseline,
+        item.textWidth,
+        textHeight,
+      );
+
+      // Soft-clamp into chart area (keep as much of the box visible as possible).
+      let { x, y, box } = measured;
+      const bw = box.right - box.left;
+      const bh = box.bottom - box.top;
+      if (box.left < area.left) {
+        const shift = area.left - box.left;
+        x += shift;
+        box = { ...box, left: box.left + shift, right: box.right + shift };
+      }
+      if (box.right > area.right) {
+        const shift = box.right - area.right;
+        x -= shift;
+        box = { ...box, left: box.left - shift, right: box.right - shift };
+      }
+      if (box.top < area.top) {
+        const shift = area.top - box.top;
+        y += shift;
+        box = { ...box, top: box.top + shift, bottom: box.bottom + shift };
+      }
+      if (box.bottom > area.bottom) {
+        const shift = box.bottom - area.bottom;
+        y -= shift;
+        box = { ...box, top: box.top - shift, bottom: box.bottom - shift };
+      }
+
+      // Reject if still mostly outside after clamp.
+      const visible = clipBoxToArea(box, area);
+      if (boxArea(visible) < bw * bh * 0.55) continue;
+
+      let overlapCount = 0;
+      let overlapArea = 0;
+      for (const other of placedBoxes) {
+        if (boxesOverlap(box, other)) {
+          overlapCount += 1;
+          const inter: LabelBox = {
+            left: Math.max(box.left, other.left),
+            top: Math.max(box.top, other.top),
+            right: Math.min(box.right, other.right),
+            bottom: Math.min(box.bottom, other.bottom),
+          };
+          overlapArea += boxArea(inter);
+        }
+      }
+
+      // Prefer earlier slots (default above) and less travel from the point.
+      const travel = Math.hypot(x - item.px, y - item.py);
+      const score = overlapCount * 1e6 + overlapArea * 10 + oi * 40 + travel;
+
+      if (score < bestScore) {
+        bestScore = score;
+        const offset =
+          Math.hypot(slot.dx - defaultSlot.dx, slot.dy - defaultSlot.dy) > 4 ||
+          Math.hypot(x - (item.px + defaultSlot.dx), y - (item.py + defaultSlot.dy)) > 10;
+        best = {
+          ...item,
+          x,
+          y,
+          align: slot.align,
+          baseline: slot.baseline,
+          box,
+          offset: offset || travel > item.pointRadius + 14,
+        };
+        if (overlapCount === 0) break; // first free slot wins
+      }
+    }
+
+    if (!best) {
+      // Fallback: default above, even if cramped.
+      const slot = defaultSlot;
+      const measured = measureLabelBox(
+        item.px,
+        item.py,
+        slot.dx,
+        slot.dy,
+        slot.align,
+        slot.baseline,
+        item.textWidth,
+        textHeight,
+      );
+      best = {
+        ...item,
+        x: measured.x,
+        y: measured.y,
+        align: slot.align,
+        baseline: slot.baseline,
+        box: measured.box,
+        offset: false,
+      };
+    }
+
+    placed.push(best);
+    placedBoxes.push(best.box);
+  }
+
+  return placed;
+}
+
 /**
  * Built-in plugin: paints a numeric value (and a name where needed) on every
  * visible element (bars, slices, points). Theme-aware; skip with
@@ -448,9 +714,10 @@ function isArcLikeElement(el: {
  * Text content:
  * - **Circular** (pie / doughnut / polarArea): category label + value
  *   (slices have no axis ticks, so the name is required).
- * - **Cartesian** (bar / line / scatter / …): value only. Category names
- *   already live on the axis ticks; re-drawing them on the mark duplicates
- *   and truncates long labels. Series identity comes from the legend.
+ * - **Bar / line / radar**: value only (axes / legend identify marks).
+ * - **Scatter / bubble**: series label (dataset name). Labels are collision-
+ *   resolved with bounding-box checks; when a label must move, a leader line
+ *   connects the data point to the free placement.
  */
 function createDataLabelsPlugin(theme: Theme): Plugin {
   const lineHeight = 13;
@@ -461,15 +728,32 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
     afterDatasetsDraw(chart) {
       const { ctx, data } = chart;
       const multiSeries = data.datasets.length > 1;
+      const area = chart.chartArea;
+      if (!area) return;
+
+      const plotArea: LabelBox = {
+        left: area.left + 2,
+        top: area.top + 2,
+        right: area.right - 2,
+        bottom: area.bottom - 2,
+      };
 
       ctx.save();
       ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
       ctx.textBaseline = 'middle';
 
+      const pendingPoints: PointLabelCandidate[] = [];
+
       for (let di = 0; di < data.datasets.length; di++) {
         const meta = chart.getDatasetMeta(di);
         if (meta.hidden) continue;
         const dataset = data.datasets[di];
+        // chart.config may be ChartConfigurationCustomTypesPerDataset (no top-level type)
+        const configType = String(
+          (chart.config as { type?: string }).type ?? '',
+        );
+        const metaType = String(meta.type ?? configType);
+        const isScatterLike = metaType === 'scatter' || metaType === 'bubble';
 
         for (let i = 0; i < meta.data.length; i++) {
           const el = meta.data[i] as {
@@ -482,6 +766,8 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
             innerRadius?: number;
             outerRadius?: number;
             skip?: boolean;
+            options?: { radius?: number };
+            getProps?: (props: string[], final?: boolean) => { radius?: number };
           };
           if (!el || el.skip) continue;
 
@@ -489,17 +775,45 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           if (raw == null || (typeof raw === 'number' && !Number.isFinite(raw))) continue;
 
           const valueText = formatDataValue(raw);
-          if (!valueText) continue;
+          if (!valueText && !isScatterLike) continue;
 
           const category =
             data.labels && data.labels[i] != null ? String(data.labels[i]) : undefined;
           const seriesName = dataset.label ? String(dataset.label) : undefined;
           const arc = isArcLikeElement(el);
 
+          // ── Scatter / bubble: defer for collision resolution ────────────
+          if (isScatterLike && !arc && !isBarLikeElement(el)) {
+            const name = seriesName ?? category ?? valueText;
+            if (!name) continue;
+            const narrow = (chart.width ?? 400) < 480;
+            const maxChars = narrow ? 16 : 22;
+            const drawn =
+              name.length > maxChars ? `${name.slice(0, maxChars - 1)}…` : name;
+            const lines = [drawn];
+            ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
+            const textWidth = Math.max(...lines.map((l) => ctx.measureText(l).width));
+            const pointRadius =
+              el.getProps?.(['radius'], true)?.radius ??
+              el.options?.radius ??
+              (typeof (dataset as { pointRadius?: number }).pointRadius === 'number'
+                ? (dataset as { pointRadius: number }).pointRadius
+                : 4);
+            pendingPoints.push({
+              px: el.x,
+              py: el.y,
+              lines,
+              lineHeight,
+              textWidth,
+              pointRadius: Number(pointRadius) || 4,
+            });
+            continue;
+          }
+
           // Names only on arcs — cartesian axes / legends already identify marks.
           const nameText = arc ? (category ?? seriesName) : undefined;
-
           const lines = nameText ? [nameText, valueText] : [valueText];
+          if (!lines[0]) continue;
 
           let x = el.x;
           let y = el.y;
@@ -561,7 +875,7 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               align = 'center';
             }
           } else {
-            // Line / radar / scatter / bubble — sit just above the marker.
+            // Line / radar — sit just above the marker (no leader lines).
             x = el.x;
             y = el.y - 14;
             align = 'center';
@@ -590,6 +904,84 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
         }
       }
 
+      // ── Scatter / bubble: resolve overlaps, draw leader lines, then text ─
+      if (pendingPoints.length > 0) {
+        const placed = placePointLabels(pendingPoints, plotArea, chart.width ?? 400);
+
+        // Leader lines first (under text).
+        for (const label of placed) {
+          if (!label.offset) continue;
+          const textHeight = label.lines.length * label.lineHeight;
+          // Aim at the center of the label box.
+          const lx = (label.box.left + label.box.right) / 2;
+          const ly = (label.box.top + label.box.bottom) / 2;
+          const dx = lx - label.px;
+          const dy = ly - label.py;
+          const dist = Math.hypot(dx, dy) || 1;
+          // Start just outside the marker.
+          const startR = label.pointRadius + 2;
+          const sx = label.px + (dx / dist) * startR;
+          const sy = label.py + (dy / dist) * startR;
+          // End at the edge of the label box toward the point.
+          const endPad = 2;
+          let ex = lx;
+          let ey = ly;
+          const box = label.box;
+          // Clamp end to the box boundary along the ray from point → label.
+          if (Math.abs(dx) > Math.abs(dy)) {
+            ex = dx > 0 ? box.left - endPad : box.right + endPad;
+            ey = label.py + (dy / dist) * Math.abs(ex - label.px);
+            ey = Math.min(box.bottom - 2, Math.max(box.top + 2, ey));
+          } else {
+            ey = dy > 0 ? box.top - endPad : box.bottom + endPad;
+            ex = label.px + (dx / dist) * Math.abs(ey - label.py);
+            ex = Math.min(box.right - 2, Math.max(box.left + 2, ex));
+          }
+
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(ex, ey);
+          ctx.strokeStyle = theme.secondaryText;
+          ctx.globalAlpha = 0.55;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+
+          // Small cap at the label end.
+          ctx.beginPath();
+          ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = theme.secondaryText;
+          ctx.globalAlpha = 0.55;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+
+          void textHeight;
+        }
+
+        // Text on top.
+        ctx.font = `600 ${fontSize}px ${theme.fontFamily}`;
+        ctx.fillStyle = theme.text;
+        for (const label of placed) {
+          ctx.textAlign = label.align;
+          ctx.textBaseline = label.baseline;
+          let textY = label.y;
+          // When baseline is middle/bottom/top, draw multi-line relative to anchor.
+          if (label.lines.length > 1) {
+            const block = label.lines.length * label.lineHeight;
+            if (label.baseline === 'middle') textY = label.y - block / 2 + label.lineHeight / 2;
+            else if (label.baseline === 'bottom') textY = label.y - block + label.lineHeight / 2;
+            else textY = label.y + label.lineHeight / 2;
+            ctx.textBaseline = 'middle';
+            for (const line of label.lines) {
+              ctx.fillText(line, label.x, textY);
+              textY += label.lineHeight;
+            }
+          } else {
+            ctx.fillText(label.lines[0] ?? '', label.x, label.y);
+          }
+        }
+      }
+
       ctx.restore();
     },
   };
@@ -607,8 +999,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
  * - **Multi-series / stacked bar or area** — one palette color per series
  *
  * On-chart annotations are drawn by default (`dataLabels={false}` to hide):
- * **category + value** on circular charts, **value only** on cartesian charts
- * so axis ticks are not duplicated. Long category names can wrap via
+ * **category + value** on circular charts, **value only** on bar/line charts,
+ * and **series labels with leader lines** on scatter/bubble charts when labels
+ * would otherwise overlap. Long category names can wrap via
  * `categoryLabelMaxChars` (multi-line ticks). Drop down to raw chart.js via
  * `data`, `options`, and `plugins`.
  */
