@@ -337,6 +337,13 @@ function withAlpha(color: string, alpha: number): string {
   return formatRgba({ ...parsed, a: alpha });
 }
 
+/** Force fully opaque paint (labels must not inherit marker translucency). */
+function solidColor(color: string, fallback: string): string {
+  const parsed = parseCssColor(color);
+  if (!parsed) return fallback;
+  return formatRgba({ ...parsed, a: 1 });
+}
+
 interface Theme {
   text: string;
   secondaryText: string;
@@ -1094,10 +1101,10 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
                 theme.text,
               ),
             );
-            // Labels/leaders stay fully opaque even when markers are translucent.
-            const color = withAlpha(
+            // Labels stay 100% opaque even when markers use translucent fills.
+            const color = solidColor(
               adaptColorForSurface(rawColor, theme.surface),
-              1,
+              theme.text,
             );
             pendingPoints.push({
               px: el.x,
@@ -1257,9 +1264,10 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           ctx.globalAlpha = 1;
         }
 
-        // Text on top — series color; line 0 semibold, line 1+ thinner (effort).
+        // Text on top — series color at full opacity; line 0 semibold, rest thinner.
         for (const label of placed) {
-          ctx.fillStyle = label.color || theme.text;
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = solidColor(label.color || theme.text, theme.text);
           ctx.textAlign = label.align;
           const block = label.blockHeight;
           let textY: number;
@@ -1273,10 +1281,8 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           ctx.textBaseline = 'top';
           for (const line of label.lines) {
             ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
-            // Slightly quieter alpha on meta lines keeps hierarchy without losing hue.
-            ctx.globalAlpha = line.weight < 500 ? 0.88 : 1;
-            ctx.fillText(line.text, label.x, textY);
             ctx.globalAlpha = 1;
+            ctx.fillText(line.text, label.x, textY);
             textY += line.height;
           }
         }
