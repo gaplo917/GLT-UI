@@ -1013,6 +1013,15 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
         const meta = chart.getDatasetMeta(di);
         if (meta.hidden) continue;
         const dataset = data.datasets[di];
+        // Per-dataset opt-out (e.g. trend line under labeled scatter points).
+        const dsLabels = (dataset as { datalabels?: boolean | { display?: boolean } })
+          .datalabels;
+        if (
+          dsLabels === false ||
+          (typeof dsLabels === 'object' && dsLabels?.display === false)
+        ) {
+          continue;
+        }
         // chart.config may be ChartConfigurationCustomTypesPerDataset (no top-level type)
         const configType = String(
           (chart.config as { type?: string }).type ?? '',
