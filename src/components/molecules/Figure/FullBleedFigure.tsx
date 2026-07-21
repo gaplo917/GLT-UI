@@ -19,7 +19,8 @@ export interface FullBleedFigureProps
  * and tables can use more width, with a top title/caption chrome.
  *
  * Full-viewport-width section with the previous figure surface color
- * (`--card-bg-color` at 50% opacity). No card border / radius / shadow.
+ * (`--card-bg-color` at 50% opacity) and top/bottom borders using the same
+ * `--border-color` as the old figure card. No side border / radius / shadow.
  * Inner figure content is max-width constrained and horizontally centered.
  *
  * Place inside a max-width prose column; the shell centers with `100vw` pull.
@@ -40,6 +41,7 @@ export function FullBleedFigure({
       className={cn(
         'relative w-[100vw] max-w-[100vw] left-1/2 -translate-x-1/2 self-stretch',
         'bg-[var(--card-bg-color)]/50',
+        'border-y border-[var(--border-color)]',
         'px-3 sm:px-5 md:px-8 py-6 sm:py-7 md:py-8 my-8 md:my-10',
         className,
       )}
