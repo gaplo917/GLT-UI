@@ -12,7 +12,8 @@ export interface StatMetricProps {
   /** The headline value. Optional when `countTo` supplies an animated number instead. */
   value?: React.ReactNode;
   suffix?: React.ReactNode;
-  hint?: string;
+  /** Supporting line under the value (string or rich content, e.g. citations). */
+  hint?: React.ReactNode;
   interactive?: boolean;
   onClick?: () => void;
   className?: string;
