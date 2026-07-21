@@ -51,7 +51,7 @@ export * from './molecules/CodeBlock/CodeBlock.js';
 export * from './molecules/DataHighlight/DataHighlight.js';
 export * from './molecules/DerivedMetric/DerivedMetric.js';
 export * from './molecules/DropdownMenu/DropdownMenu.js';
-export * from './molecules/Figure/Figure.js';
+export * from './molecules/Figure/index.js';
 export * from './molecules/FormField/FormField.js';
 export * from './molecules/Message/Message.js';
 export * from './molecules/Pagination/Pagination.js';
