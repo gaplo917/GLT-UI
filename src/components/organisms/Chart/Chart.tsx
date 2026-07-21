@@ -1685,12 +1685,14 @@ export function Chart({
   }, []);
 
   // Track panel width so category label wrapping can tighten on mobile.
+  // Ignore sub-pixel / scrollbar jitter so we do not rebuild the chart
+  // (and re-run label layout) on every tiny resize.
   React.useEffect(() => {
     const frame = frameRef.current;
     if (!frame || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width ?? 0;
-      setFrameWidth((prev) => (Math.abs(prev - w) < 1 ? prev : w));
+      setFrameWidth((prev) => (Math.abs(prev - w) < 12 ? prev : w));
     });
     ro.observe(frame);
     setFrameWidth(frame.clientWidth);
@@ -1701,7 +1703,7 @@ export function Chart({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Hide label ink until collision layout has run; show spinner meanwhile.
+    // Hide label ink until collision layout has run once on final geometry.
     labelsVisibleRef.current = !dataLabels;
     revealScheduledRef.current = false;
     setLabelsLayoutPending(dataLabels);
@@ -1725,6 +1727,23 @@ export function Chart({
     const finalOptions = deepMerge<ChartOptions>(themedOptions, options);
     const indexAxis =
       (finalOptions as { indexAxis?: 'x' | 'y' }).indexAxis === 'y' ? 'y' : 'x';
+
+    // Collision labels need final marker positions. Chart.js entry/resize
+    // tweens would re-run placement every frame and look like labels
+    // “rearranging” after the spinner. Kill animations when labels are on.
+    if (dataLabels) {
+      (finalOptions as { animation?: boolean | object }).animation = false;
+      (finalOptions as { animations?: boolean | object }).animations = false;
+      const prevTransitions = (finalOptions as { transitions?: Record<string, unknown> })
+        .transitions;
+      (finalOptions as { transitions?: Record<string, unknown> }).transitions = {
+        ...prevTransitions,
+        active: { animation: { duration: 0 } },
+        resize: { animation: { duration: 0 } },
+        show: { animations: { colors: false, x: false, y: false } },
+        hide: { animations: { colors: false, x: false, y: false } },
+      };
+    }
 
     // Multi-line ticks are a cartesian-axis concern; circular charts label on slices.
     // Clamp the caller's max to the real panel width so narrow viewports wrap
@@ -1765,15 +1784,13 @@ export function Chart({
     const revealLabels = () => {
       if (!dataLabels || revealScheduledRef.current) return;
       revealScheduledRef.current = true;
-      // Double rAF: first paint finishes layout without labels; second reveals.
+      // Geometry is already final (animations off). One paint pass reveals ink.
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const live = chartRef.current;
-          if (!live) return;
-          labelsVisibleRef.current = true;
-          live.update('none');
-          setLabelsLayoutPending(false);
-        });
+        const live = chartRef.current;
+        if (!live) return;
+        labelsVisibleRef.current = true;
+        live.draw();
+        setLabelsLayoutPending(false);
       });
     };
 
@@ -1802,10 +1819,10 @@ export function Chart({
       const fallback = window.setTimeout(() => {
         if (!labelsVisibleRef.current) {
           labelsVisibleRef.current = true;
-          chart.update('none');
+          chart.draw();
           setLabelsLayoutPending(false);
         }
-      }, 400);
+      }, 120);
       return () => {
         window.clearTimeout(fallback);
         chart.destroy();
