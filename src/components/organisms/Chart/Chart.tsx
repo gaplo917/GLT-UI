@@ -1052,8 +1052,8 @@ function placePointLabels(
   lineSegments: LineSegment[] = [],
 ): PlacedPointLabel[] {
   const narrow = chartWidth < 480;
-  // Compact offset radius: labels sit closer to markers / short leaders.
-  const baseRadius = narrow ? 18 : 22;
+  // 2× prior offset so leaders can clear dense scatter clusters (Fig 4).
+  const baseRadius = narrow ? 36 : 44;
   const placed: PlacedPointLabel[] = [];
   const placedLabelBoxes: LabelBox[] = [];
   /** Leader strokes already committed — later labels must clear them. */
