@@ -362,37 +362,102 @@ interface Theme {
   isDark: boolean;
 }
 
+const DARK_SURFACE_FALLBACK = '#1d232c';
+const LIGHT_SURFACE_FALLBACK = '#ffffff';
+
+/** Live dark-mode detection (data-theme wins over prefers-color-scheme). */
+function isDocumentDark(): boolean {
+  if (typeof document === 'undefined') return false;
+  const attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'dark') return true;
+  if (attr === 'light') return false;
+  const scheme = getComputedStyle(document.documentElement)
+    .getPropertyValue('color-scheme')
+    .trim();
+  if (scheme.includes('dark')) return true;
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  return false;
+}
+
 /**
- * Data-label text-border (stroke) color — always live theme tokens from the
- * document root so light↔dark flips update even when parent paint is
- * translucent, delayed, or still holding a stale light background.
- *
- * Prefer `--bg-color` (page): chart canvas is transparent and figures often use
- * `card-bg / 50%` over the page. Never hardcode white.
+ * Data-label text-border (stroke) color — must track light/dark with the page.
+ * Never keep a light halo in dark mode (reads as a white outline on labels).
  */
 function resolveLabelHaloColor(isDarkHint = false): string {
-  const darkFallback = '#1d232c';
-  const lightFallback = '#ffffff';
-  const fallback = isDarkHint ? darkFallback : lightFallback;
+  const dark = isDarkHint || isDocumentDark();
+  const fallback = dark ? DARK_SURFACE_FALLBACK : LIGHT_SURFACE_FALLBACK;
 
   if (typeof document === 'undefined') return fallback;
 
-  // Root owns data-theme + CSS variables; canvas-local getComputedStyle can lag.
   const root = getComputedStyle(document.documentElement);
   const pageBg = readVar(root, '--bg-color', '');
   const cardBg = readVar(root, '--card-bg-color', '');
   const raw = pageBg || cardBg || fallback;
-
   const parsed = parseCssColor(raw);
-  if (parsed) return formatRgba({ ...parsed, a: 1 });
 
-  // Unparsed modern colors still usable as stroke if browser set them as hex/rgb.
-  if (raw && raw !== fallback) return raw;
+  if (parsed) {
+    const lum = relativeLuminance(parsed);
+    // Stale/light tokens while UI is dark (or the reverse) → force surface fallback.
+    if (dark && lum > 0.45) return DARK_SURFACE_FALLBACK;
+    if (!dark && lum < 0.45) return LIGHT_SURFACE_FALLBACK;
+    return formatRgba({ ...parsed, a: 1 });
+  }
 
-  // Infer dark from color-scheme when tokens are missing.
-  const scheme = root.getPropertyValue('color-scheme').trim();
-  if (scheme.includes('dark')) return darkFallback;
   return fallback;
+}
+
+/**
+ * Prefer the color already painted under the plot (grid / area wash) so the
+ * label stroke matches what the eye sees, not only the page token.
+ */
+function resolveLabelHaloFromChart(
+  chart: {
+    ctx: CanvasRenderingContext2D;
+    chartArea?: { left: number; right: number; top: number; bottom: number };
+  },
+  isDarkHint: boolean,
+): string {
+  const tokenHalo = resolveLabelHaloColor(isDarkHint);
+  const area = chart.chartArea;
+  if (!area) return tokenHalo;
+
+  try {
+    const samples: Array<[number, number]> = [
+      [area.left + 10, area.top + 10],
+      [area.left + 10, area.bottom - 10],
+      [area.right - 10, area.top + 10],
+      [(area.left + area.right) / 2, area.top + 12],
+    ];
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let n = 0;
+    for (const [x, y] of samples) {
+      const d = chart.ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+      if (d[3] < 200) continue;
+      r += d[0];
+      g += d[1];
+      b += d[2];
+      n += 1;
+    }
+    if (n === 0) return tokenHalo;
+    const sampled = {
+      r: r / n,
+      g: g / n,
+      b: b / n,
+      a: 1,
+    };
+    const lum = relativeLuminance(sampled);
+    const dark = isDarkHint || isDocumentDark();
+    // Reject accidental light samples in dark mode (e.g. axis title bleed).
+    if (dark && lum > 0.45) return tokenHalo;
+    if (!dark && lum < 0.45) return tokenHalo;
+    return formatRgba(sampled);
+  } catch {
+    return tokenHalo;
+  }
 }
 
 function resolveTheme(styles: CSSStyleDeclaration, _canvas?: HTMLElement | null): Theme {
@@ -1364,8 +1429,8 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
       const area = chart.chartArea;
       if (!area) return;
 
-      // Live every paint — theme flip must update label borders without stale closure.
-      const labelHalo = resolveLabelHaloColor(theme.isDark);
+      // Live every paint — sample plot backdrop + theme tokens (never freeze white).
+      const labelHalo = resolveLabelHaloFromChart(chart, theme.isDark || isDocumentDark());
 
       const labelsVisible = opts.getLabelsVisible?.() ?? true;
 
@@ -1691,8 +1756,8 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
               ctx.globalAlpha = 1;
               ctx.lineJoin = 'round';
               ctx.miterLimit = 2;
+              // Theme/plot-matched text border (dark surface in dark mode).
               ctx.lineWidth = 3;
-              // Explicit data-label border: same color as page/card surface.
               ctx.strokeStyle = labelHalo;
               ctx.strokeText(line.text, label.x, textY);
               ctx.fillText(line.text, label.x, textY);
