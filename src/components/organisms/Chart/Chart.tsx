@@ -1044,6 +1044,9 @@ function accumulateOverlap(
  * Place point labels so their bounding boxes do not overlap each other,
  * data-point markers, **or leader lines** (own attach path and others).
  * Optional `lineSegments` also keep labels/leaders off a chart trend path.
+ *
+ * **Short leaders first:** try a compact offset ring; only expand to a 2×
+ * longer ring when every short slot collides (dense scatter / Fig 4).
  */
 function placePointLabels(
   items: PointLabelCandidate[],
@@ -1052,8 +1055,9 @@ function placePointLabels(
   lineSegments: LineSegment[] = [],
 ): PlacedPointLabel[] {
   const narrow = chartWidth < 480;
-  // 2× prior offset so leaders can clear dense scatter clusters (Fig 4).
-  const baseRadius = narrow ? 36 : 44;
+  // Ring 0 = short (preferred); ring 1 = 2× long (overlap escape only).
+  const shortRadius = narrow ? 16 : 20;
+  const longRadius = shortRadius * 2;
   const placed: PlacedPointLabel[] = [];
   const placedLabelBoxes: LabelBox[] = [];
   /** Leader strokes already committed — later labels must clear them. */
@@ -1073,8 +1077,14 @@ function placePointLabels(
   for (const { item, index: itemIndex } of order) {
     const textHeight = item.blockHeight;
     const prefer = item.prefer ?? 'above';
-    const offsets = pointLabelOffsets(baseRadius, prefer);
-    const defaultSlot = offsets[0]!;
+    const shortSlots = pointLabelOffsets(shortRadius, prefer);
+    const longSlots = pointLabelOffsets(longRadius, prefer);
+    // Short ring first; long ring only after all short slots are tried.
+    const rings: Array<{ ring: 0 | 1; slots: ReturnType<typeof pointLabelOffsets> }> = [
+      { ring: 0, slots: shortSlots },
+      { ring: 1, slots: longSlots },
+    ];
+    const defaultSlot = shortSlots[0]!;
     let best: PlacedPointLabel | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
     let bestLeader: LineSegment | null = null;
@@ -1085,122 +1095,133 @@ function placePointLabels(
     const ownPointBox = pointBoxes[itemIndex]!;
     const obstacleLines = [...lineSegments, ...placedLeaders];
 
-    for (let oi = 0; oi < offsets.length; oi++) {
-      const slot = offsets[oi]!;
-      const measured = measureLabelBox(
-        item.px,
-        item.py,
-        slot.dx,
-        slot.dy,
-        slot.align,
-        slot.baseline,
-        item.textWidth,
-        textHeight,
-      );
+    outer: for (const { ring, slots } of rings) {
+      for (let oi = 0; oi < slots.length; oi++) {
+        const slot = slots[oi]!;
+        const measured = measureLabelBox(
+          item.px,
+          item.py,
+          slot.dx,
+          slot.dy,
+          slot.align,
+          slot.baseline,
+          item.textWidth,
+          textHeight,
+        );
 
-      // Soft-clamp into chart area (keep as much of the box visible as possible).
-      let { x, y, box } = measured;
-      const bw = box.right - box.left;
-      const bh = box.bottom - box.top;
-      if (box.left < area.left) {
-        const shift = area.left - box.left;
-        x += shift;
-        box = { ...box, left: box.left + shift, right: box.right + shift };
-      }
-      if (box.right > area.right) {
-        const shift = box.right - area.right;
-        x -= shift;
-        box = { ...box, left: box.left - shift, right: box.right - shift };
-      }
-      if (box.top < area.top) {
-        const shift = area.top - box.top;
-        y += shift;
-        box = { ...box, top: box.top + shift, bottom: box.bottom + shift };
-      }
-      if (box.bottom > area.bottom) {
-        const shift = box.bottom - area.bottom;
-        y -= shift;
-        box = { ...box, top: box.top - shift, bottom: box.bottom - shift };
-      }
-
-      // Reject if still mostly outside after clamp.
-      const visible = clipBoxToArea(box, area);
-      if (boxArea(visible) < bw * bh * 0.55) continue;
-
-      // Obstacles: already-placed labels + all other data points + own marker.
-      const labelHit = accumulateOverlap(box, placedLabelBoxes);
-      const otherPointHit = accumulateOverlap(box, otherPointBoxes);
-      const ownPointHit = accumulateOverlap(box, [ownPointBox]);
-
-      // Hard-prefer no label-on-label or label-on-foreign-point collisions.
-      const hardCount = labelHit.count + otherPointHit.count;
-      const hardArea = labelHit.area + otherPointHit.area;
-      // Covering the home marker is discouraged but allowed if nothing else fits.
-      const softCount = ownPointHit.count;
-      const softArea = ownPointHit.area;
-
-      const travel = Math.hypot(x - item.px, y - item.py);
-      const needsLeader = travel > item.pointRadius + 14;
-      const geom = needsLeader
-        ? leaderGeometry(item.px, item.py, box, item.pointRadius, 2)
-        : null;
-
-      // Text must not sit on a trend path or an existing leader stroke.
-      const boxOnStroke = boxHitsSegments(box, obstacleLines, 6);
-      // Own leader must not cross trend paths, other leaders, or other labels.
-      let leaderConflict = 0;
-      if (geom) {
-        if (leaderCrossesSegments(geom.sx, geom.sy, geom.ex, geom.ey, obstacleLines)) {
-          leaderConflict += 1;
+        // Soft-clamp into chart area (keep as much of the box visible as possible).
+        let { x, y, box } = measured;
+        const bw = box.right - box.left;
+        const bh = box.bottom - box.top;
+        if (box.left < area.left) {
+          const shift = area.left - box.left;
+          x += shift;
+          box = { ...box, left: box.left + shift, right: box.right + shift };
         }
-        // Leader must not cut through *other* labels (own box is the attach target).
-        if (segmentHitsBoxes(geom.segment, placedLabelBoxes, 4)) {
-          leaderConflict += 1;
+        if (box.right > area.right) {
+          const shift = box.right - area.right;
+          x -= shift;
+          box = { ...box, left: box.left - shift, right: box.right - shift };
+        }
+        if (box.top < area.top) {
+          const shift = area.top - box.top;
+          y += shift;
+          box = { ...box, top: box.top + shift, bottom: box.bottom + shift };
+        }
+        if (box.bottom > area.bottom) {
+          const shift = box.bottom - area.bottom;
+          y -= shift;
+          box = { ...box, top: box.top - shift, bottom: box.bottom - shift };
+        }
+
+        // Reject if still mostly outside after clamp.
+        const visible = clipBoxToArea(box, area);
+        if (boxArea(visible) < bw * bh * 0.55) continue;
+
+        // Obstacles: already-placed labels + all other data points + own marker.
+        const labelHit = accumulateOverlap(box, placedLabelBoxes);
+        const otherPointHit = accumulateOverlap(box, otherPointBoxes);
+        const ownPointHit = accumulateOverlap(box, [ownPointBox]);
+
+        // Hard-prefer no label-on-label or label-on-foreign-point collisions.
+        const hardCount = labelHit.count + otherPointHit.count;
+        const hardArea = labelHit.area + otherPointHit.area;
+        // Covering the home marker is discouraged but allowed if nothing else fits.
+        const softCount = ownPointHit.count;
+        const softArea = ownPointHit.area;
+
+        const travel = Math.hypot(x - item.px, y - item.py);
+        // Short ring: often no leader (or a tiny one). Long ring: usually a leader.
+        const needsLeader = travel > item.pointRadius + 10;
+        const geom = needsLeader
+          ? leaderGeometry(item.px, item.py, box, item.pointRadius, 2)
+          : null;
+
+        // Text must not sit on a trend path or an existing leader stroke.
+        const boxOnStroke = boxHitsSegments(box, obstacleLines, 6);
+        // Own leader must not cross trend paths, other leaders, or other labels.
+        let leaderConflict = 0;
+        if (geom) {
+          if (
+            leaderCrossesSegments(geom.sx, geom.sy, geom.ex, geom.ey, obstacleLines)
+          ) {
+            leaderConflict += 1;
+          }
+          // Leader must not cut through *other* labels (own box is the attach target).
+          if (segmentHitsBoxes(geom.segment, placedLabelBoxes, 4)) {
+            leaderConflict += 1;
+          }
+        }
+
+        // Prefer short ring heavily; within a ring prefer early slots + short travel.
+        // Crossing a stroke is nearly as bad as covering another label.
+        const score =
+          hardCount * 1e7 +
+          hardArea * 100 +
+          (boxOnStroke ? 6e6 : 0) +
+          leaderConflict * 5e6 +
+          softCount * 1e5 +
+          softArea * 20 +
+          ring * 2e5 +
+          oi * 40 +
+          travel * 3;
+
+        if (score < bestScore) {
+          bestScore = score;
+          const offset =
+            Math.hypot(slot.dx - defaultSlot.dx, slot.dy - defaultSlot.dy) > 4 ||
+            Math.hypot(
+              x - (item.px + defaultSlot.dx),
+              y - (item.py + defaultSlot.dy),
+            ) > 10;
+          best = {
+            ...item,
+            x,
+            y,
+            align: slot.align,
+            baseline: slot.baseline,
+            box,
+            offset: offset || needsLeader,
+          };
+          bestLeader = geom?.segment ?? null;
+          // Clean short slot → stop (do not expand to long leaders).
+          // Clean long slot → stop after short ring was exhausted.
+          if (
+            hardCount === 0 &&
+            softCount === 0 &&
+            !boxOnStroke &&
+            leaderConflict === 0
+          ) {
+            break outer;
+          }
         }
       }
-
-      // Prefer earlier slots and less travel from the point.
-      // Crossing a stroke or burying text on a leader is nearly as bad as
-      // covering another label (Fig 4 dense scatter).
-      const score =
-        hardCount * 1e7 +
-        hardArea * 100 +
-        (boxOnStroke ? 6e6 : 0) +
-        leaderConflict * 5e6 +
-        softCount * 1e5 +
-        softArea * 20 +
-        oi * 40 +
-        travel;
-
-      if (score < bestScore) {
-        bestScore = score;
-        const offset =
-          Math.hypot(slot.dx - defaultSlot.dx, slot.dy - defaultSlot.dy) > 4 ||
-          Math.hypot(x - (item.px + defaultSlot.dx), y - (item.py + defaultSlot.dy)) > 10;
-        best = {
-          ...item,
-          x,
-          y,
-          align: slot.align,
-          baseline: slot.baseline,
-          box,
-          offset: offset || needsLeader,
-        };
-        bestLeader = geom?.segment ?? null;
-        // First slot free of labels, points, and stroke conflicts.
-        if (
-          hardCount === 0 &&
-          softCount === 0 &&
-          !boxOnStroke &&
-          leaderConflict === 0
-        ) {
-          break;
-        }
-      }
+      // After short ring: if we already have a clean short placement, stop.
+      // (break outer handles that.) If short only had conflicts, continue to long.
     }
 
     if (!best) {
-      // Fallback: default preferred slot, even if cramped.
+      // Fallback: default short slot, even if cramped.
       const slot = defaultSlot;
       const measured = measureLabelBox(
         item.px,
