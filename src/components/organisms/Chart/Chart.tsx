@@ -12,7 +12,6 @@ import type {
   BubbleDataPoint,
 } from 'chart.js';
 import { cn } from '@/lib/cn.js';
-import { Spinner } from '@/components/atoms/Spinner/Spinner.js';
 import { Text } from '@/components/atoms/Text/Text.js';
 
 /**
@@ -1763,9 +1762,6 @@ export function Chart({
   const revealScheduledRef = React.useRef(false);
   const [themeTick, setThemeTick] = React.useState(0);
   const [frameWidth, setFrameWidth] = React.useState(0);
-  const [labelsLayoutPending, setLabelsLayoutPending] = React.useState(
-    () => dataLabels,
-  );
 
   // Re-read theme tokens whenever the active theme changes.
   // Double rAF so --bg-color / --card-bg-color have applied before chart rebuild.
@@ -1818,7 +1814,6 @@ export function Chart({
     // Hide label ink until collision layout has run once on final geometry.
     labelsVisibleRef.current = !dataLabels;
     revealScheduledRef.current = false;
-    setLabelsLayoutPending(dataLabels);
 
     const styles = getComputedStyle(canvas);
     const theme = resolveTheme(styles, canvas);
@@ -1842,7 +1837,7 @@ export function Chart({
 
     // Collision labels need final marker positions. Chart.js entry/resize
     // tweens would re-run placement every frame and look like labels
-    // “rearranging” after the spinner. Kill animations when labels are on.
+    // rearranging. Kill animations when labels are on.
     if (dataLabels) {
       (finalOptions as { animation?: boolean | object }).animation = false;
       (finalOptions as { animations?: boolean | object }).animations = false;
@@ -1902,7 +1897,6 @@ export function Chart({
         if (!live) return;
         labelsVisibleRef.current = true;
         live.draw();
-        setLabelsLayoutPending(false);
       });
     };
 
@@ -1926,13 +1920,12 @@ export function Chart({
     });
     chartRef.current = chart;
 
-    // Fallback if the plugin never fires (empty series): clear spinner.
+    // Fallback if the plugin never fires (empty series): show labels.
     if (dataLabels) {
       const fallback = window.setTimeout(() => {
         if (!labelsVisibleRef.current) {
           labelsVisibleRef.current = true;
           chart.draw();
-          setLabelsLayoutPending(false);
         }
       }, 120);
       return () => {
@@ -1976,21 +1969,12 @@ export function Chart({
         ref={frameRef}
         className="relative w-full min-w-0"
         style={height != null ? { height } : undefined}
-        aria-busy={labelsLayoutPending || undefined}
       >
         <canvas
           ref={canvasRef}
           role="img"
           aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
         />
-        {labelsLayoutPending ? (
-          <div
-            className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[var(--card-bg-color)]/35"
-            aria-hidden
-          >
-            <Spinner size="md" intent="brand" label="Positioning chart labels" />
-          </div>
-        ) : null}
       </div>
       {caption != null && (
         <Text as="div" size="sm" tone="secondary">
