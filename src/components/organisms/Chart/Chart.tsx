@@ -1109,7 +1109,7 @@ function placePointLabels(
           textHeight,
         );
 
-        // Soft-clamp into chart area (keep as much of the box visible as possible).
+        // Soft-clamp into expanded plot area (axes + small bleed past grid).
         let { x, y, box } = measured;
         const bw = box.right - box.left;
         const bh = box.bottom - box.top;
@@ -1134,9 +1134,9 @@ function placePointLabels(
           box = { ...box, top: box.top - shift, bottom: box.bottom - shift };
         }
 
-        // Reject if still mostly outside after clamp.
+        // Reject if still mostly outside after clamp (bleed area, not tight axes).
         const visible = clipBoxToArea(box, area);
-        if (boxArea(visible) < bw * bh * 0.55) continue;
+        if (boxArea(visible) < bw * bh * 0.4) continue;
 
         // Obstacles: already-placed labels + all other data points + own marker.
         const labelHit = accumulateOverlap(box, placedLabelBoxes);
@@ -1301,11 +1301,13 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
 
       const labelsVisible = opts.getLabelsVisible?.() ?? true;
 
+      // Allow labels to sit slightly past the axes (still on-canvas).
+      const axisBleed = 18;
       const plotArea: LabelBox = {
-        left: area.left + 2,
-        top: area.top + 2,
-        right: area.right - 2,
-        bottom: area.bottom - 2,
+        left: Math.max(2, area.left - axisBleed),
+        top: Math.max(2, area.top - axisBleed),
+        right: Math.min((chart.width ?? area.right) - 2, area.right + axisBleed),
+        bottom: Math.min((chart.height ?? area.bottom) - 2, area.bottom + axisBleed),
       };
 
       ctx.save();
@@ -1519,16 +1521,21 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
 
           ctx.textAlign = align;
           ctx.fillStyle = fillStyle;
+          ctx.lineJoin = 'round';
           if (useStroke) {
+            // Dark halo for light fill on solid marks (bars/slices).
             ctx.strokeStyle = 'rgba(0,0,0,0.4)';
             ctx.lineWidth = 3;
-            ctx.lineJoin = 'round';
+          } else {
+            // Thin white halo so labels stay readable over grid / area fills.
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.lineWidth = 2.5;
           }
 
           for (const line of lines) {
             const maxChars = arc ? 12 : multiSeries ? 16 : 18;
             const drawn = line.length > maxChars ? `${line.slice(0, maxChars - 1)}…` : line;
-            if (useStroke) ctx.strokeText(drawn, x, textY);
+            ctx.strokeText(drawn, x, textY);
             ctx.fillText(drawn, x, textY);
             textY += lineHeight;
           }
@@ -1595,7 +1602,8 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             ctx.globalAlpha = 1;
           }
 
-          // Text on top — series color at full opacity; line 0 semibold, rest thinner.
+          // Text on top — thin white halo so labels stay readable on grid/fill;
+          // series color fill at full opacity; line 0 semibold, rest thinner.
           for (const label of placed) {
             ctx.globalAlpha = 1;
             ctx.fillStyle = solidColor(label.color || theme.text, theme.text);
@@ -1613,6 +1621,11 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             for (const line of label.lines) {
               ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
               ctx.globalAlpha = 1;
+              ctx.lineJoin = 'round';
+              ctx.miterLimit = 2;
+              ctx.lineWidth = 2.5;
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+              ctx.strokeText(line.text, label.x, textY);
               ctx.fillText(line.text, label.x, textY);
               textY += line.height;
             }
