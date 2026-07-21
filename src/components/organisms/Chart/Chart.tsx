@@ -782,7 +782,8 @@ function leaderGeometry(
   py: number,
   box: LabelBox,
   pointRadius: number,
-  gap = 4,
+  /** Clearance between stroke end and text ink (keep small so labels sit close). */
+  gap = 2,
 ): { sx: number; sy: number; ex: number; ey: number; segment: LineSegment } | null {
   const cx = (box.left + box.right) / 2;
   const cy = (box.top + box.bottom) / 2;
@@ -793,10 +794,10 @@ function leaderGeometry(
 
   const ux = dx / dist;
   const uy = dy / dist;
-  const sx = px + ux * (pointRadius + 2);
-  const sy = py + uy * (pointRadius + 2);
+  const sx = px + ux * (pointRadius + 1.5);
+  const sy = py + uy * (pointRadius + 1.5);
 
-  // Inflate box by `gap` so the stroke ends clear of the text ink.
+  // Inflate box by `gap` so the stroke ends just outside the text ink.
   const L = box.left - gap;
   const R = box.right + gap;
   const T = box.top - gap;
@@ -1051,8 +1052,8 @@ function placePointLabels(
   lineSegments: LineSegment[] = [],
 ): PlacedPointLabel[] {
   const narrow = chartWidth < 480;
-  // Slightly larger default radius → more gap between marker and text/leaders.
-  const baseRadius = narrow ? 26 : 32;
+  // Compact offset radius: labels sit closer to markers / short leaders.
+  const baseRadius = narrow ? 18 : 22;
   const placed: PlacedPointLabel[] = [];
   const placedLabelBoxes: LabelBox[] = [];
   /** Leader strokes already committed — later labels must clear them. */
@@ -1141,7 +1142,7 @@ function placePointLabels(
       const travel = Math.hypot(x - item.px, y - item.py);
       const needsLeader = travel > item.pointRadius + 14;
       const geom = needsLeader
-        ? leaderGeometry(item.px, item.py, box, item.pointRadius, 5)
+        ? leaderGeometry(item.px, item.py, box, item.pointRadius, 2)
         : null;
 
       // Text must not sit on a trend path or an existing leader stroke.
@@ -1228,7 +1229,7 @@ function placePointLabels(
     if (best.offset && bestLeader) {
       placedLeaders.push(bestLeader);
     } else if (best.offset) {
-      const g = leaderGeometry(best.px, best.py, best.box, best.pointRadius, 5);
+      const g = leaderGeometry(best.px, best.py, best.box, best.pointRadius, 2);
       if (g) placedLeaders.push(g.segment);
     }
   }
@@ -1549,7 +1550,7 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
         opts.onLabelsPositioned?.();
 
         if (labelsVisible) {
-          // Leader lines first (under text) — stop outside the glyph box.
+          // Subtle leaders first (under text) — thin stroke, no end-cap dots.
           for (const label of placed) {
             if (!label.offset) continue;
             const geom = leaderGeometry(
@@ -1557,7 +1558,7 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
               label.py,
               label.box,
               label.pointRadius,
-              5,
+              2,
             );
             if (!geom) continue;
 
@@ -1566,17 +1567,10 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             ctx.moveTo(geom.sx, geom.sy);
             ctx.lineTo(geom.ex, geom.ey);
             ctx.strokeStyle = lineColor;
-            ctx.globalAlpha = 0.75;
-            ctx.lineWidth = 1.25;
+            ctx.globalAlpha = 0.35;
+            ctx.lineWidth = 0.75;
+            ctx.lineCap = 'round';
             ctx.stroke();
-            ctx.globalAlpha = 1;
-
-            // Small cap at the label end (same series color), outside the text.
-            ctx.beginPath();
-            ctx.arc(geom.ex, geom.ey, 1.75, 0, Math.PI * 2);
-            ctx.fillStyle = lineColor;
-            ctx.globalAlpha = 0.85;
-            ctx.fill();
             ctx.globalAlpha = 1;
           }
 
