@@ -725,28 +725,153 @@ function leaderCrossesSegments(
   return false;
 }
 
-/** True if label box overlaps a fattened trend segment (line under the text). */
-function boxHitsSegments(box: LabelBox, segments: LineSegment[], pad = 4): boolean {
-  const midY = (box.top + box.bottom) / 2;
-  const midX = (box.left + box.right) / 2;
-  // Sample box center + corners against nearby segments via expanded AABB
+/** Distance from point to segment AB. */
+function distPointToSegment(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  const vx = x2 - x1;
+  const vy = y2 - y1;
+  const len2 = vx * vx + vy * vy || 1;
+  let t = ((px - x1) * vx + (py - y1) * vy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * vx), py - (y1 + t * vy));
+}
+
+/** True if label box overlaps a fattened segment (trend or leader under the text). */
+function boxHitsSegments(box: LabelBox, segments: LineSegment[], pad = 5): boolean {
+  const samples = [
+    { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 },
+    { x: box.left, y: box.top },
+    { x: box.right, y: box.top },
+    { x: box.left, y: box.bottom },
+    { x: box.right, y: box.bottom },
+    { x: (box.left + box.right) / 2, y: box.top },
+    { x: (box.left + box.right) / 2, y: box.bottom },
+    { x: box.left, y: (box.top + box.bottom) / 2 },
+    { x: box.right, y: (box.top + box.bottom) / 2 },
+  ];
+  const threshold = pad + 3;
   for (const s of segments) {
-    const minX = Math.min(s.x1, s.x2) - pad;
-    const maxX = Math.max(s.x1, s.x2) + pad;
-    const minY = Math.min(s.y1, s.y2) - pad;
-    const maxY = Math.max(s.y1, s.y2) + pad;
+    const minX = Math.min(s.x1, s.x2) - threshold;
+    const maxX = Math.max(s.x1, s.x2) + threshold;
+    const minY = Math.min(s.y1, s.y2) - threshold;
+    const maxY = Math.max(s.y1, s.y2) + threshold;
     if (box.right < minX || box.left > maxX || box.bottom < minY || box.top > maxY) {
       continue;
     }
-    // Closer test: distance from box center to segment
-    const vx = s.x2 - s.x1;
-    const vy = s.y2 - s.y1;
-    const len2 = vx * vx + vy * vy || 1;
-    let t = ((midX - s.x1) * vx + (midY - s.y1) * vy) / len2;
-    t = Math.max(0, Math.min(1, t));
-    const qx = s.x1 + t * vx;
-    const qy = s.y1 + t * vy;
-    if (Math.hypot(midX - qx, midY - qy) < pad + 6) return true;
+    for (const p of samples) {
+      if (distPointToSegment(p.x, p.y, s.x1, s.y1, s.x2, s.y2) < threshold) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Leader from data point to the **outside** of the label box (never through glyphs).
+ * Returns null when the label sits flush on the marker (no leader needed).
+ */
+function leaderGeometry(
+  px: number,
+  py: number,
+  box: LabelBox,
+  pointRadius: number,
+  gap = 4,
+): { sx: number; sy: number; ex: number; ey: number; segment: LineSegment } | null {
+  const cx = (box.left + box.right) / 2;
+  const cy = (box.top + box.bottom) / 2;
+  const dx = cx - px;
+  const dy = cy - py;
+  const dist = Math.hypot(dx, dy) || 1;
+  if (dist < pointRadius + gap + 2) return null;
+
+  const ux = dx / dist;
+  const uy = dy / dist;
+  const sx = px + ux * (pointRadius + 2);
+  const sy = py + uy * (pointRadius + 2);
+
+  // Inflate box by `gap` so the stroke ends clear of the text ink.
+  const L = box.left - gap;
+  const R = box.right + gap;
+  const T = box.top - gap;
+  const B = box.bottom + gap;
+
+  // Ray px,py → cx,cy: first hit on inflated box boundary (from outside).
+  let tHit = Number.POSITIVE_INFINITY;
+  const candidates: number[] = [];
+  if (Math.abs(ux) > 1e-9) {
+    candidates.push((L - px) / ux, (R - px) / ux);
+  }
+  if (Math.abs(uy) > 1e-9) {
+    candidates.push((T - py) / uy, (B - py) / uy);
+  }
+  for (const t of candidates) {
+    if (t <= 0 || t >= dist || t >= tHit) continue;
+    const x = px + ux * t;
+    const y = py + uy * t;
+    const onEdge =
+      (Math.abs(x - L) < 0.6 || Math.abs(x - R) < 0.6) && y >= T - 0.6 && y <= B + 0.6;
+    const onTopBot =
+      (Math.abs(y - T) < 0.6 || Math.abs(y - B) < 0.6) && x >= L - 0.6 && x <= R + 0.6;
+    if (onEdge || onTopBot) tHit = t;
+  }
+
+  let ex: number;
+  let ey: number;
+  if (Number.isFinite(tHit) && tHit < dist) {
+    ex = px + ux * tHit;
+    ey = py + uy * tHit;
+  } else {
+    // Fallback: nearest side of the inflated box to the point.
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      ex = dx > 0 ? L : R;
+      ey = Math.min(B, Math.max(T, py + uy * Math.abs(ex - px)));
+    } else {
+      ey = dy > 0 ? T : B;
+      ex = Math.min(R, Math.max(L, px + ux * Math.abs(ey - py)));
+    }
+  }
+
+  return {
+    sx,
+    sy,
+    ex,
+    ey,
+    segment: { x1: sx, y1: sy, x2: ex, y2: ey },
+  };
+}
+
+/** True if segment runs through any label box (pad clears text). */
+function segmentHitsBoxes(
+  seg: LineSegment,
+  boxes: LabelBox[],
+  pad = 3,
+): boolean {
+  for (const box of boxes) {
+    const L = box.left - pad;
+    const R = box.right + pad;
+    const T = box.top - pad;
+    const B = box.bottom + pad;
+    // Quick reject
+    if (
+      Math.max(seg.x1, seg.x2) < L ||
+      Math.min(seg.x1, seg.x2) > R ||
+      Math.max(seg.y1, seg.y2) < T ||
+      Math.min(seg.y1, seg.y2) > B
+    ) {
+      continue;
+    }
+    // Sample along segment
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8;
+      const x = seg.x1 + (seg.x2 - seg.x1) * t;
+      const y = seg.y1 + (seg.y2 - seg.y1) * t;
+      if (x >= L && x <= R && y >= T && y <= B) return true;
+    }
   }
   return false;
 }
@@ -913,10 +1038,9 @@ function accumulateOverlap(
 }
 
 /**
- * Place point labels so their bounding boxes do not overlap each other **or**
- * any data-point markers. When a label cannot sit in the default slot above
- * the marker, it is moved to a free candidate and a leader line is drawn.
- * Optional `lineSegments` (canvas space) keep labels/leaders off a trend path.
+ * Place point labels so their bounding boxes do not overlap each other,
+ * data-point markers, **or leader lines** (own attach path and others).
+ * Optional `lineSegments` also keep labels/leaders off a chart trend path.
  */
 function placePointLabels(
   items: PointLabelCandidate[],
@@ -925,9 +1049,12 @@ function placePointLabels(
   lineSegments: LineSegment[] = [],
 ): PlacedPointLabel[] {
   const narrow = chartWidth < 480;
-  const baseRadius = narrow ? 22 : 28;
+  // Slightly larger default radius → more gap between marker and text/leaders.
+  const baseRadius = narrow ? 26 : 32;
   const placed: PlacedPointLabel[] = [];
   const placedLabelBoxes: LabelBox[] = [];
+  /** Leader strokes already committed — later labels must clear them. */
+  const placedLeaders: LineSegment[] = [];
 
   // Every scatter marker is an obstacle — labels must not cover data points
   // (including a label's own marker when the text would sit on top of it).
@@ -947,11 +1074,13 @@ function placePointLabels(
     const defaultSlot = offsets[0]!;
     let best: PlacedPointLabel | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
+    let bestLeader: LineSegment | null = null;
 
     // Other markers only (own marker handled with a lighter penalty so default
     // "above" placement can still win when the box clears the disc).
     const otherPointBoxes = pointBoxes.filter((_, i) => i !== itemIndex);
     const ownPointBox = pointBoxes[itemIndex]!;
+    const obstacleLines = [...lineSegments, ...placedLeaders];
 
     for (let oi = 0; oi < offsets.length; oi++) {
       const slot = offsets[oi]!;
@@ -1007,20 +1136,34 @@ function placePointLabels(
       const softCount = ownPointHit.count;
       const softArea = ownPointHit.area;
 
-      const lx = (box.left + box.right) / 2;
-      const ly = (box.top + box.bottom) / 2;
-      const crossesLine =
-        lineSegments.length > 0 &&
-        (leaderCrossesSegments(item.px, item.py, lx, ly, lineSegments) ||
-          boxHitsSegments(box, lineSegments));
+      const travel = Math.hypot(x - item.px, y - item.py);
+      const needsLeader = travel > item.pointRadius + 14;
+      const geom = needsLeader
+        ? leaderGeometry(item.px, item.py, box, item.pointRadius, 5)
+        : null;
+
+      // Text must not sit on a trend path or an existing leader stroke.
+      const boxOnStroke = boxHitsSegments(box, obstacleLines, 6);
+      // Own leader must not cross trend paths, other leaders, or other labels.
+      let leaderConflict = 0;
+      if (geom) {
+        if (leaderCrossesSegments(geom.sx, geom.sy, geom.ex, geom.ey, obstacleLines)) {
+          leaderConflict += 1;
+        }
+        // Leader must not cut through *other* labels (own box is the attach target).
+        if (segmentHitsBoxes(geom.segment, placedLabelBoxes, 4)) {
+          leaderConflict += 1;
+        }
+      }
 
       // Prefer earlier slots and less travel from the point.
-      // Crossing a trend path is almost as bad as covering another label.
-      const travel = Math.hypot(x - item.px, y - item.py);
+      // Crossing a stroke or burying text on a leader is nearly as bad as
+      // covering another label (Fig 4 dense scatter).
       const score =
         hardCount * 1e7 +
         hardArea * 100 +
-        (crossesLine ? 5e6 : 0) +
+        (boxOnStroke ? 6e6 : 0) +
+        leaderConflict * 5e6 +
         softCount * 1e5 +
         softArea * 20 +
         oi * 40 +
@@ -1038,10 +1181,18 @@ function placePointLabels(
           align: slot.align,
           baseline: slot.baseline,
           box,
-          offset: offset || travel > item.pointRadius + 14,
+          offset: offset || needsLeader,
         };
-        // First slot free of labels, points, and trend-line crossings.
-        if (hardCount === 0 && softCount === 0 && !crossesLine) break;
+        bestLeader = geom?.segment ?? null;
+        // First slot free of labels, points, and stroke conflicts.
+        if (
+          hardCount === 0 &&
+          softCount === 0 &&
+          !boxOnStroke &&
+          leaderConflict === 0
+        ) {
+          break;
+        }
       }
     }
 
@@ -1067,10 +1218,17 @@ function placePointLabels(
         box: measured.box,
         offset: false,
       };
+      bestLeader = null;
     }
 
     placed.push(best);
     placedLabelBoxes.push(best.box);
+    if (best.offset && bestLeader) {
+      placedLeaders.push(bestLeader);
+    } else if (best.offset) {
+      const g = leaderGeometry(best.px, best.py, best.box, best.pointRadius, 5);
+      if (g) placedLeaders.push(g.segment);
+    }
   }
 
   return placed;
@@ -1086,8 +1244,9 @@ function placePointLabels(
  *   (slices have no axis ticks, so the name is required).
  * - **Bar / line / radar**: value only (axes / legend identify marks).
  * - **Scatter / bubble**: series label (dataset name). Labels are collision-
- *   resolved against other labels **and** data-point markers; when a label
- *   must move, a leader line connects the point to the free placement.
+ *   resolved against other labels, data-point markers, **and leader strokes**
+ *   (text must not sit on a leader); when a label must move, a leader attaches
+ *   to the outside of the text box, not through the glyphs.
  */
 function createDataLabelsPlugin(theme: Theme): Plugin {
   const lineHeight = 13;
@@ -1370,48 +1529,31 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           lineSegments,
         );
 
-        // Leader lines first (under text).
+        // Leader lines first (under text) — stop outside the glyph box.
         for (const label of placed) {
           if (!label.offset) continue;
-          // Aim at the center of the label box.
-          const lx = (label.box.left + label.box.right) / 2;
-          const ly = (label.box.top + label.box.bottom) / 2;
-          const dx = lx - label.px;
-          const dy = ly - label.py;
-          const dist = Math.hypot(dx, dy) || 1;
-          // Start just outside the marker.
-          const startR = label.pointRadius + 2;
-          const sx = label.px + (dx / dist) * startR;
-          const sy = label.py + (dy / dist) * startR;
-          // End at the edge of the label box toward the point.
-          const endPad = 2;
-          let ex = lx;
-          let ey = ly;
-          const box = label.box;
-          // Clamp end to the box boundary along the ray from point → label.
-          if (Math.abs(dx) > Math.abs(dy)) {
-            ex = dx > 0 ? box.left - endPad : box.right + endPad;
-            ey = label.py + (dy / dist) * Math.abs(ex - label.px);
-            ey = Math.min(box.bottom - 2, Math.max(box.top + 2, ey));
-          } else {
-            ey = dy > 0 ? box.top - endPad : box.bottom + endPad;
-            ex = label.px + (dx / dist) * Math.abs(ey - label.py);
-            ex = Math.min(box.right - 2, Math.max(box.left + 2, ex));
-          }
+          const geom = leaderGeometry(
+            label.px,
+            label.py,
+            label.box,
+            label.pointRadius,
+            5,
+          );
+          if (!geom) continue;
 
           const lineColor = label.color || theme.secondaryText;
           ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.lineTo(ex, ey);
+          ctx.moveTo(geom.sx, geom.sy);
+          ctx.lineTo(geom.ex, geom.ey);
           ctx.strokeStyle = lineColor;
           ctx.globalAlpha = 0.75;
           ctx.lineWidth = 1.25;
           ctx.stroke();
           ctx.globalAlpha = 1;
 
-          // Small cap at the label end (same series color).
+          // Small cap at the label end (same series color), outside the text.
           ctx.beginPath();
-          ctx.arc(ex, ey, 1.75, 0, Math.PI * 2);
+          ctx.arc(geom.ex, geom.ey, 1.75, 0, Math.PI * 2);
           ctx.fillStyle = lineColor;
           ctx.globalAlpha = 0.85;
           ctx.fill();
