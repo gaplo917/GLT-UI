@@ -12,6 +12,7 @@ import type {
   BubbleDataPoint,
 } from 'chart.js';
 import { cn } from '@/lib/cn.js';
+import { Spinner } from '@/components/atoms/Spinner/Spinner.js';
 import { Text } from '@/components/atoms/Text/Text.js';
 
 /**
@@ -1248,7 +1249,14 @@ function placePointLabels(
  *   (text must not sit on a leader); when a label must move, a leader attaches
  *   to the outside of the text box, not through the glyphs.
  */
-function createDataLabelsPlugin(theme: Theme): Plugin {
+type DataLabelsPluginOpts = {
+  /** When false, positions are still computed but ink is not painted. */
+  getLabelsVisible?: () => boolean;
+  /** Fired after a layout pass that computed scatter (or other) labels. */
+  onLabelsPositioned?: () => void;
+};
+
+function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): Plugin {
   const lineHeight = 13;
   const fontSize = 11;
   /** Primary scatter title line. */
@@ -1267,6 +1275,8 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
       const multiSeries = data.datasets.length > 1;
       const area = chart.chartArea;
       if (!area) return;
+
+      const labelsVisible = opts.getLabelsVisible?.() ?? true;
 
       const plotArea: LabelBox = {
         left: area.left + 2,
@@ -1476,6 +1486,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
             useStroke = false;
           }
 
+          // Layout can run while labels stay invisible (no paint flash).
+          if (!labelsVisible) continue;
+
           const blockHeight = lines.length * lineHeight;
           let textY = y - blockHeight / 2 + lineHeight / 2;
 
@@ -1529,59 +1542,67 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
           lineSegments,
         );
 
-        // Leader lines first (under text) — stop outside the glyph box.
-        for (const label of placed) {
-          if (!label.offset) continue;
-          const geom = leaderGeometry(
-            label.px,
-            label.py,
-            label.box,
-            label.pointRadius,
-            5,
-          );
-          if (!geom) continue;
+        // Signal layout complete even when ink is still hidden (reveal on next pass).
+        opts.onLabelsPositioned?.();
 
-          const lineColor = label.color || theme.secondaryText;
-          ctx.beginPath();
-          ctx.moveTo(geom.sx, geom.sy);
-          ctx.lineTo(geom.ex, geom.ey);
-          ctx.strokeStyle = lineColor;
-          ctx.globalAlpha = 0.75;
-          ctx.lineWidth = 1.25;
-          ctx.stroke();
-          ctx.globalAlpha = 1;
+        if (labelsVisible) {
+          // Leader lines first (under text) — stop outside the glyph box.
+          for (const label of placed) {
+            if (!label.offset) continue;
+            const geom = leaderGeometry(
+              label.px,
+              label.py,
+              label.box,
+              label.pointRadius,
+              5,
+            );
+            if (!geom) continue;
 
-          // Small cap at the label end (same series color), outside the text.
-          ctx.beginPath();
-          ctx.arc(geom.ex, geom.ey, 1.75, 0, Math.PI * 2);
-          ctx.fillStyle = lineColor;
-          ctx.globalAlpha = 0.85;
-          ctx.fill();
-          ctx.globalAlpha = 1;
-        }
-
-        // Text on top — series color at full opacity; line 0 semibold, rest thinner.
-        for (const label of placed) {
-          ctx.globalAlpha = 1;
-          ctx.fillStyle = solidColor(label.color || theme.text, theme.text);
-          ctx.textAlign = label.align;
-          const block = label.blockHeight;
-          let textY: number;
-          if (label.baseline === 'middle') {
-            textY = label.y - block / 2;
-          } else if (label.baseline === 'bottom') {
-            textY = label.y - block;
-          } else {
-            textY = label.y;
-          }
-          ctx.textBaseline = 'top';
-          for (const line of label.lines) {
-            ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
+            const lineColor = label.color || theme.secondaryText;
+            ctx.beginPath();
+            ctx.moveTo(geom.sx, geom.sy);
+            ctx.lineTo(geom.ex, geom.ey);
+            ctx.strokeStyle = lineColor;
+            ctx.globalAlpha = 0.75;
+            ctx.lineWidth = 1.25;
+            ctx.stroke();
             ctx.globalAlpha = 1;
-            ctx.fillText(line.text, label.x, textY);
-            textY += line.height;
+
+            // Small cap at the label end (same series color), outside the text.
+            ctx.beginPath();
+            ctx.arc(geom.ex, geom.ey, 1.75, 0, Math.PI * 2);
+            ctx.fillStyle = lineColor;
+            ctx.globalAlpha = 0.85;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+
+          // Text on top — series color at full opacity; line 0 semibold, rest thinner.
+          for (const label of placed) {
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = solidColor(label.color || theme.text, theme.text);
+            ctx.textAlign = label.align;
+            const block = label.blockHeight;
+            let textY: number;
+            if (label.baseline === 'middle') {
+              textY = label.y - block / 2;
+            } else if (label.baseline === 'bottom') {
+              textY = label.y - block;
+            } else {
+              textY = label.y;
+            }
+            ctx.textBaseline = 'top';
+            for (const line of label.lines) {
+              ctx.font = `${line.weight} ${line.size}px ${theme.fontFamily}`;
+              ctx.globalAlpha = 1;
+              ctx.fillText(line.text, label.x, textY);
+              textY += line.height;
+            }
           }
         }
+      } else {
+        // Non-scatter charts still finish a layout pass when labels stay hidden.
+        opts.onLabelsPositioned?.();
       }
 
       ctx.restore();
@@ -1636,8 +1657,14 @@ export function Chart({
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const chartRef = React.useRef<ChartJS | null>(null);
   const frameRef = React.useRef<HTMLDivElement | null>(null);
+  /** Labels stay unpainted until collision layout has run once. */
+  const labelsVisibleRef = React.useRef(!dataLabels);
+  const revealScheduledRef = React.useRef(false);
   const [themeTick, setThemeTick] = React.useState(0);
   const [frameWidth, setFrameWidth] = React.useState(0);
+  const [labelsLayoutPending, setLabelsLayoutPending] = React.useState(
+    () => dataLabels,
+  );
 
   // Re-read theme tokens whenever the active theme changes.
   React.useEffect(() => {
@@ -1670,6 +1697,11 @@ export function Chart({
   React.useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Hide label ink until collision layout has run; show spinner meanwhile.
+    labelsVisibleRef.current = !dataLabels;
+    revealScheduledRef.current = false;
+    setLabelsLayoutPending(dataLabels);
 
     const styles = getComputedStyle(canvas);
     const theme = resolveTheme(styles);
@@ -1726,8 +1758,31 @@ export function Chart({
     }
 
     const jsType: ChartJsType = (type === 'area' ? 'line' : type) as ChartJsType;
+
+    const revealLabels = () => {
+      if (!dataLabels || revealScheduledRef.current) return;
+      revealScheduledRef.current = true;
+      // Double rAF: first paint finishes layout without labels; second reveals.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const live = chartRef.current;
+          if (!live) return;
+          labelsVisibleRef.current = true;
+          live.update('none');
+          setLabelsLayoutPending(false);
+        });
+      });
+    };
+
     const resolvedPlugins: Plugin[] = [
-      ...(dataLabels ? [createDataLabelsPlugin(theme)] : []),
+      ...(dataLabels
+        ? [
+            createDataLabelsPlugin(theme, {
+              getLabelsVisible: () => labelsVisibleRef.current,
+              onLabelsPositioned: revealLabels,
+            }),
+          ]
+        : []),
       ...(plugins ?? []),
     ];
 
@@ -1738,6 +1793,22 @@ export function Chart({
       plugins: resolvedPlugins,
     });
     chartRef.current = chart;
+
+    // Fallback if the plugin never fires (empty series): clear spinner.
+    if (dataLabels) {
+      const fallback = window.setTimeout(() => {
+        if (!labelsVisibleRef.current) {
+          labelsVisibleRef.current = true;
+          chart.update('none');
+          setLabelsLayoutPending(false);
+        }
+      }, 400);
+      return () => {
+        window.clearTimeout(fallback);
+        chart.destroy();
+        chartRef.current = null;
+      };
+    }
 
     return () => {
       chart.destroy();
@@ -1773,12 +1844,21 @@ export function Chart({
         ref={frameRef}
         className="relative w-full min-w-0"
         style={height != null ? { height } : undefined}
+        aria-busy={labelsLayoutPending || undefined}
       >
         <canvas
           ref={canvasRef}
           role="img"
           aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
         />
+        {labelsLayoutPending ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[var(--card-bg-color)]/35"
+            aria-hidden
+          >
+            <Spinner size="md" intent="brand" label="Positioning chart labels" />
+          </div>
+        ) : null}
       </div>
       {caption != null && (
         <Text as="div" size="sm" tone="secondary">
