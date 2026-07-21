@@ -675,7 +675,81 @@ type PointLabelCandidate = {
   pointRadius: number;
   /** Marker color — label text + leader line match this. */
   color: string;
+  /**
+   * Preferred offset family: `above` (default) or `side` (keep labels off a
+   * trend line that runs through the point cloud).
+   */
+  prefer?: 'above' | 'side';
 };
+
+/** Canvas-space polyline segment (e.g. a trend line under scatter labels). */
+type LineSegment = { x1: number; y1: number; x2: number; y2: number };
+
+function segmentsIntersect(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  cx: number,
+  cy: number,
+  dx: number,
+  dy: number,
+): boolean {
+  const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+  if (Math.abs(d) < 1e-9) return false;
+  const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+  const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+}
+
+/** True if the leader ray from point → label crosses any trend segment. */
+function leaderCrossesSegments(
+  px: number,
+  py: number,
+  lx: number,
+  ly: number,
+  segments: LineSegment[],
+): boolean {
+  // Shorten slightly so endpoints on the polyline do not always count as hits.
+  const dx = lx - px;
+  const dy = ly - py;
+  const dist = Math.hypot(dx, dy) || 1;
+  const inset = Math.min(6, dist * 0.2);
+  const sx = px + (dx / dist) * inset;
+  const sy = py + (dy / dist) * inset;
+  const ex = lx - (dx / dist) * inset;
+  const ey = ly - (dy / dist) * inset;
+  for (const s of segments) {
+    if (segmentsIntersect(sx, sy, ex, ey, s.x1, s.y1, s.x2, s.y2)) return true;
+  }
+  return false;
+}
+
+/** True if label box overlaps a fattened trend segment (line under the text). */
+function boxHitsSegments(box: LabelBox, segments: LineSegment[], pad = 4): boolean {
+  const midY = (box.top + box.bottom) / 2;
+  const midX = (box.left + box.right) / 2;
+  // Sample box center + corners against nearby segments via expanded AABB
+  for (const s of segments) {
+    const minX = Math.min(s.x1, s.x2) - pad;
+    const maxX = Math.max(s.x1, s.x2) + pad;
+    const minY = Math.min(s.y1, s.y2) - pad;
+    const maxY = Math.max(s.y1, s.y2) + pad;
+    if (box.right < minX || box.left > maxX || box.bottom < minY || box.top > maxY) {
+      continue;
+    }
+    // Closer test: distance from box center to segment
+    const vx = s.x2 - s.x1;
+    const vy = s.y2 - s.y1;
+    const len2 = vx * vx + vy * vy || 1;
+    let t = ((midX - s.x1) * vx + (midY - s.y1) * vy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const qx = s.x1 + t * vx;
+    const qy = s.y1 + t * vy;
+    if (Math.hypot(midX - qx, midY - qy) < pad + 6) return true;
+  }
+  return false;
+}
 
 /** Resolve a chart.js color option (string | string[] | …) for one index. */
 function resolveDatasetColor(
@@ -705,8 +779,13 @@ type PlacedPointLabel = PointLabelCandidate & {
 /**
  * Candidate offsets around a point (dx/dy from the marker to the text anchor).
  * Prefer above, then side, then below — rings grow outward when crowded.
+ * When `prefer === 'side'`, horizontal slots come first so leaders stay off a
+ * trend line that runs above the marker.
  */
-function pointLabelOffsets(radius: number): Array<{
+function pointLabelOffsets(
+  radius: number,
+  prefer: 'above' | 'side' = 'above',
+): Array<{
   dx: number;
   dy: number;
   align: CanvasTextAlign;
@@ -715,31 +794,53 @@ function pointLabelOffsets(radius: number): Array<{
   const r = radius;
   const r2 = radius * 1.65;
   const r3 = radius * 2.4;
+  const aboveFirst = [
+    { dx: 0, dy: -r, align: 'center' as const, baseline: 'bottom' as const },
+    { dx: r * 0.85, dy: -r * 0.75, align: 'left' as const, baseline: 'bottom' as const },
+    { dx: -r * 0.85, dy: -r * 0.75, align: 'right' as const, baseline: 'bottom' as const },
+    { dx: r, dy: 0, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r, dy: 0, align: 'right' as const, baseline: 'middle' as const },
+    { dx: r * 0.85, dy: r * 0.75, align: 'left' as const, baseline: 'top' as const },
+    { dx: -r * 0.85, dy: r * 0.75, align: 'right' as const, baseline: 'top' as const },
+    { dx: 0, dy: r, align: 'center' as const, baseline: 'top' as const },
+    { dx: 0, dy: -r2, align: 'center' as const, baseline: 'bottom' as const },
+    { dx: r2 * 0.9, dy: -r2 * 0.55, align: 'left' as const, baseline: 'bottom' as const },
+    { dx: -r2 * 0.9, dy: -r2 * 0.55, align: 'right' as const, baseline: 'bottom' as const },
+    { dx: r2, dy: r2 * 0.15, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r2, dy: r2 * 0.15, align: 'right' as const, baseline: 'middle' as const },
+    { dx: r2 * 0.9, dy: r2 * 0.55, align: 'left' as const, baseline: 'top' as const },
+    { dx: -r2 * 0.9, dy: r2 * 0.55, align: 'right' as const, baseline: 'top' as const },
+    { dx: 0, dy: r2, align: 'center' as const, baseline: 'top' as const },
+    { dx: 0, dy: -r3, align: 'center' as const, baseline: 'bottom' as const },
+    { dx: r3, dy: -r3 * 0.35, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r3, dy: -r3 * 0.35, align: 'right' as const, baseline: 'middle' as const },
+    { dx: r3, dy: r3 * 0.35, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r3, dy: r3 * 0.35, align: 'right' as const, baseline: 'middle' as const },
+    { dx: 0, dy: r3, align: 'center' as const, baseline: 'top' as const },
+  ];
+  if (prefer !== 'side') return aboveFirst;
+  // Side-first: keep leaders horizontal / below so they do not cut a trend path.
   return [
-    { dx: 0, dy: -r, align: 'center', baseline: 'bottom' },
-    { dx: r * 0.85, dy: -r * 0.75, align: 'left', baseline: 'bottom' },
-    { dx: -r * 0.85, dy: -r * 0.75, align: 'right', baseline: 'bottom' },
-    { dx: r, dy: 0, align: 'left', baseline: 'middle' },
-    { dx: -r, dy: 0, align: 'right', baseline: 'middle' },
-    { dx: r * 0.85, dy: r * 0.75, align: 'left', baseline: 'top' },
-    { dx: -r * 0.85, dy: r * 0.75, align: 'right', baseline: 'top' },
-    { dx: 0, dy: r, align: 'center', baseline: 'top' },
-    // Wider ring
-    { dx: 0, dy: -r2, align: 'center', baseline: 'bottom' },
-    { dx: r2 * 0.9, dy: -r2 * 0.55, align: 'left', baseline: 'bottom' },
-    { dx: -r2 * 0.9, dy: -r2 * 0.55, align: 'right', baseline: 'bottom' },
-    { dx: r2, dy: r2 * 0.15, align: 'left', baseline: 'middle' },
-    { dx: -r2, dy: r2 * 0.15, align: 'right', baseline: 'middle' },
-    { dx: r2 * 0.9, dy: r2 * 0.55, align: 'left', baseline: 'top' },
-    { dx: -r2 * 0.9, dy: r2 * 0.55, align: 'right', baseline: 'top' },
-    { dx: 0, dy: r2, align: 'center', baseline: 'top' },
-    // Outer ring for dense clusters
-    { dx: 0, dy: -r3, align: 'center', baseline: 'bottom' },
-    { dx: r3, dy: -r3 * 0.35, align: 'left', baseline: 'middle' },
-    { dx: -r3, dy: -r3 * 0.35, align: 'right', baseline: 'middle' },
-    { dx: r3, dy: r3 * 0.35, align: 'left', baseline: 'middle' },
-    { dx: -r3, dy: r3 * 0.35, align: 'right', baseline: 'middle' },
-    { dx: 0, dy: r3, align: 'center', baseline: 'top' },
+    { dx: r, dy: 0, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r, dy: 0, align: 'right' as const, baseline: 'middle' as const },
+    { dx: r * 0.9, dy: r * 0.55, align: 'left' as const, baseline: 'top' as const },
+    { dx: -r * 0.9, dy: r * 0.55, align: 'right' as const, baseline: 'top' as const },
+    { dx: 0, dy: r, align: 'center' as const, baseline: 'top' as const },
+    { dx: r2, dy: r2 * 0.1, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r2, dy: r2 * 0.1, align: 'right' as const, baseline: 'middle' as const },
+    { dx: r2 * 0.85, dy: r2 * 0.55, align: 'left' as const, baseline: 'top' as const },
+    { dx: -r2 * 0.85, dy: r2 * 0.55, align: 'right' as const, baseline: 'top' as const },
+    { dx: 0, dy: r2, align: 'center' as const, baseline: 'top' as const },
+    { dx: r3, dy: r3 * 0.2, align: 'left' as const, baseline: 'middle' as const },
+    { dx: -r3, dy: r3 * 0.2, align: 'right' as const, baseline: 'middle' as const },
+    { dx: 0, dy: r3, align: 'center' as const, baseline: 'top' as const },
+    // Above only as last resort (may still cross a trend line — scored heavily)
+    { dx: 0, dy: -r, align: 'center' as const, baseline: 'bottom' as const },
+    { dx: r * 0.85, dy: -r * 0.75, align: 'left' as const, baseline: 'bottom' as const },
+    { dx: -r * 0.85, dy: -r * 0.75, align: 'right' as const, baseline: 'bottom' as const },
+    { dx: 0, dy: -r2, align: 'center' as const, baseline: 'bottom' as const },
+    { dx: r2 * 0.9, dy: -r2 * 0.55, align: 'left' as const, baseline: 'bottom' as const },
+    { dx: -r2 * 0.9, dy: -r2 * 0.55, align: 'right' as const, baseline: 'bottom' as const },
   ];
 }
 
@@ -815,17 +916,18 @@ function accumulateOverlap(
  * Place point labels so their bounding boxes do not overlap each other **or**
  * any data-point markers. When a label cannot sit in the default slot above
  * the marker, it is moved to a free candidate and a leader line is drawn.
+ * Optional `lineSegments` (canvas space) keep labels/leaders off a trend path.
  */
 function placePointLabels(
   items: PointLabelCandidate[],
   area: LabelBox,
   chartWidth: number,
+  lineSegments: LineSegment[] = [],
 ): PlacedPointLabel[] {
   const narrow = chartWidth < 480;
   const baseRadius = narrow ? 22 : 28;
   const placed: PlacedPointLabel[] = [];
   const placedLabelBoxes: LabelBox[] = [];
-  const offsets = pointLabelOffsets(baseRadius);
 
   // Every scatter marker is an obstacle — labels must not cover data points
   // (including a label's own marker when the text would sit on top of it).
@@ -840,7 +942,9 @@ function placePointLabels(
 
   for (const { item, index: itemIndex } of order) {
     const textHeight = item.blockHeight;
-    const defaultSlot = offsets[0];
+    const prefer = item.prefer ?? 'above';
+    const offsets = pointLabelOffsets(baseRadius, prefer);
+    const defaultSlot = offsets[0]!;
     let best: PlacedPointLabel | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
 
@@ -850,7 +954,7 @@ function placePointLabels(
     const ownPointBox = pointBoxes[itemIndex]!;
 
     for (let oi = 0; oi < offsets.length; oi++) {
-      const slot = offsets[oi];
+      const slot = offsets[oi]!;
       const measured = measureLabelBox(
         item.px,
         item.py,
@@ -903,11 +1007,20 @@ function placePointLabels(
       const softCount = ownPointHit.count;
       const softArea = ownPointHit.area;
 
-      // Prefer earlier slots (default above) and less travel from the point.
+      const lx = (box.left + box.right) / 2;
+      const ly = (box.top + box.bottom) / 2;
+      const crossesLine =
+        lineSegments.length > 0 &&
+        (leaderCrossesSegments(item.px, item.py, lx, ly, lineSegments) ||
+          boxHitsSegments(box, lineSegments));
+
+      // Prefer earlier slots and less travel from the point.
+      // Crossing a trend path is almost as bad as covering another label.
       const travel = Math.hypot(x - item.px, y - item.py);
       const score =
         hardCount * 1e7 +
         hardArea * 100 +
+        (crossesLine ? 5e6 : 0) +
         softCount * 1e5 +
         softArea * 20 +
         oi * 40 +
@@ -927,13 +1040,13 @@ function placePointLabels(
           box,
           offset: offset || travel > item.pointRadius + 14,
         };
-        // First slot free of labels + other points (own marker may still soft-hit).
-        if (hardCount === 0 && softCount === 0) break;
+        // First slot free of labels, points, and trend-line crossings.
+        if (hardCount === 0 && softCount === 0 && !crossesLine) break;
       }
     }
 
     if (!best) {
-      // Fallback: default above, even if cramped.
+      // Fallback: default preferred slot, even if cramped.
       const slot = defaultSlot;
       const measured = measureLabelBox(
         item.px,
@@ -1115,6 +1228,9 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               adaptColorForSurface(rawColor, theme.surface),
               theme.text,
             );
+            const preferRaw = (dataset as { labelPrefer?: string }).labelPrefer;
+            const prefer: 'above' | 'side' =
+              preferRaw === 'side' ? 'side' : 'above';
             pendingPoints.push({
               px: el.x,
               py: el.y,
@@ -1123,6 +1239,7 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
               textWidth,
               pointRadius: Number(pointRadius) || 4,
               color,
+              prefer,
             });
             continue;
           }
@@ -1223,7 +1340,35 @@ function createDataLabelsPlugin(theme: Theme): Plugin {
 
       // ── Scatter / bubble: resolve overlaps, draw leader lines, then text ─
       if (pendingPoints.length > 0) {
-        const placed = placePointLabels(pendingPoints, plotArea, chart.width ?? 400);
+        // Trend / connector polylines in canvas space — keep labels off them.
+        const lineSegments: LineSegment[] = [];
+        for (let di = 0; di < data.datasets.length; di++) {
+          const meta = chart.getDatasetMeta(di);
+          if (meta.hidden) continue;
+          const metaType = String(
+            meta.type ?? (chart.config as { type?: string }).type ?? '',
+          );
+          if (metaType !== 'line') continue;
+          const pts = meta.data
+            .map((el) => {
+              const p = el as { x?: number; y?: number; skip?: boolean };
+              if (!p || p.skip || p.x == null || p.y == null) return null;
+              return { x: p.x, y: p.y };
+            })
+            .filter((p): p is { x: number; y: number } => p != null);
+          for (let i = 1; i < pts.length; i++) {
+            const a = pts[i - 1]!;
+            const b = pts[i]!;
+            lineSegments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+          }
+        }
+
+        const placed = placePointLabels(
+          pendingPoints,
+          plotArea,
+          chart.width ?? 400,
+          lineSegments,
+        );
 
         // Leader lines first (under text).
         for (const label of placed) {
