@@ -55,6 +55,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build:watch": "concurrently -k -n tsc,alias -c blue,yellow \"tsc -p tsconfig.build.json -w --preserveWatchOutput\" \"tsc-alias -p tsconfig.build.json -w\"",
     "prepublishOnly": "npm run build",
     "predev": "npm run build",
     "dev": "npm run dev -w demo",
@@ -81,6 +82,7 @@
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "concurrently": "^9.2.4",
     "tsc-alias": "^1.9.0",
     "typescript": "^5.9.3"
   },
