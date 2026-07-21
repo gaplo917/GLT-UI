@@ -359,7 +359,10 @@ interface Theme {
 }
 
 function resolveTheme(styles: CSSStyleDeclaration): Theme {
-  const surface = readVar(styles, '--bg-color', '#ffffff');
+  const pageBg = readVar(styles, '--bg-color', '#ffffff');
+  // Charts usually sit on cards; halo must match the painted surface under labels.
+  const cardBg = readVar(styles, '--card-bg-color', pageBg);
+  const surface = cardBg || pageBg;
   const surfaceParsed = parseCssColor(surface);
   const isDark = surfaceParsed ? relativeLuminance(surfaceParsed) < 0.45 : false;
   return {
@@ -369,7 +372,7 @@ function resolveTheme(styles: CSSStyleDeclaration): Theme {
     grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.15),
     surface,
     tooltipBg: readVar(styles, '--strong-text-color', '#1a1a1a'),
-    tooltipText: readVar(styles, '--bg-color', '#ffffff'),
+    tooltipText: pageBg,
     fontFamily: readVar(styles, '--font-family', 'system-ui, sans-serif'),
     isDark,
   };
@@ -1527,8 +1530,8 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             ctx.strokeStyle = 'rgba(0,0,0,0.4)';
             ctx.lineWidth = 3;
           } else {
-            // Thin white halo so labels stay readable over grid / area fills.
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+            // Halo matches chart surface so light/dark themes stay readable.
+            ctx.strokeStyle = solidColor(theme.surface, '#ffffff');
             ctx.lineWidth = 2.5;
           }
 
@@ -1602,8 +1605,9 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             ctx.globalAlpha = 1;
           }
 
-          // Text on top — thin white halo so labels stay readable on grid/fill;
-          // series color fill at full opacity; line 0 semibold, rest thinner.
+          // Text on top — surface-matched halo over grid/fill; series color fill;
+          // line 0 semibold, rest thinner.
+          const labelHalo = solidColor(theme.surface, '#ffffff');
           for (const label of placed) {
             ctx.globalAlpha = 1;
             ctx.fillStyle = solidColor(label.color || theme.text, theme.text);
@@ -1624,7 +1628,7 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
               ctx.lineJoin = 'round';
               ctx.miterLimit = 2;
               ctx.lineWidth = 2.5;
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+              ctx.strokeStyle = labelHalo;
               ctx.strokeText(line.text, label.x, textY);
               ctx.fillText(line.text, label.x, textY);
               textY += line.height;
