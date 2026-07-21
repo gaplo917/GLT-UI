@@ -114,7 +114,7 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
  */
 export function wrapCategoryLabel(
   label: string,
-  maxCharsPerLine = 18,
+  maxCharsPerLine = 28,
 ): string | string[] {
   const text = String(label).trim();
   if (maxCharsPerLine < 1 || text.length <= maxCharsPerLine) return text;
@@ -165,13 +165,14 @@ export function resolveCategoryLabelMaxChars(
   if (requested < 1) return requested;
   // Before the panel is measured, prefer a mobile-safe wrap so the first
   // paint does not clip long labels on narrow viewports.
-  if (containerWidth <= 0) return Math.min(requested, 14);
-  // Horizontal bars: category labels sit on the left (~40% budget).
+  if (containerWidth <= 0) return Math.min(requested, 22);
+  // Horizontal bars: category labels sit on the left (~45% budget).
   // Vertical: x-axis labels can use most of the width.
-  const share = indexAxis === 'y' ? 0.4 : 0.85;
+  // Wider share + lower floor: dense charts still get longer wrapped lines.
+  const share = indexAxis === 'y' ? 0.45 : 0.9;
   const budget = Math.floor((containerWidth * share) / CATEGORY_LABEL_CHAR_PX);
   // Never go below a readable short line; never above the caller's request.
-  return Math.min(requested, Math.max(10, budget));
+  return Math.min(requested, Math.max(16, budget));
 }
 
 const TOKEN_VARS: Record<ChartColorToken, string> = {
@@ -1343,7 +1344,9 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
             const name = seriesName ?? category ?? valueText;
             if (!name) continue;
             const narrow = (chart.width ?? 400) < 480;
-            const maxChars = narrow ? 16 : 22;
+            // Dense scatter (Fig 4): allow longer lines before ellipsis so
+            // compact clusters still keep readable model/effort text.
+            const maxChars = narrow ? 26 : 40;
             // Multi-line labels: "Title\neffort" — first line semibold, rest thinner.
             const rawLines = name
               .split('\n')
@@ -1354,7 +1357,7 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
               const size = isMeta ? metaSize : titleSize;
               const weight = isMeta ? metaWeight : titleWeight;
               const height = isMeta ? metaLineHeight : titleLineHeight;
-              const max = isMeta ? Math.min(maxChars, 14) : maxChars;
+              const max = isMeta ? Math.min(maxChars, 24) : maxChars;
               const text = line.length > max ? `${line.slice(0, max - 1)}…` : line;
               return { text, weight, size, height };
             });
