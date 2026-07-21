@@ -18,6 +18,10 @@ export interface FullBleedFigureProps
  * Full-bleed research figure: breaks out of a narrow prose column so charts
  * and tables can use more width, with a top title/caption chrome.
  *
+ * No card chrome (no border / rounded fill / shadow). The outer shell is a
+ * full-viewport-width section; the figure content is max-width constrained and
+ * horizontally centered.
+ *
  * Place inside a max-width prose column; the shell centers with `100vw` pull.
  */
 export function FullBleedFigure({
@@ -32,17 +36,15 @@ export function FullBleedFigure({
     typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth;
 
   return (
-    <div
+    <section
       className={cn(
-        'relative w-[100vw] max-w-[100vw] left-1/2 -translate-x-1/2 self-stretch px-2.5 sm:px-4',
+        'relative w-[100vw] max-w-[100vw] left-1/2 -translate-x-1/2 self-stretch',
+        'px-3 sm:px-5 md:px-8 my-8 md:my-10',
         className,
       )}
     >
       <figure
-        className={[
-          'mx-auto w-full my-4 rounded-[var(--radius-card)] border border-[var(--border-color)]',
-          'bg-[var(--card-bg-color)]/50 px-3.5 py-5 shadow-sm sm:px-5 sm:py-6 md:px-8 md:py-8',
-        ].join(' ')}
+        className="mx-auto w-full min-w-0"
         style={{ maxWidth: max }}
         {...props}
       >
@@ -70,7 +72,7 @@ export function FullBleedFigure({
           {children}
         </div>
       </figure>
-    </div>
+    </section>
   );
 }
 
