@@ -1,4 +1,7 @@
+'use client';
+
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/cn.js';
 
 export type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
@@ -10,30 +13,112 @@ export interface TooltipProps extends Omit<React.HTMLAttributes<HTMLSpanElement>
   children: React.ReactNode;
 }
 
-const sideClasses: Record<TooltipSide, string> = {
-  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-};
+type Coords = { top: number; left: number };
 
 /**
- * CSS-only tooltip (hover/focus driven) so it works in static export without
- * client JS. Wraps an inline trigger and reveals `content` on interaction.
+ * Hover/focus tooltip. Renders the bubble in a portal with `position: fixed`
+ * so parent cards, tables, and `overflow-x-auto` shells cannot clip it.
  */
-export function Tooltip({ content, side = 'top', children, className, ...props }: TooltipProps) {
+export function Tooltip({
+  content,
+  side = 'top',
+  children,
+  className,
+  ...props
+}: TooltipProps) {
+  const triggerRef = React.useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = React.useState(false);
+  const [coords, setCoords] = React.useState<Coords | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updatePosition = React.useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 8;
+    let top = r.top;
+    let left = r.left + r.width / 2;
+    if (side === 'top') {
+      top = r.top - gap;
+    } else if (side === 'bottom') {
+      top = r.bottom + gap;
+    } else if (side === 'left') {
+      top = r.top + r.height / 2;
+      left = r.left - gap;
+    } else {
+      top = r.top + r.height / 2;
+      left = r.right + gap;
+    }
+    setCoords({ top, left });
+  }, [side]);
+
+  const show = React.useCallback(() => {
+    updatePosition();
+    setOpen(true);
+  }, [updatePosition]);
+
+  const hide = React.useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onReposition = () => updatePosition();
+    window.addEventListener('scroll', onReposition, true);
+    window.addEventListener('resize', onReposition);
+    return () => {
+      window.removeEventListener('scroll', onReposition, true);
+      window.removeEventListener('resize', onReposition);
+    };
+  }, [open, updatePosition]);
+
+  const transform =
+    side === 'top'
+      ? 'translate(-50%, -100%)'
+      : side === 'bottom'
+        ? 'translate(-50%, 0)'
+        : side === 'left'
+          ? 'translate(-100%, -50%)'
+          : 'translate(0, -50%)';
+
+  const bubble =
+    mounted && open && coords
+      ? createPortal(
+          <span
+            role="tooltip"
+            className={cn(
+              'pointer-events-none fixed z-[100] w-max max-w-xs whitespace-normal rounded-md',
+              'bg-[var(--strong-text-color)] px-2 py-1 text-xs text-[var(--bg-color)] shadow-md',
+            )}
+            style={{
+              top: coords.top,
+              left: coords.left,
+              transform,
+            }}
+          >
+            {content}
+          </span>,
+          document.body,
+        )
+      : null;
+
   return (
-    <span className={cn('group relative inline-flex', className)} tabIndex={0} {...props}>
+    <span
+      ref={triggerRef}
+      className={cn('relative inline-flex', className)}
+      tabIndex={0}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      {...props}
+    >
       {children}
-      <span
-        role="tooltip"
-        className={cn(
-          'pointer-events-none absolute z-50 w-max max-w-xs whitespace-normal rounded-md bg-[var(--strong-text-color)] px-2 py-1 text-xs text-[var(--bg-color)] opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100',
-          sideClasses[side]
-        )}
-      >
-        {content}
-      </span>
+      {bubble}
     </span>
   );
 }
