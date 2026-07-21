@@ -229,8 +229,11 @@ function parseCssColor(color: string): Rgba | null {
       a: parseInt(c.slice(7, 9), 16) / 255,
     };
   }
+  // Comma or space-separated rgb/rgba (including modern `rgb(r g b / a)`).
   const rgb = c.match(
     /^rgba?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)\s*[, ]\s*([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?\s*\)$/i,
+  ) || c.match(
+    /^rgba?\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/i,
   );
   if (rgb) {
     const aRaw = rgb[4];
@@ -361,51 +364,79 @@ interface Theme {
 }
 
 /**
- * Resolve the color painted behind chart labels (data-label stroke / “border”).
- * Walks up from the canvas for an opaque background; falls back to theme
- * `--card-bg-color` / `--bg-color` so light and dark modes never hardcode white.
+ * Data-label text-border (stroke) color — always live theme tokens from the
+ * document root so light↔dark flips update even when parent paint is
+ * translucent, delayed, or still holding a stale light background.
+ *
+ * Prefer `--bg-color` (page): chart canvas is transparent and figures often use
+ * `card-bg / 50%` over the page. Never hardcode white.
  */
-function resolveLabelHaloColor(
-  el: Element | null | undefined,
-  styles: CSSStyleDeclaration,
-  fallbackSurface: string,
-): string {
-  let node: Element | null | undefined = el;
-  while (node && node instanceof Element) {
-    const cs = getComputedStyle(node);
-    const bg = cs.backgroundColor?.trim();
-    const parsed = bg ? parseCssColor(bg) : null;
-    // Ignore fully transparent layers; use near-opaque paints as the halo.
-    if (parsed && parsed.a >= 0.92) {
-      return solidColor(formatRgba({ ...parsed, a: 1 }), fallbackSurface);
-    }
-    node = node.parentElement;
-  }
+function resolveLabelHaloColor(isDarkHint = false): string {
+  const darkFallback = '#1d232c';
+  const lightFallback = '#ffffff';
+  const fallback = isDarkHint ? darkFallback : lightFallback;
 
-  const pageBg = readVar(styles, '--bg-color', fallbackSurface);
-  const cardBg = readVar(styles, '--card-bg-color', pageBg);
-  // Prefer page bg: figure shells often use translucent card over page.
-  return solidColor(pageBg || cardBg || fallbackSurface, fallbackSurface);
+  if (typeof document === 'undefined') return fallback;
+
+  // Root owns data-theme + CSS variables; canvas-local getComputedStyle can lag.
+  const root = getComputedStyle(document.documentElement);
+  const pageBg = readVar(root, '--bg-color', '');
+  const cardBg = readVar(root, '--card-bg-color', '');
+  const raw = pageBg || cardBg || fallback;
+
+  const parsed = parseCssColor(raw);
+  if (parsed) return formatRgba({ ...parsed, a: 1 });
+
+  // Unparsed modern colors still usable as stroke if browser set them as hex/rgb.
+  if (raw && raw !== fallback) return raw;
+
+  // Infer dark from color-scheme when tokens are missing.
+  const scheme = root.getPropertyValue('color-scheme').trim();
+  if (scheme.includes('dark')) return darkFallback;
+  return fallback;
 }
 
-function resolveTheme(styles: CSSStyleDeclaration, canvas?: HTMLElement | null): Theme {
-  const pageBg = readVar(styles, '--bg-color', '#ffffff');
+function resolveTheme(styles: CSSStyleDeclaration, _canvas?: HTMLElement | null): Theme {
+  // Prefer root tokens so chart rebuilds after data-theme flips stay consistent.
+  const root =
+    typeof document !== 'undefined' ? getComputedStyle(document.documentElement) : styles;
+  const pageBg = readVar(root, '--bg-color', readVar(styles, '--bg-color', '#ffffff'));
   // Charts often sit on cards; series adaptation uses card surface when present.
-  const cardBg = readVar(styles, '--card-bg-color', pageBg);
+  const cardBg = readVar(root, '--card-bg-color', readVar(styles, '--card-bg-color', pageBg));
   const surface = cardBg || pageBg;
   const surfaceParsed = parseCssColor(surface);
-  const isDark = surfaceParsed ? relativeLuminance(surfaceParsed) < 0.45 : false;
-  const labelHalo = resolveLabelHaloColor(canvas ?? null, styles, surface);
+  const isDark =
+    surfaceParsed
+      ? relativeLuminance(surfaceParsed) < 0.45
+      : root.getPropertyValue('color-scheme').includes('dark') ||
+        (typeof document !== 'undefined' &&
+          document.documentElement.getAttribute('data-theme') === 'dark');
+  const labelHalo = resolveLabelHaloColor(isDark);
   return {
-    text: readVar(styles, '--text-color', '#1a1a1a'),
-    secondaryText: readVar(styles, '--secondary-text-color', '#707070'),
+    text: readVar(root, '--text-color', readVar(styles, '--text-color', '#1a1a1a')),
+    secondaryText: readVar(
+      root,
+      '--secondary-text-color',
+      readVar(styles, '--secondary-text-color', '#707070'),
+    ),
     // Axis grid: quiet guide lines (15% of border token).
-    grid: withAlpha(readVar(styles, '--border-color', '#dcdcdc'), 0.15),
+    grid: withAlpha(
+      readVar(root, '--border-color', readVar(styles, '--border-color', '#dcdcdc')),
+      0.15,
+    ),
     surface,
     labelHalo,
-    tooltipBg: readVar(styles, '--strong-text-color', '#1a1a1a'),
+    tooltipBg: readVar(
+      root,
+      '--strong-text-color',
+      readVar(styles, '--strong-text-color', '#1a1a1a'),
+    ),
     tooltipText: pageBg,
-    fontFamily: readVar(styles, '--font-family', 'system-ui, sans-serif'),
+    fontFamily: readVar(
+      root,
+      '--font-family',
+      readVar(styles, '--font-family', 'system-ui, sans-serif'),
+    ),
     isDark,
   };
 }
@@ -1334,12 +1365,8 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
       const area = chart.chartArea;
       if (!area) return;
 
-      // Live theme surface so data-label text borders track light/dark + parent bg.
-      const canvasEl = chart.canvas as HTMLCanvasElement | undefined;
-      const liveStyles = canvasEl ? getComputedStyle(canvasEl) : null;
-      const labelHalo = liveStyles
-        ? resolveLabelHaloColor(canvasEl, liveStyles, theme.labelHalo || theme.surface)
-        : solidColor(theme.labelHalo || theme.surface, '#ffffff');
+      // Live every paint — theme flip must update label borders without stale closure.
+      const labelHalo = resolveLabelHaloColor(theme.isDark);
 
       const labelsVisible = opts.getLabelsVisible?.() ?? true;
 
@@ -1741,17 +1768,31 @@ export function Chart({
   );
 
   // Re-read theme tokens whenever the active theme changes.
+  // Double rAF so --bg-color / --card-bg-color have applied before chart rebuild.
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
+    let raf1 = 0;
+    let raf2 = 0;
+    const bump = () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setThemeTick((t) => t + 1));
+      });
+    };
     const root = document.documentElement;
-    const observer = new MutationObserver(() => setThemeTick((t) => t + 1));
-    observer.observe(root, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+    const observer = new MutationObserver(bump);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'class', 'style'],
+    });
     const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onMedia = () => setThemeTick((t) => t + 1);
-    media.addEventListener('change', onMedia);
+    media.addEventListener('change', bump);
     return () => {
       observer.disconnect();
-      media.removeEventListener('change', onMedia);
+      media.removeEventListener('change', bump);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
     };
   }, []);
 
