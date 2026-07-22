@@ -13,6 +13,12 @@ import type {
 } from 'chart.js';
 import { cn } from '@/lib/cn.js';
 import { Text } from '@/components/atoms/Text/Text.js';
+import {
+  createScatterFocusPlugin,
+  type ScatterFocusFormatters,
+} from './scatterFocusPlugin.js';
+
+export type { ScatterFocusFormatters } from './scatterFocusPlugin.js';
 
 /**
  * Chart types accepted by the themed wrapper. `'area'` is sugar for a filled
@@ -101,6 +107,13 @@ export interface ChartProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
    * Use on horizontal bars / narrow layouts so names are not clipped.
    */
   categoryLabelMaxChars?: number;
+  /**
+   * Scatter / bubble point focus (hover or click to pin). Dims other series,
+   * hides non-focused labels, draws dashed axis crosshairs with value chips.
+   * **Default `true` for scatter/bubble** (replaces the floating tooltip).
+   * Set `false` to restore tooltips. Pass formatters for axis chip text.
+   */
+  scatterFocus?: boolean | ScatterFocusFormatters;
   /** Extra chart.js plugins. */
   plugins?: Plugin[];
 }
@@ -649,10 +662,36 @@ function buildData(
   return { labels, datasets };
 }
 
+function resolveScatterFocusEnabled(
+  type: ChartType,
+  scatterFocus: ChartProps['scatterFocus'],
+): boolean {
+  const scatterLike = type === 'scatter' || type === 'bubble';
+  if (!scatterLike) return false;
+  if (scatterFocus === false) return false;
+  return true; // default on for scatter/bubble
+}
+
+function resolveScatterFocusFormatters(
+  scatterFocus: ChartProps['scatterFocus'],
+): ScatterFocusFormatters | undefined {
+  if (scatterFocus && typeof scatterFocus === 'object') return scatterFocus;
+  return undefined;
+}
+
 function buildThemedOptions(theme: Theme, props: ChartProps): ChartOptions {
-  const { type, legend, stacked, showGrid = true, height, aspectRatio = 2 } = props;
+  const {
+    type,
+    legend,
+    stacked,
+    showGrid = true,
+    height,
+    aspectRatio = 2,
+    scatterFocus,
+  } = props;
   const circular = CIRCULAR.has(type);
   const scatterLike = type === 'scatter' || type === 'bubble';
+  const focusOn = resolveScatterFocusEnabled(type, scatterFocus);
   const legendShown = legend === false ? false : legend == null ? !scatterLike : true;
   const legendPosition = typeof legend === 'string' ? legend : 'top';
   const fontFamily = theme.fontFamily;
@@ -662,9 +701,17 @@ function buildThemedOptions(theme: Theme, props: ChartProps): ChartOptions {
     maintainAspectRatio: height == null,
     aspectRatio,
     // Leave room so end-of-bar / above-point labels are not clipped.
-    layout: { padding: { top: 12, right: 28, bottom: 4, left: 4 } },
+    // Scatter focus chips need extra bottom/left padding for axis values.
+    layout: {
+      padding: focusOn
+        ? { top: 28, right: 36, bottom: 28, left: 36 }
+        : { top: 12, right: 28, bottom: 4, left: 4 },
+    },
     color: theme.text,
     font: { family: fontFamily },
+    interaction: focusOn
+      ? { mode: 'nearest', intersect: true }
+      : undefined,
     plugins: {
       legend: {
         display: legendShown,
@@ -678,18 +725,21 @@ function buildThemedOptions(theme: Theme, props: ChartProps): ChartOptions {
           padding: 16,
         },
       },
-      tooltip: {
-        backgroundColor: theme.tooltipBg,
-        titleColor: theme.tooltipText,
-        bodyColor: theme.tooltipText,
-        borderColor: theme.grid,
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-        usePointStyle: true,
-        titleFont: { family: fontFamily },
-        bodyFont: { family: fontFamily },
-      },
+      // Scatter focus crosshairs replace the floating tooltip by default.
+      tooltip: focusOn
+        ? { enabled: false }
+        : {
+            backgroundColor: theme.tooltipBg,
+            titleColor: theme.tooltipText,
+            bodyColor: theme.tooltipText,
+            borderColor: theme.grid,
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 8,
+            usePointStyle: true,
+            titleFont: { family: fontFamily },
+            bodyFont: { family: fontFamily },
+          },
     },
   };
 
@@ -1794,9 +1844,11 @@ function createDataLabelsPlugin(theme: Theme, opts: DataLabelsPluginOpts = {}): 
  * On-chart annotations are drawn by default (`dataLabels={false}` to hide):
  * **category + value** on circular charts, **value only** on bar/line charts,
  * and **series labels with leader lines** on scatter/bubble charts when labels
- * would otherwise overlap. Long category names can wrap via
- * `categoryLabelMaxChars` (multi-line ticks). Drop down to raw chart.js via
- * `data`, `options`, and `plugins`.
+ * would otherwise overlap. Scatter/bubble defaults to **point focus** (hover or
+ * click to pin: dim others, axis crosshairs + value chips) instead of tooltips;
+ * pass `scatterFocus={false}` to restore tooltips. Long category names can wrap
+ * via `categoryLabelMaxChars`. Drop down to raw chart.js via `data`, `options`,
+ * and `plugins`.
  */
 export function Chart({
   type,
@@ -1815,6 +1867,7 @@ export function Chart({
   ariaLabel,
   dataLabels = true,
   categoryLabelMaxChars,
+  scatterFocus,
   plugins,
   className,
   ...rest
@@ -1895,8 +1948,22 @@ export function Chart({
       showGrid,
       height,
       aspectRatio,
+      scatterFocus,
     } as ChartProps);
     const finalOptions = deepMerge<ChartOptions>(themedOptions, options);
+    // Scatter focus owns the interaction chrome — keep tooltip off unless
+    // the caller explicitly re-enabled it after disabling scatterFocus.
+    const focusOn = resolveScatterFocusEnabled(type, scatterFocus);
+    if (focusOn) {
+      finalOptions.plugins = finalOptions.plugins ?? {};
+      const tip = (finalOptions.plugins as { tooltip?: { enabled?: boolean } }).tooltip;
+      if (tip == null || tip.enabled !== true) {
+        (finalOptions.plugins as { tooltip?: { enabled?: boolean } }).tooltip = {
+          ...tip,
+          enabled: false,
+        };
+      }
+    }
     const indexAxis =
       (finalOptions as { indexAxis?: 'x' | 'y' }).indexAxis === 'y' ? 'y' : 'x';
 
@@ -1965,12 +2032,25 @@ export function Chart({
       });
     };
 
+    const focusOnForPlugins = resolveScatterFocusEnabled(type, scatterFocus);
     const resolvedPlugins: Plugin[] = [
       ...(dataLabels
         ? [
             createDataLabelsPlugin(theme, {
               getLabelsVisible: () => labelsVisibleRef.current,
               onLabelsPositioned: revealLabels,
+            }),
+          ]
+        : []),
+      ...(focusOnForPlugins
+        ? [
+            createScatterFocusPlugin({
+              theme: {
+                brand: readVar(styles, '--brand-primary', theme.text),
+                cardBg: theme.surface,
+                fontFamily: theme.fontFamily,
+              },
+              formatters: resolveScatterFocusFormatters(scatterFocus),
             }),
           ]
         : []),
@@ -2018,6 +2098,7 @@ export function Chart({
     aspectRatio,
     dataLabels,
     categoryLabelMaxChars,
+    scatterFocus,
     plugins,
     themeTick,
     frameWidth,
