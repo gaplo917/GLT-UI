@@ -14,12 +14,14 @@ export function SiteFooter({ children, className, ...props }: SiteFooterProps) {
   return (
     <footer
       className={cn(
-        'border-t border-[var(--border-color)] py-10 text-base text-[var(--secondary-text-color)]',
+        'border-t border-[var(--border-color)] py-5 text-sm text-[var(--secondary-text-color)] sm:py-6',
         className
       )}
       {...props}
     >
-      <div className="flex flex-row flex-wrap items-center justify-center gap-4">{children}</div>
+      <div className="flex flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        {children}
+      </div>
     </footer>
   );
 }
