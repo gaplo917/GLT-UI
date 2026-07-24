@@ -69,4 +69,46 @@
       border-radius: 0.25rem;
     }
   }
+
+  // Editorial PageHero (wash + grid backdrop)
+  .glt-page-hero__title {
+    font-family: var(--font-display, var(--blockquote-font-family));
+    font-weight: 500;
+  }
+
+  .glt-page-hero__wash {
+    background:
+      radial-gradient(
+        120% 80% at 8% -10%,
+        color-mix(in srgb, var(--brand-primary) 18%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        90% 70% at 100% 10%,
+        color-mix(in srgb, var(--brand-primary) 10%, transparent),
+        transparent 50%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--card-bg-color) 80%, transparent),
+        transparent 70%
+      );
+  }
+
+  .glt-page-hero__grid {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--border-color) 70%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--border-color) 70%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 4.5rem 4.5rem;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 85%);
+    opacity: 0.55;
+  }
 }

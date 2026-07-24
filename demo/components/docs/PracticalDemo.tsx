@@ -155,32 +155,31 @@ export function PracticalDemo() {
 
   return (
     <div className="flex flex-col gap-0 pb-16">
-      <Section spacing="loose" className="pt-10 pb-8 border-b border-[var(--border-color)]">
-        <PageHero
-          badge={<Badge variant="fact">Research Report • 2026</Badge>}
-          title={
-            <>
-              The Irreversible Costing Shift<br />in Software Engineering
-            </>
-          }
-          lead="AI-native practices at Anthropic, OpenAI and peer labs have collapsed the cost of change. This interactive briefing is composed entirely from glt-ui primitives."
-          actions={
-            <>
-              <Button size="lg" onClick={() => document.getElementById('demo-sim')?.scrollIntoView({ behavior: 'smooth' })}>
-                Explore the interactive model
-              </Button>
-              <Button variant="outline" size="lg" onClick={() => document.getElementById('demo-tech')?.scrollIntoView({ behavior: 'smooth' })}>
-                See the techniques
-              </Button>
-            </>
-          }
-          footnote={
-            <>
-              Every element inherits from <Code>glt-ui</Code> theme tokens • Static-export friendly
-            </>
-          }
-        />
-      </Section>
+      <PageHero
+        badge={<Badge variant="fact">Research Report • 2026</Badge>}
+        title={
+          <>
+            The Irreversible Costing Shift
+            <span className="block">in Software Engineering</span>
+          </>
+        }
+        lead="AI-native practices at Anthropic, OpenAI and peer labs have collapsed the cost of change. This interactive briefing is composed entirely from glt-ui primitives."
+        actions={
+          <>
+            <Button size="lg" onClick={() => document.getElementById('demo-sim')?.scrollIntoView({ behavior: 'smooth' })}>
+              Explore the interactive model
+            </Button>
+            <Button variant="outline" size="lg" onClick={() => document.getElementById('demo-tech')?.scrollIntoView({ behavior: 'smooth' })}>
+              See the techniques
+            </Button>
+          </>
+        }
+        footnote={
+          <>
+            Every element inherits from <Code>glt-ui</Code> theme tokens • Static-export friendly
+          </>
+        }
+      />
 
       <Section spacing="tight">
         <StatGrid>

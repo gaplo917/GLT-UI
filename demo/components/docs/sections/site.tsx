@@ -154,36 +154,92 @@ export const siteSection: DocSection = {
       id: 'page-hero',
       name: 'PageHero',
       description:
-        'The marquee section at the top of a landing page, composing a badge, title, lead, actions, and footnote.',
+        'Editorial landing hero: wash/grid backdrop, thesis column (badge, title, lead, actions), and an optional trust rail.',
       importLine: "import { PageHero } from 'glt-ui';",
       examples: [
         {
-          title: 'Composed hero',
+          title: 'Thesis + rail',
           description:
-            'A full hero with a badge overline, headline, lead paragraph, action buttons, and a footnote.',
+            'Full-width marquee with brand wash, primary CTA row, and a structured rail panel.',
+          code: `<PageHero
+  badge={<Badge variant="outline" size="sm">Research portal</Badge>}
+  title={
+    <>
+      Evidence over anecdotes.
+      <span className="block text-[var(--brand-primary)]">
+        Research you can trust.
+      </span>
+    </>
+  }
+  lead="Long-form investigations with primary sources, figures, and a clear thesis."
+  actions={<Button variant="primary">Browse active research</Button>}
+  meta={<Text as="span" size="sm" tone="secondary" className="font-mono">1 active series</Text>}
+  railTitle="Why you can trust it"
+  railItems={[
+    { index: '01', label: 'Thesis-first articles', description: 'Claim first, then the evidence.' },
+    { index: '02', label: 'Primary sources', description: 'Labs, papers, talks, field notes.' },
+    { index: '03', label: 'Real figures', description: 'Charts next to the argument.' },
+  ]}
+/>`,
+          render: (
+            <PageHero
+              badge={
+                <Badge variant="outline" size="sm" className="font-mono tracking-[0.14em] uppercase">
+                  Research portal
+                </Badge>
+              }
+              title={
+                <>
+                  Evidence over anecdotes.
+                  <span className="block text-[var(--brand-primary)]">
+                    Research you can trust.
+                  </span>
+                </>
+              }
+              lead="Long-form investigations with primary sources, figures, and a clear thesis."
+              actions={<Button variant="primary">Browse active research</Button>}
+              meta={
+                <Text as="span" size="sm" tone="secondary" className="font-mono">
+                  1 active series
+                </Text>
+              }
+              railTitle="Why you can trust it"
+              railItems={[
+                {
+                  index: '01',
+                  label: 'Thesis-first articles',
+                  description: 'Claim first, then the evidence.',
+                },
+                {
+                  index: '02',
+                  label: 'Primary sources',
+                  description: 'Labs, papers, talks, field notes.',
+                },
+                {
+                  index: '03',
+                  label: 'Real figures',
+                  description: 'Charts next to the argument.',
+                },
+              ]}
+            />
+          ),
+        },
+        {
+          title: 'Compact (no rail)',
+          description: 'Single-column hero without the rail panel.',
           code: `<PageHero
   badge={<Badge variant="info">v2.0</Badge>}
   title="Research faster with a shared design system"
-  lead="Reusable components, documented and ready to compose into simulations and reports."
-  actions={
-    <>
-      <Button variant="primary">Get started</Button>
-      <Button variant="outline">View components</Button>
-    </>
-  }
+  lead="Reusable components, documented and ready to compose."
+  actions={<Button variant="primary">Get started</Button>}
   footnote="No configuration required — import and go."
 />`,
           render: (
             <PageHero
               badge={<Badge variant="info">v2.0</Badge>}
               title="Research faster with a shared design system"
-              lead="Reusable components, documented and ready to compose into simulations and reports."
-              actions={
-                <>
-                  <Button variant="primary">Get started</Button>
-                  <Button variant="outline">View components</Button>
-                </>
-              }
+              lead="Reusable components, documented and ready to compose."
+              actions={<Button variant="primary">Get started</Button>}
               footnote="No configuration required — import and go."
             />
           ),
