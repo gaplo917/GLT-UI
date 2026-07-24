@@ -14,7 +14,7 @@ export type BadgeVariant =
   | 'danger'
   | 'neutral';
 
-export type BadgeSize = 'sm' | 'md';
+export type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -38,9 +38,17 @@ const variantClasses: Record<BadgeVariant, string> = {
   neutral: 'bg-[var(--secondary-text-color)]/15 text-[var(--secondary-text-color)]',
 };
 
+/** Chip scale — roomy enough for tag rows on catalog cards and dense UI labels. */
 const sizeClasses: Record<BadgeSize, string> = {
-  sm: 'text-xs px-2 py-0',
-  md: 'text-sm px-2 py-0.5',
+  sm: 'text-xs px-2.5 py-0.5 leading-5',
+  md: 'text-sm px-3 py-1 leading-5',
+  lg: 'text-base px-3.5 py-1.5 leading-6',
+};
+
+const dotSizeClasses: Record<BadgeSize, string> = {
+  sm: 'h-1.5 w-1.5',
+  md: 'h-1.5 w-1.5',
+  lg: 'h-2 w-2',
 };
 
 const dotColors: Record<BadgeVariant, string> = {
@@ -63,7 +71,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
     <span
       ref={ref}
       className={cn(
-        'inline-flex items-center gap-1 rounded-md font-medium tracking-wide select-none',
+        'inline-flex items-center gap-1.5 rounded-md font-medium tracking-wide select-none',
         sizeClasses[size],
         variantClasses[variant],
         className
@@ -73,7 +81,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       {dot && (
         <span
           aria-hidden="true"
-          className={cn('h-1.5 w-1.5 rounded-full', dotColors[variant])}
+          className={cn('shrink-0 rounded-full', dotSizeClasses[size], dotColors[variant])}
         />
       )}
       {children}

@@ -1462,7 +1462,7 @@ export const dataSection: DocSection = {
       id: 'badge',
       name: 'Badge',
       description:
-        'A small pill for labels, statuses, and counts, with nine variants, two sizes, an optional leading dot, and a removable trailing control.',
+        'A chip for labels, statuses, and counts, with nine variants, three sizes (sm / md / lg), an optional leading dot, and a removable trailing control.',
       importLine: "import { Badge } from 'glt-ui';",
       examples: [
         {
@@ -1497,15 +1497,17 @@ export const dataSection: DocSection = {
         },
         {
           title: 'Sizes',
-          description: 'The two badge sizes side by side.',
+          description: 'Three badge sizes side by side — sm for dense UI, md default, lg for catalog tags.',
           code: `<div className="flex flex-row gap-2 items-center flex-wrap">
   <Badge size="sm">Small</Badge>
   <Badge size="md">Medium</Badge>
+  <Badge size="lg">Large</Badge>
 </div>`,
           render: (
             <div className="flex flex-row gap-2 items-center flex-wrap">
               <Badge size="sm">Small</Badge>
               <Badge size="md">Medium</Badge>
+              <Badge size="lg">Large</Badge>
             </div>
           ),
         },
