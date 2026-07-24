@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
   basePath: basePath || undefined,
   assetPrefix: basePath || undefined,
   transpilePackages: ["glt-ui"],
+  // Monorepo root (parent of demo/). Keep turbopack.root and
+  // outputFileTracingRoot identical so Next 16 does not warn/mismatch.
+  turbopack: {
+    root: repoRoot,
+  },
   logging: {
     browserToTerminal: true,
   },
