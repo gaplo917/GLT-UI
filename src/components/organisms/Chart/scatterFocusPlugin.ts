@@ -2,6 +2,10 @@
  * Scatter / bubble point focus: hover or click a point to pin it, dim the rest,
  * hide non-focused series labels, and draw dashed axis crosshairs with value
  * chips. Replaces the default floating tooltip for scatter-like charts.
+ *
+ * Restores full original dataset paint (fill wash, border, radii, datalabels)
+ * on unfocus so mixed line+point charts (e.g. frontier envelopes) do not keep
+ * corrupted area fills or accidental value labels.
  */
 import type { Chart, ChartDataset, Plugin } from 'chart.js';
 
@@ -18,11 +22,24 @@ export type ScatterFocusTheme = {
   fontFamily: string;
 };
 
+/** Snapshot of dataset visual props we may mutate while focused. */
+type DatasetSnapshot = {
+  backgroundColor: unknown;
+  borderColor: unknown;
+  pointBackgroundColor: unknown;
+  pointBorderColor: unknown;
+  pointRadius: unknown;
+  pointHoverRadius: unknown;
+  pointHitRadius: unknown;
+  datalabels: unknown;
+  borderWidth: unknown;
+  fill: unknown;
+};
+
 type FocusState = {
   pinned: ScatterFocusRef | null;
   hover: ScatterFocusRef | null;
-  baseColors: string[];
-  baseRadii: number[];
+  snapshots: DatasetSnapshot[];
 };
 
 type ChartWithFocus = Chart & { $scatterFocus?: FocusState };
@@ -67,22 +84,62 @@ function solidFromColor(color: unknown, fallback: string): string {
   return color.trim() || fallback;
 }
 
-function extractBaseColor(ds: ChartDataset, fallback: string): string {
-  const ext = ds as {
-    pointBackgroundColor?: unknown;
-    backgroundColor?: unknown;
-    borderColor?: unknown;
-  };
-  const raw = ext.pointBackgroundColor ?? ext.backgroundColor ?? ext.borderColor;
+function firstColor(raw: unknown, fallback: string): string {
   if (Array.isArray(raw) && raw.length > 0) return solidFromColor(raw[0], fallback);
   return solidFromColor(raw, fallback);
 }
 
-function extractBaseRadius(ds: ChartDataset): number {
-  const r = (ds as { pointRadius?: number | number[] }).pointRadius;
+function captureSnapshot(ds: ChartDataset): DatasetSnapshot {
+  const d = ds as unknown as Record<string, unknown>;
+  return {
+    backgroundColor: d.backgroundColor,
+    borderColor: d.borderColor,
+    pointBackgroundColor: d.pointBackgroundColor,
+    pointBorderColor: d.pointBorderColor,
+    pointRadius: d.pointRadius,
+    pointHoverRadius: d.pointHoverRadius,
+    pointHitRadius: d.pointHitRadius,
+    datalabels: d.datalabels,
+    borderWidth: d.borderWidth,
+    fill: d.fill,
+  };
+}
+
+function restoreSnapshot(ds: ChartDataset, snap: DatasetSnapshot) {
+  const d = ds as unknown as Record<string, unknown>;
+  d.backgroundColor = snap.backgroundColor;
+  d.borderColor = snap.borderColor;
+  d.pointBackgroundColor = snap.pointBackgroundColor;
+  d.pointBorderColor = snap.pointBorderColor;
+  d.pointRadius = snap.pointRadius;
+  d.pointHoverRadius = snap.pointHoverRadius;
+  d.pointHitRadius = snap.pointHitRadius;
+  d.borderWidth = snap.borderWidth;
+  d.fill = snap.fill;
+  if (snap.datalabels === undefined) {
+    delete d.datalabels;
+  } else {
+    d.datalabels = snap.datalabels;
+  }
+}
+
+function isAreaLineDataset(ds: ChartDataset): boolean {
+  const d = ds as { type?: string; fill?: boolean | string; pointRadius?: number | number[] };
+  if (d.type === 'line') return true;
+  if (d.fill === true || d.fill === 'origin' || d.fill === 'start' || d.fill === 'end') {
+    return true;
+  }
+  // No visible points → treat as connector/envelope, not a focusable scatter mark set
+  if (d.pointRadius === 0) return true;
+  if (Array.isArray(d.pointRadius) && d.pointRadius.every((r) => r === 0)) return true;
+  return false;
+}
+
+function pointRadiusOf(snap: DatasetSnapshot, fallback = 4): number {
+  const r = snap.pointRadius;
   if (typeof r === 'number' && Number.isFinite(r)) return r;
   if (Array.isArray(r) && typeof r[0] === 'number') return r[0];
-  return 4;
+  return fallback;
 }
 
 function defaultFormat(value: number): string {
@@ -116,57 +173,101 @@ function roundRect(
 
 function ensureState(chart: ChartWithFocus, brand: string): FocusState {
   const datasets = chart.data.datasets;
-  if (!chart.$scatterFocus || chart.$scatterFocus.baseColors.length !== datasets.length) {
+  if (!chart.$scatterFocus || chart.$scatterFocus.snapshots.length !== datasets.length) {
     chart.$scatterFocus = {
       pinned: null,
       hover: null,
-      baseColors: datasets.map((ds) => extractBaseColor(ds, brand)),
-      baseRadii: datasets.map((ds) => extractBaseRadius(ds)),
+      snapshots: datasets.map((ds) => captureSnapshot(ds)),
     };
   }
+  void brand;
   return chart.$scatterFocus;
 }
 
 function applyFocusStyles(chart: ChartWithFocus, brand: string) {
   const state = ensureState(chart, brand);
   const focus = activeFocus(state);
-  chart.data.datasets.forEach((ds, i) => {
-    const base = state.baseColors[i] ?? brand;
-    const baseR = state.baseRadii[i] ?? 4;
-    const active = focus == null || focus.datasetIndex === i;
-    const alpha = focus == null ? 0.55 : active ? 0.95 : 0.12;
-    const fill = withAlpha(base, alpha);
-    const radius = focus == null ? baseR : active ? baseR + 1.5 : Math.max(2.5, baseR - 0.5);
-    const hoverRadius = focus == null ? baseR + 2 : active ? baseR + 2.5 : radius;
 
-    ds.backgroundColor = fill;
-    ds.borderColor = fill;
+  // Full restore when nothing is focused — exact original paint.
+  if (focus == null) {
+    chart.data.datasets.forEach((ds, i) => {
+      const snap = state.snapshots[i];
+      if (snap) restoreSnapshot(ds, snap);
+    });
+    return;
+  }
+
+  chart.data.datasets.forEach((ds, i) => {
+    const snap = state.snapshots[i];
+    if (!snap) return;
+    const active = i === focus.datasetIndex;
+    const areaLine = isAreaLineDataset(ds) || isAreaLineDataset({ ...ds, ...snap } as ChartDataset);
+
+    if (active) {
+      restoreSnapshot(ds, snap);
+      const baseR = pointRadiusOf(snap, 4);
+      if (baseR > 0) {
+        (ds as { pointRadius?: number }).pointRadius = baseR + 1.5;
+        (ds as { pointHoverRadius?: number }).pointHoverRadius = baseR + 2.5;
+      }
+      // Keep original datalabels (do not force-enable a series that was off)
+      return;
+    }
+
+    // Dim inactive series — never invent labels on unfocused series
+    (ds as { datalabels?: boolean }).datalabels = false;
+
+    if (areaLine) {
+      // Preserve envelope geometry; only wash out stroke / fill.
+      const strokeBase = firstColor(snap.borderColor ?? snap.backgroundColor, brand);
+      const fillBase = firstColor(snap.backgroundColor ?? snap.borderColor, brand);
+      (ds as { borderColor?: string }).borderColor = withAlpha(strokeBase, 0.12);
+      (ds as { backgroundColor?: string }).backgroundColor = withAlpha(fillBase, 0.03);
+      (ds as { pointBackgroundColor?: string }).pointBackgroundColor = withAlpha(strokeBase, 0.12);
+      (ds as { pointBorderColor?: string }).pointBorderColor = withAlpha(strokeBase, 0.12);
+      if (pointRadiusOf(snap, 0) > 0) {
+        (ds as { pointRadius?: number }).pointRadius = Math.max(1.5, pointRadiusOf(snap) - 0.5);
+      }
+      return;
+    }
+
+    const base = firstColor(
+      snap.pointBackgroundColor ?? snap.backgroundColor ?? snap.borderColor,
+      brand,
+    );
+    const fill = withAlpha(base, 0.12);
+    const baseR = pointRadiusOf(snap, 4);
+    (ds as { backgroundColor?: string }).backgroundColor = fill;
+    (ds as { borderColor?: string }).borderColor = fill;
     (ds as { pointBackgroundColor?: string }).pointBackgroundColor = fill;
     (ds as { pointBorderColor?: string }).pointBorderColor = fill;
-    (ds as { pointRadius?: number }).pointRadius = radius;
-    (ds as { pointHoverRadius?: number }).pointHoverRadius = hoverRadius;
-    (ds as { pointHitRadius?: number }).pointHitRadius = Math.max(16, radius + 10);
-
-    const dsExt = ds as { datalabels?: boolean | { display?: boolean } };
-    if (focus == null || active) {
-      delete dsExt.datalabels;
-    } else {
-      dsExt.datalabels = false;
-    }
+    (ds as { pointRadius?: number }).pointRadius = Math.max(2.5, baseR - 0.5);
+    (ds as { pointHoverRadius?: number }).pointHoverRadius = Math.max(2.5, baseR - 0.5);
+    (ds as { pointHitRadius?: number }).pointHitRadius = Math.max(16, baseR + 10);
   });
 }
 
 function hitFromEvent(chart: Chart, event: unknown): ScatterFocusRef | null {
   const els = chart.getElementsAtEventForMode(
-    // Chart.js event typing varies by version
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     event as any,
     'nearest',
     { intersect: true },
     false,
   );
+  // Prefer a real marker hit (pointRadius > 0) over an invisible line vertex
+  for (const el of els) {
+    const ds = chart.data.datasets[el.datasetIndex] as { pointRadius?: number | number[] };
+    const r = ds?.pointRadius;
+    if (r === 0) continue;
+    if (Array.isArray(r) && r[el.index] === 0) continue;
+    return { datasetIndex: el.datasetIndex, index: el.index };
+  }
   const el = els[0];
   if (!el) return null;
+  // Skip pure area/line envelope series for pinning
+  const ds = chart.data.datasets[el.datasetIndex];
+  if (ds && isAreaLineDataset(ds)) return null;
   return { datasetIndex: el.datasetIndex, index: el.index };
 }
 
@@ -228,7 +329,6 @@ export function createScatterFocusPlugin(opts?: {
         return;
       }
 
-      // mousemove
       const prev = focusKey(activeFocus(state));
       state.hover = hit;
       const next = focusKey(activeFocus(state));
@@ -253,7 +353,11 @@ export function createScatterFocusPlugin(opts?: {
 
       const { ctx, chartArea } = chart;
       const { left, right, top, bottom } = chartArea;
-      const lineColor = state.baseColors[focus.datasetIndex] ?? brand;
+      const snap = state.snapshots[focus.datasetIndex];
+      const lineColor = firstColor(
+        snap?.pointBackgroundColor ?? snap?.backgroundColor ?? snap?.borderColor,
+        brand,
+      );
       const px = el.x;
       const py = el.y;
 
