@@ -42,6 +42,7 @@ export * from './organisms/CausalShiftDiagram/CausalShiftDiagram.js';
 export * from './organisms/Chart/Chart.js';
 export * from './organisms/CostScoreBoard/CostScoreBoard.js';
 export * from './organisms/CostScoreScatter/CostScoreScatter.js';
+export * from './organisms/ExecBriefSheet/ExecBriefSheet.js';
 export * from './organisms/FeedbackLoopsDiagram/FeedbackLoopsDiagram.js';
 export * from './organisms/KnowledgeTreeMap/KnowledgeTreeMap.js';
 export * from './organisms/MethodPillars/MethodPillars.js';

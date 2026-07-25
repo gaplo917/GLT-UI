@@ -36,6 +36,7 @@ const REQUIRED = [
   'CostScoreBoard',
   'CostScoreScatter',
   'Divider',
+  'ExecBriefSheet',
   'FeedbackLoopsDiagram',
   'FigureDataTableToggle',
   'FitContain',
