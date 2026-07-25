@@ -11,9 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, '..');
-const outDir = process.argv[2]
-  ? path.resolve(process.argv[2])
-  : path.join(pkgRoot, 'scripts');
+/** Optional output dir for markdown/json inventory. Omit to print only. */
+const outDir = process.argv[2] ? path.resolve(process.argv[2]) : null;
 
 const HTML_EXCLUDE = new Set([
   'className',
@@ -248,28 +247,31 @@ for (const [k, v] of [...compApi.entries()].sort((a, b) => a[0].localeCompare(b[
   md.push(`- **${k}**: ${[...v].sort().join(', ')}`);
 }
 
-fs.mkdirSync(outDir, { recursive: true });
-const mdPath = path.join(outDir, 'props-coverage.md');
-const jsonPath = path.join(outDir, 'props-coverage.json');
-fs.writeFileSync(mdPath, md.join('\n') + '\n');
-fs.writeFileSync(
-  jsonPath,
-  JSON.stringify(
-    {
-      html_exclude: [...HTML_EXCLUDE],
-      inventory,
-      gaps,
-      component_apis: Object.fromEntries(
-        [...compApi.entries()].map(([k, v]) => [k, [...v].sort()]),
-      ),
-    },
-    null,
-    2,
-  ),
-);
-
 console.log(md.join('\n'));
-console.log(`\nWrote ${mdPath}`);
-console.log(`Wrote ${jsonPath}`);
+
+if (outDir) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const mdPath = path.join(outDir, 'props-coverage.md');
+  const jsonPath = path.join(outDir, 'props-coverage.json');
+  fs.writeFileSync(mdPath, md.join('\n') + '\n');
+  fs.writeFileSync(
+    jsonPath,
+    JSON.stringify(
+      {
+        html_exclude: [...HTML_EXCLUDE],
+        inventory,
+        gaps,
+        component_apis: Object.fromEntries(
+          [...compApi.entries()].map(([k, v]) => [k, [...v].sort()]),
+        ),
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(`\nWrote ${mdPath}`);
+  console.log(`Wrote ${jsonPath}`);
+}
+
 console.log(`GAPS=${gaps.length}`);
 process.exitCode = gaps.length > 0 ? 1 : 0;
