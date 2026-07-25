@@ -19,6 +19,7 @@ import {
   Divider,
   FeedbackLoopsDiagram,
   FigureDataTableToggle,
+  FitContain,
   FullBleedFigure,
   Grid,
   HashScrollCta,
@@ -29,6 +30,8 @@ import {
   MethodPillars,
   MetricSparkBoard,
   PageHero,
+  PresentationSlideFrame,
+  PresentationStrip,
   ProcessBand,
   ProcessPipeline,
   Quote,
@@ -49,9 +52,99 @@ import {
   Text,
   Title,
   Tooltip,
+  type PresentationThumb,
   type RefCiteItem,
 } from 'glt-ui';
 import type { DocSection } from '../types';
+
+/** Fictional deck for PresentationStrip demo — no portal product copy. */
+const DEMO_PRESENTATION_SLIDES: readonly PresentationThumb[] = [
+  { id: 'title', num: '01', label: 'Title' },
+  { id: 'plan', num: '02', label: 'Plan' },
+  { id: 'close', num: '03', label: 'Close' },
+] as const;
+
+const DEMO_SLIDE_COPY: Record<
+  string,
+  { kicker: string; title: string; bullets: readonly string[]; hideHeader?: boolean }
+> = {
+  title: {
+    kicker: '01 · Sample deck',
+    title: 'Northstar toolkit walkthrough',
+    bullets: [],
+    hideHeader: true,
+  },
+  plan: {
+    kicker: '02 · Plan',
+    title: 'Ship the first slice',
+    bullets: [
+      'Define the success metric before building.',
+      'Keep the harness thin until the loop is honest.',
+      'Review the high-risk path first.',
+    ],
+  },
+  close: {
+    kicker: '03 · Close',
+    title: 'What to do next',
+    bullets: [
+      'Pick one metric the team already owns.',
+      'Instrument the review loop this week.',
+      'Retire one low-signal status meeting.',
+    ],
+  },
+};
+
+function DemoPresentationSlide({
+  slide,
+}: {
+  slide: PresentationThumb;
+}) {
+  const copy = DEMO_SLIDE_COPY[slide.id] ?? DEMO_SLIDE_COPY.plan;
+  if (copy.hideHeader) {
+    return (
+      <PresentationSlideFrame
+        slideId={slide.id}
+        slideNum={slide.num}
+        hideHeader
+        className="shadow-sm"
+      >
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-10 text-center">
+          <p className="m-0 text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-primary)]">
+            {copy.kicker}
+          </p>
+          <h2 className="m-0 mt-5 max-w-[34rem] text-[34px] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--strong-text-color)]">
+            {copy.title}
+          </h2>
+          <p className="m-0 mt-8 text-[13px] text-[var(--secondary-text-color)]">
+            Sample kit demo · host supplies brand meta
+          </p>
+        </div>
+      </PresentationSlideFrame>
+    );
+  }
+  return (
+    <PresentationSlideFrame
+      slideId={slide.id}
+      slideNum={slide.num}
+      kicker={copy.kicker}
+      title={copy.title}
+      brandMeta={
+        <>
+          kit.demo
+          <br />
+          <span className="font-normal normal-case tracking-normal">Sample deck</span>
+        </>
+      }
+      className="shadow-sm"
+    >
+      <ul className="m-0 flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug text-[var(--text-color)]">
+        {copy.bullets.map((b) => (
+          <li key={b}>{b}</li>
+        ))}
+      </ul>
+    </PresentationSlideFrame>
+  );
+}
 
 /** Fictional demo cites — not portal bibliography data. */
 const DEMO_REF_ITEMS: readonly RefCiteItem[] = [
@@ -1260,6 +1353,68 @@ export const slimSection: DocSection = {
                 ratchet: 'Each miss becomes a permanent harness rule',
               }}
             />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-strip',
+      name: 'PresentationStrip',
+      description:
+        'Thumbnail strip + fullscreen present mode. Host supplies slides via renderSlide; FitContain / PresentationSlideFrame optional helpers.',
+      importLine:
+        "import { PresentationStrip, PresentationSlideFrame, FitContain } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample three-slide deck',
+          code: `<PresentationStrip
+  label="Presentation"
+  title="Sample deck"
+  description="Host-supplied slides — double-click a thumb or open full screen."
+  slides={[
+    { id: 'title', num: '01', label: 'Title' },
+    { id: 'plan', num: '02', label: 'Plan' },
+    { id: 'close', num: '03', label: 'Close' },
+  ]}
+  renderSlide={(i, slide) => (
+    <PresentationSlideFrame
+      kicker={\`\${slide.num} · Topic\`}
+      title="Slide title"
+      brandMeta="kit.demo"
+    >
+      <ul><li>Bullet one</li><li>Bullet two</li></ul>
+    </PresentationSlideFrame>
+  )}
+/>`,
+          render: (
+            <PresentationStrip
+              label="Presentation"
+              title="Sample deck"
+              description="Host-supplied slides for the design-system demo. Scroll thumbs, step, or open full screen."
+              dialogTitle="Sample presentation"
+              slides={DEMO_PRESENTATION_SLIDES}
+              renderSlide={(_i, slide) => <DemoPresentationSlide slide={slide} />}
+            />
+          ),
+        },
+        {
+          title: 'FitContain',
+          code: `<div className="h-40 w-full">
+  <FitContain naturalW={320} naturalH={180}>
+    <div style={{ width: 320, height: 180 }}>Board</div>
+  </FitContain>
+</div>`,
+          render: (
+            <div className="h-40 w-full rounded-lg border border-[var(--border-color)] bg-[var(--card-bg-color)]">
+              <FitContain naturalW={320} naturalH={180}>
+                <div
+                  className="flex items-center justify-center rounded-md border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-sm font-semibold text-[var(--strong-text-color)]"
+                  style={{ width: 320, height: 180 }}
+                >
+                  320×180 board scaled to fit
+                </div>
+              </FitContain>
+            </div>
           ),
         },
       ],

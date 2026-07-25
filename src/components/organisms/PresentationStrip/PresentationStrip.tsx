@@ -1,0 +1,419 @@
+'use client';
+
+import * as React from 'react';
+import { cn } from '@/lib/cn.js';
+import { Callout } from '@/components/molecules/Callout/Callout.js';
+import { Text } from '@/components/atoms/Text/Text.js';
+import { FitContain } from '@/components/molecules/FitContain/FitContain.js';
+
+/** Thumbnail display width (height follows natural aspect of the slide board). */
+const THUMB_W = 220;
+
+export type PresentationThumb = {
+  id: string;
+  num: string;
+  label: string;
+};
+
+export type PresentationStripProps = {
+  slides: readonly PresentationThumb[];
+  /** Render full slide body for index (host supplies content). */
+  renderSlide: (index: number, slide: PresentationThumb) => React.ReactNode;
+  /** Callout overline. Default "Presentation". */
+  label?: React.ReactNode;
+  /** Callout title. */
+  title?: React.ReactNode;
+  /** Short description under the title. */
+  description?: React.ReactNode;
+  /** Dialog header title. Defaults to title or "Presentation". */
+  dialogTitle?: React.ReactNode;
+  /** Natural slide width. Default 960. */
+  slideNaturalW?: number;
+  /** Natural slide height. Default 540. */
+  slideNaturalH?: number;
+  className?: string;
+};
+
+function ThumbnailCard({
+  slide,
+  index,
+  selected,
+  onSelect,
+  onOpen,
+  renderSlide,
+  naturalW,
+  naturalH,
+}: {
+  slide: PresentationThumb;
+  index: number;
+  selected: boolean;
+  onSelect: () => void;
+  onOpen: () => void;
+  renderSlide: (index: number, slide: PresentationThumb) => React.ReactNode;
+  naturalW: number;
+  naturalH: number;
+}) {
+  const thumbH = (THUMB_W * naturalH) / naturalW;
+
+  return (
+    // div (not button): slide previews may contain interactive controls.
+    // Nested <button> breaks hydration and a11y.
+    <div
+      role="button"
+      tabIndex={0}
+      data-testid={`presentation-slide-thumb-${slide.id}`}
+      onClick={onSelect}
+      onDoubleClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      aria-current={selected ? 'true' : undefined}
+      aria-label={`Slide ${slide.num}: ${slide.label}. Double-click to present.`}
+      className={cn(
+        'group relative shrink-0 cursor-pointer snap-start overflow-hidden rounded-lg border text-left outline-none transition',
+        'focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-color)]',
+        selected
+          ? 'border-[var(--brand-primary)] shadow-[0_0_0_1px_var(--brand-primary)]'
+          : 'border-[var(--border-color)] hover:border-[var(--brand-primary)]/50',
+      )}
+      style={{ width: THUMB_W, height: thumbH + 28 }}
+    >
+      <div
+        className="pointer-events-none overflow-hidden bg-[var(--card-bg-color)]"
+        style={{ width: THUMB_W, height: thumbH }}
+        aria-hidden
+      >
+        <FitContain naturalW={naturalW} naturalH={naturalH} pad={0} className="h-full w-full">
+          {renderSlide(index, slide)}
+        </FitContain>
+      </div>
+      <div
+        className={cn(
+          'flex items-center justify-between gap-2 border-t px-2 py-1',
+          selected
+            ? 'border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10'
+            : 'border-[var(--border-color)] bg-[var(--bg-color)]/80',
+        )}
+      >
+        <span className="truncate text-[11px] font-semibold text-[var(--strong-text-color)]">
+          <span className="tabular-nums text-[var(--brand-primary)]">{slide.num}</span>{' '}
+          {slide.label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Multi-page presentation strip: horizontal thumbnails + fullscreen present
+ * mode with back/forward navigation. Host supplies slide content via
+ * `renderSlide` — no product copy or chart data lives in the kit.
+ */
+export function PresentationStrip({
+  slides,
+  renderSlide,
+  label = 'Presentation',
+  title,
+  description,
+  dialogTitle,
+  slideNaturalW = 960,
+  slideNaturalH = 540,
+  className,
+}: PresentationStripProps) {
+  const titleId = React.useId();
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const stripRef = React.useRef<HTMLDivElement>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [index, setIndex] = React.useState(0);
+  const total = slides.length;
+  const current = slides[index] ?? slides[0];
+
+  const go = React.useCallback(
+    (next: number) => {
+      if (total < 1) return;
+      setIndex(((next % total) + total) % total);
+    },
+    [total],
+  );
+
+  const prev = React.useCallback(() => go(index - 1), [go, index]);
+  const next = React.useCallback(() => go(index + 1), [go, index]);
+
+  const openAt = React.useCallback((i: number) => {
+    setIndex(i);
+    const d = dialogRef.current;
+    if (!d) return;
+    if (typeof d.showModal === 'function') d.showModal();
+    else d.setAttribute('open', '');
+    setDialogOpen(true);
+  }, []);
+
+  const open = React.useCallback(() => openAt(index), [openAt, index]);
+
+  const close = React.useCallback(() => {
+    const d = dialogRef.current;
+    if (!d) return;
+    if (typeof d.close === 'function') d.close();
+    else d.removeAttribute('open');
+    setDialogOpen(false);
+  }, []);
+
+  React.useEffect(() => {
+    const d = dialogRef.current;
+    if (!d) return;
+    const onClose = () => setDialogOpen(false);
+    d.addEventListener('close', onClose);
+    const onCancel = (e: Event) => {
+      e.preventDefault();
+      close();
+    };
+    d.addEventListener('cancel', onCancel);
+    return () => {
+      d.removeEventListener('close', onClose);
+      d.removeEventListener('cancel', onCancel);
+    };
+  }, [close]);
+
+  React.useEffect(() => {
+    if (!dialogOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        go(index - 1);
+      } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        go(index + 1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dialogOpen, go, index]);
+
+  // Keep selected thumbnail in view in the strip
+  React.useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip || !current) return;
+    const el = strip.querySelector<HTMLElement>(
+      `[data-testid="presentation-slide-thumb-${current.id}"]`,
+    );
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+  }, [current?.id]);
+
+  if (total < 1 || !current) {
+    return null;
+  }
+
+  const calloutLabel = typeof label === 'string' ? label : undefined;
+  const dialogHeading = dialogTitle ?? title ?? 'Presentation';
+
+  return (
+    <Callout
+      variant="fact"
+      appearance="soft"
+      size="md"
+      label={calloutLabel}
+      title={title}
+      icon={false}
+      className={cn('min-w-0', className)}
+      data-testid="presentation-strip"
+    >
+      {label != null && typeof label !== 'string' ? (
+        <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
+          {label}
+        </div>
+      ) : null}
+
+      {description != null && (
+        <Text as="p" size="sm" tone="secondary" className="mb-3 leading-relaxed">
+          {description}
+        </Text>
+      )}
+
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="m-0 text-xs font-medium tabular-nums text-[var(--secondary-text-color)]">
+            Slide{' '}
+            <span className="text-[var(--strong-text-color)]">{current.num}</span> of {total}
+            <span className="mx-1.5 text-[var(--border-color)]">·</span>
+            <span className="text-[var(--strong-text-color)]">{current.label}</span>
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-testid="presentation-prev"
+              onClick={prev}
+              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-xs font-medium text-[var(--text-color)] hover:border-[var(--brand-primary)]/50"
+              aria-label="Previous slide"
+            >
+              ← Prev
+            </button>
+            <button
+              type="button"
+              data-testid="presentation-next"
+              onClick={next}
+              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-xs font-medium text-[var(--text-color)] hover:border-[var(--brand-primary)]/50"
+              aria-label="Next slide"
+            >
+              Next →
+            </button>
+            <button
+              type="button"
+              data-testid="presentation-open"
+              onClick={open}
+              className="rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-[var(--brand-primary-foreground,#111)] shadow-sm"
+            >
+              Open full screen
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={stripRef}
+          data-testid="presentation-strip-thumbs"
+          className={cn(
+            'flex gap-3 overflow-x-auto pb-1 pt-0.5',
+            'snap-x snap-mandatory scroll-px-1',
+            '[scrollbar-width:thin]',
+          )}
+          role="listbox"
+          aria-label="Presentation slides"
+        >
+          {slides.map((slide, i) => (
+            <ThumbnailCard
+              key={slide.id}
+              slide={slide}
+              index={i}
+              selected={i === index}
+              onSelect={() => setIndex(i)}
+              onOpen={() => openAt(i)}
+              renderSlide={renderSlide}
+              naturalW={slideNaturalW}
+              naturalH={slideNaturalH}
+            />
+          ))}
+        </div>
+
+        <p className="m-0 text-center text-[11px] text-[var(--secondary-text-color)]">
+          Double-click a thumbnail or use Open full screen to present. Arrow keys work in
+          full screen.
+        </p>
+      </div>
+
+      <dialog
+        ref={dialogRef}
+        data-testid="presentation-dialog"
+        aria-labelledby={titleId}
+        className={cn(
+          'fixed inset-0 z-[80] m-0 h-full max-h-none w-full max-w-none',
+          'border-0 bg-[var(--bg-color)] p-0 text-[var(--text-color)]',
+          'open:flex open:flex-col',
+        )}
+        onClick={(e) => {
+          if (e.target === dialogRef.current) close();
+        }}
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border-color)] px-3 py-2 sm:px-5">
+          <div className="min-w-0">
+            <p
+              id={titleId}
+              className="truncate text-sm font-semibold tracking-tight text-[var(--strong-text-color)]"
+            >
+              {dialogHeading}
+            </p>
+            <p className="text-xs text-[var(--secondary-text-color)]">
+              <span className="tabular-nums">
+                {current.num}/{slides[total - 1]?.num ?? total}
+              </span>{' '}
+              · {current.label}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              data-testid="presentation-dialog-prev"
+              onClick={prev}
+              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
+              aria-label="Previous slide"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              data-testid="presentation-dialog-next"
+              onClick={next}
+              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
+              aria-label="Next slide"
+            >
+              →
+            </button>
+            <button
+              type="button"
+              data-testid="presentation-dialog-close"
+              onClick={close}
+              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium text-[var(--text-color)]"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div
+          className="relative min-h-0 flex-1 p-2 sm:p-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FitContain
+            active={dialogOpen}
+            naturalW={slideNaturalW}
+            naturalH={slideNaturalH}
+            className="h-full w-full"
+          >
+            {renderSlide(index, current)}
+          </FitContain>
+
+          {/*
+            Edge click zones for deck navigation — keep clear of the top band so
+            in-slide controls stay clickable.
+          */}
+          <button
+            type="button"
+            aria-label="Previous slide"
+            onClick={prev}
+            className="absolute bottom-0 left-0 top-16 z-0 w-[10%] cursor-w-resize bg-transparent sm:top-20"
+          />
+          <button
+            type="button"
+            aria-label="Next slide"
+            onClick={next}
+            className="absolute bottom-0 right-0 top-16 z-0 w-[10%] cursor-e-resize bg-transparent sm:top-20"
+          />
+        </div>
+
+        {/* Thumbnail rail in present mode */}
+        <div className="shrink-0 border-t border-[var(--border-color)] bg-[var(--bg-color)]/80 px-3 py-2 sm:px-4">
+          <div className="flex gap-2 overflow-x-auto [scrollbar-width:thin]">
+            {slides.map((slide, i) => (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => setIndex(i)}
+                className={cn(
+                  'shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-medium tabular-nums transition',
+                  i === index
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/15 text-[var(--strong-text-color)]'
+                    : 'border-[var(--border-color)] text-[var(--secondary-text-color)] hover:border-[var(--brand-primary)]/40',
+                )}
+              >
+                {slide.num} {slide.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </dialog>
+    </Callout>
+  );
+}
+
+export default PresentationStrip;

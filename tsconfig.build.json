@@ -22,7 +22,6 @@
     "src/components/organisms/FeedbackLoopsDiagram/**",
     "src/components/organisms/KnowledgeTreeMap/**",
     "src/components/organisms/MetricSparkBoard/**",
-    "src/components/organisms/PresentationStrip/**",
     "src/components/organisms/StepLoopFlow/**"
   ]
 }

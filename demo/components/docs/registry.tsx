@@ -36,6 +36,7 @@ const moleculesSection = layer('molecules', 'Molecules', 'Small composed units.'
   'svg-ref-cite',
   'section-intro',
   'hash-scroll-cta',
+  // FitContain is documented on the PresentationStrip entry (shared demo).
 ]);
 
 const organismsSection = layer('organisms', 'Organisms', 'Page sections and data.', [
@@ -52,6 +53,7 @@ const organismsSection = layer('organisms', 'Organisms', 'Page sections and data
   'step-loop-flow',
   'agent-harness-diagram',
   'knowledge-tree-map',
+  'presentation-strip',
   'page-hero',
   'site-header',
   'site-footer',
