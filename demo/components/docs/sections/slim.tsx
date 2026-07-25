@@ -1809,6 +1809,53 @@ export const slimSection: DocSection = {
             />
           ),
         },
+        {
+          title: 'ChartData escape hatch + plugins + label wrap',
+          description:
+            'Raw `data` object, empty `plugins` array, and categoryLabelMaxChars for long labels.',
+          code: `<Chart
+  type="bar"
+  title="Raw data prop"
+  caption="Uses Chart.js data object instead of labels/series helpers."
+  ariaLabel="Bar chart built from data prop"
+  data={{
+    labels: ['Very long category alpha', 'Very long category beta'],
+    datasets: [
+      {
+        label: 'Volume',
+        data: [12, 9],
+        backgroundColor: 'var(--brand-primary)',
+      },
+    ],
+  }}
+  categoryLabelMaxChars={12}
+  plugins={[]}
+  legend="top"
+  height={200}
+/>`,
+          render: (
+            <Chart
+              type="bar"
+              title="Raw data prop"
+              caption="Uses Chart.js data object instead of labels/series helpers."
+              ariaLabel="Bar chart built from data prop"
+              data={{
+                labels: ['Very long category alpha', 'Very long category beta'],
+                datasets: [
+                  {
+                    label: 'Volume',
+                    data: [12, 9],
+                    backgroundColor: 'var(--brand-primary)',
+                  },
+                ],
+              }}
+              categoryLabelMaxChars={12}
+              plugins={[]}
+              legend="top"
+              height={200}
+            />
+          ),
+        },
       ],
     },
     {
@@ -2630,6 +2677,62 @@ export const slimSection: DocSection = {
             </div>
           ),
         },
+        {
+          title: 'Fixed height',
+          description: 'Use height instead of fill when the parent has no fixed size.',
+          code: `<CostScoreScatter
+  height={240}
+  xAxisLabel="Suite cost ($)"
+  yAxisLabel="Score (%)"
+  points={[
+    {
+      model: 'Alpha',
+      chartLabel: 'Alpha · high',
+      effort: 'high',
+      resolveRate: 72,
+      costPerTest: 1.2,
+      taskCount: 100,
+      color: '#3b82f6',
+    },
+    {
+      model: 'Beta',
+      chartLabel: 'Beta · max',
+      effort: 'max',
+      resolveRate: 81,
+      costPerTest: 2.5,
+      taskCount: 100,
+      color: '#22c55e',
+    },
+  ]}
+/>`,
+          render: (
+            <CostScoreScatter
+              height={240}
+              xAxisLabel="Suite cost ($)"
+              yAxisLabel="Score (%)"
+              points={[
+                {
+                  model: 'Alpha',
+                  chartLabel: 'Alpha · high',
+                  effort: 'high',
+                  resolveRate: 72,
+                  costPerTest: 1.2,
+                  taskCount: 100,
+                  color: '#3b82f6',
+                },
+                {
+                  model: 'Beta',
+                  chartLabel: 'Beta · max',
+                  effort: 'max',
+                  resolveRate: 81,
+                  costPerTest: 2.5,
+                  taskCount: 100,
+                  color: '#22c55e',
+                },
+              ]}
+            />
+          ),
+        },
       ],
     },
     {
@@ -2909,6 +3012,30 @@ export const slimSection: DocSection = {
                 }}
               />
             </div>
+          ),
+        },
+        {
+          title: 'Fixed height',
+          description: 'Explicit height when not filling a sized parent.',
+          code: `<ResolveRateTrend
+  height={240}
+  points={[
+    { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+    { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+    { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+  ]}
+  labelMap={{ 'Alpha-1': 'A1', 'Alpha-2': 'A2', 'Beta-1': 'B1' }}
+/>`,
+          render: (
+            <ResolveRateTrend
+              height={240}
+              points={[
+                { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+                { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+                { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+              ]}
+              labelMap={{ 'Alpha-1': 'A1', 'Alpha-2': 'A2', 'Beta-1': 'B1' }}
+            />
           ),
         },
       ],
