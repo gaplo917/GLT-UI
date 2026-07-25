@@ -2465,7 +2465,6 @@ export const slimSection: DocSection = {
           code: `<AttentionShiftBars
   beforeTitle="Before automation"
   afterTitle="After automation"
-  compact
   slices={[
     { key: 'build', label: 'Build', before: 50, after: 18, color: 'brand' },
     { key: 'review', label: 'Review', before: 28, after: 42, color: 'warning' },
@@ -2476,6 +2475,48 @@ export const slimSection: DocSection = {
             <AttentionShiftBars
               beforeTitle="Before automation"
               afterTitle="After automation"
+              slices={[
+                {
+                  key: 'build',
+                  label: 'Build',
+                  before: 50,
+                  after: 18,
+                  color: 'brand',
+                },
+                {
+                  key: 'review',
+                  label: 'Review',
+                  before: 28,
+                  after: 42,
+                  color: 'warning',
+                },
+                {
+                  key: 'plan',
+                  label: 'Plan',
+                  before: 22,
+                  after: 40,
+                  color: 'info',
+                },
+              ]}
+            />
+          ),
+        },
+        {
+          title: 'Compact (slide chrome)',
+          code: `<AttentionShiftBars
+  beforeTitle="Before"
+  afterTitle="After"
+  compact
+  slices={[
+    { key: 'build', label: 'Build', before: 50, after: 18, color: 'brand' },
+    { key: 'review', label: 'Review', before: 28, after: 42, color: 'warning' },
+    { key: 'plan', label: 'Plan', before: 22, after: 40, color: 'info' },
+  ]}
+/>`,
+          render: (
+            <AttentionShiftBars
+              beforeTitle="Before"
+              afterTitle="After"
               compact
               slices={[
                 {
