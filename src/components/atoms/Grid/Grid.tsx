@@ -52,22 +52,4 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
 );
 Grid.displayName = 'Grid';
 
-export interface GridItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Column span (1–12) on the 12-col track. */
-  span?: number;
-}
-
-/** Optional grid child that spans N columns of a 12-column grid. */
-export const GridItem = React.forwardRef<HTMLDivElement, GridItemProps>(
-  ({ className, span, style, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={className}
-      style={span ? { gridColumn: `span ${span} / span ${span}`, ...style } : style}
-      {...props}
-    />
-  )
-);
-GridItem.displayName = 'GridItem';
-
 export default Grid;

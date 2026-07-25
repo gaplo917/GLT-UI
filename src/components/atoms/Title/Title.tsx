@@ -20,22 +20,10 @@ const titleSizeClasses: Record<TitleSize, string> = {
   6: 'text-base',
 };
 
-const subtitleSizeClasses: Record<TitleSize, string> = {
-  1: 'text-4xl',
-  2: 'text-3xl',
-  3: 'text-2xl',
-  4: 'text-xl',
-  5: 'text-lg',
-  6: 'text-sm',
-};
-
 const headingFor = (size: TitleSize) => `h${size}` as const;
 
 /**
- * A simple, strong heading to add depth to a page. Sizes run 1 (largest)
- * through 6 (smallest); by default it renders the matching heading element, but
- * pass `as` to decouple semantics from appearance. Pair with `Subtitle` for a
- * two-line lockup.
+ * Strong heading (sizes 1–6). Portal uses Title only (Subtitle removed).
  */
 export const Title = React.forwardRef<HTMLHeadingElement, TitleProps>(
   ({ as, size = 3, className, ...props }, ref) => {
@@ -54,30 +42,5 @@ export const Title = React.forwardRef<HTMLHeadingElement, TitleProps>(
   }
 );
 Title.displayName = 'Title';
-
-export type SubtitleProps = TitleProps;
-
-/**
- * A lighter companion heading, typically placed directly beneath a `Title`.
- * Uses the same 1–6 scale but a softer weight and secondary colour. Defaults to
- * size 5.
- */
-export const Subtitle = React.forwardRef<HTMLHeadingElement, SubtitleProps>(
-  ({ as, size = 5, className, ...props }, ref) => {
-    const Component = (as ?? headingFor(size)) as React.ElementType;
-    return (
-      <Component
-        ref={ref}
-        className={cn(
-          'font-normal leading-snug text-[var(--secondary-text-color)]',
-          subtitleSizeClasses[size],
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-Subtitle.displayName = 'Subtitle';
 
 export default Title;

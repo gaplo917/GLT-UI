@@ -32,12 +32,8 @@ export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> 
 }
 
 /**
- * A generic, composable HTML table. Assemble it from `TableHead` / `TableBody` /
- * `TableFoot`, `TableRow`, `TableHeaderCell`, and `TableCell`. Cell padding,
- * borders, striping, and hover are driven by props on `Table` (applied to the
- * child cells/rows), so the sub-parts stay declarative. Per-cell alignment lives
- * on `TableHeaderCell` / `TableCell` via `align`, keeping headers and body cells
- * in lockstep.
+ * Composable HTML table. Portal surface: Table, TableHead, TableBody, TableRow,
+ * TableHeaderCell, TableCell.
  */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   (
@@ -74,18 +70,6 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(
 );
 Table.displayName = 'Table';
 
-/** An accessible caption/title rendered above the table body. */
-export const TableCaption = React.forwardRef<HTMLTableCaptionElement, React.HTMLAttributes<HTMLTableCaptionElement>>(
-  ({ className, ...props }, ref) => (
-    <caption
-      ref={ref}
-      className={cn('px-4 py-2 text-left text-base text-[var(--secondary-text-color)]', className)}
-      {...props}
-    />
-  )
-);
-TableCaption.displayName = 'TableCaption';
-
 /** The table's header group. */
 export const TableHead = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => <thead ref={ref} className={className} {...props} />
@@ -97,12 +81,6 @@ export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAtt
   ({ className, ...props }, ref) => <tbody ref={ref} className={className} {...props} />
 );
 TableBody.displayName = 'TableBody';
-
-/** The table's footer group. */
-export const TableFoot = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className, ...props }, ref) => <tfoot ref={ref} className={className} {...props} />
-);
-TableFoot.displayName = 'TableFoot';
 
 /** A table row. */
 export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
