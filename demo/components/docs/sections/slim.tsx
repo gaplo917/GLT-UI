@@ -96,8 +96,12 @@ const DEMO_SLIDE_COPY: Record<
 
 function DemoPresentationSlide({
   slide,
+  naturalW = 960,
+  naturalH = 540,
 }: {
   slide: PresentationThumb;
+  naturalW?: number;
+  naturalH?: number;
 }) {
   const copy = DEMO_SLIDE_COPY[slide.id] ?? DEMO_SLIDE_COPY.plan;
   if (copy.hideHeader) {
@@ -105,6 +109,8 @@ function DemoPresentationSlide({
       <PresentationSlideFrame
         slideId={slide.id}
         slideNum={slide.num}
+        naturalW={naturalW}
+        naturalH={naturalH}
         hideHeader
         className="shadow-sm"
       >
@@ -126,6 +132,8 @@ function DemoPresentationSlide({
     <PresentationSlideFrame
       slideId={slide.id}
       slideNum={slide.num}
+      naturalW={naturalW}
+      naturalH={naturalH}
       kicker={copy.kicker}
       title={copy.title}
       brandMeta={
@@ -861,11 +869,145 @@ export const slimSection: DocSection = {
       importLine: "import { Callout } from 'glt-ui';",
       examples: [
         {
-          title: 'Info',
-          code: '<Callout title="Note" variant="info">Body</Callout>',
+          title: 'Variants',
+          description: 'Semantic intent: info, success, warning, tip.',
+          code: `<div className="space-y-3">
+  <Callout title="Info" variant="info">Throughput holds steady.</Callout>
+  <Callout title="Success" variant="success">Harness landed in staging.</Callout>
+  <Callout title="Warning" variant="warning">Review queue still open.</Callout>
+  <Callout title="Tip" variant="tip">Pin the eval before the model swap.</Callout>
+</div>`,
           render: (
-            <Callout title="Note" variant="info">
-              Body
+            <div className="space-y-3">
+              <Callout title="Info" variant="info">
+                Throughput holds steady.
+              </Callout>
+              <Callout title="Success" variant="success">
+                Harness landed in staging.
+              </Callout>
+              <Callout title="Warning" variant="warning">
+                Review queue still open.
+              </Callout>
+              <Callout title="Tip" variant="tip">
+                Pin the eval before the model swap.
+              </Callout>
+            </div>
+          ),
+        },
+        {
+          title: 'Appearances',
+          description: 'soft, outline, solid, and plain accent treatments.',
+          code: `<div className="space-y-3">
+  <Callout appearance="soft" variant="info" title="Soft">
+    Soft fill with left accent stripe.
+  </Callout>
+  <Callout appearance="outline" variant="info" title="Outline">
+    Outline border only.
+  </Callout>
+  <Callout appearance="solid" variant="info" title="Solid">
+    Solid accent fill.
+  </Callout>
+  <Callout appearance="plain" variant="info" title="Plain">
+    Plain stripe, no fill.
+  </Callout>
+</div>`,
+          render: (
+            <div className="space-y-3">
+              <Callout appearance="soft" variant="info" title="Soft">
+                Soft fill with left accent stripe.
+              </Callout>
+              <Callout appearance="outline" variant="info" title="Outline">
+                Outline border only.
+              </Callout>
+              <Callout appearance="solid" variant="info" title="Solid">
+                Solid accent fill.
+              </Callout>
+              <Callout appearance="plain" variant="info" title="Plain">
+                Plain stripe, no fill.
+              </Callout>
+            </div>
+          ),
+        },
+        {
+          title: 'Sizes',
+          description: 'sm, md (default), and lg density.',
+          code: `<div className="space-y-3">
+  <Callout size="sm" title="Small" variant="note">
+    Compact density for tight sidebars.
+  </Callout>
+  <Callout size="md" title="Medium" variant="note">
+    Default body density.
+  </Callout>
+  <Callout size="lg" title="Large" variant="note">
+    Roomier band for lead notes.
+  </Callout>
+</div>`,
+          render: (
+            <div className="space-y-3">
+              <Callout size="sm" title="Small" variant="note">
+                Compact density for tight sidebars.
+              </Callout>
+              <Callout size="md" title="Medium" variant="note">
+                Default body density.
+              </Callout>
+              <Callout size="lg" title="Large" variant="note">
+                Roomier band for lead notes.
+              </Callout>
+            </div>
+          ),
+        },
+        {
+          title: 'Label + custom icon',
+          description: 'Uppercase overline label; override default glyph with icon.',
+          code: `<Callout
+  label="Field note"
+  title="Review latency"
+  variant="fact"
+  icon="⏱"
+>
+  Teams that timed review gates cut release lag in half.
+</Callout>`,
+          render: (
+            <Callout label="Field note" title="Review latency" variant="fact" icon="⏱">
+              Teams that timed review gates cut release lag in half.
+            </Callout>
+          ),
+        },
+        {
+          title: 'Icon hidden',
+          description: 'Pass icon={false} to suppress the leading glyph.',
+          code: `<Callout title="Quiet note" variant="note" icon={false}>
+  Body only — no leading glyph.
+</Callout>`,
+          render: (
+            <Callout title="Quiet note" variant="note" icon={false}>
+              Body only — no leading glyph.
+            </Callout>
+          ),
+        },
+        {
+          title: 'Dismissible',
+          description: 'dismissible + onDismiss; the block removes itself on click.',
+          code: `<Callout
+  title="Closeable notice"
+  variant="warning"
+  dismissible
+  onDismiss={() => {
+    console.log('callout dismissed');
+  }}
+>
+  Dismiss when the reader has absorbed the note.
+</Callout>`,
+          render: (
+            <Callout
+              title="Closeable notice"
+              variant="warning"
+              dismissible
+              onDismiss={() => {
+                console.log('callout dismissed');
+              }}
+            >
+              Dismiss when the reader has absorbed the note.
             </Callout>
           ),
         },
@@ -878,16 +1020,68 @@ export const slimSection: DocSection = {
       importLine: "import { Quote } from 'glt-ui';",
       examples: [
         {
-          title: 'Attributed',
+          title: 'Attributed (highlight, lg)',
+          description: 'Default highlight variant at large size with cite + source.',
           code: `<Quote
   cite="A. North, Lead@Northstar"
   source={<>Sample podcast, 2026</>}
+  variant="highlight"
+  size="lg"
 >
   Ship the harness before the model.
 </Quote>`,
           render: (
-            <Quote cite="A. North, Lead@Northstar" source={<>Sample podcast, 2026</>}>
+            <Quote
+              cite="A. North, Lead@Northstar"
+              source={<>Sample podcast, 2026</>}
+              variant="highlight"
+              size="lg"
+            >
               Ship the harness before the model.
+            </Quote>
+          ),
+        },
+        {
+          title: 'Bordered + md',
+          description: 'Left-border variant at medium size.',
+          code: `<Quote
+  cite="B. Vale, Principal@Toolkit"
+  source={<>Toolkit Journal, Nov 2024</>}
+  variant="bordered"
+  size="md"
+>
+  Keep the eval honest before you scale the loop.
+</Quote>`,
+          render: (
+            <Quote
+              cite="B. Vale, Principal@Toolkit"
+              source={<>Toolkit Journal, Nov 2024</>}
+              variant="bordered"
+              size="md"
+            >
+              Keep the eval honest before you scale the loop.
+            </Quote>
+          ),
+        },
+        {
+          title: 'Plain',
+          description: 'Plain variant — serif quote without border or fill.',
+          code: `<Quote
+  cite="C. Reed, Editor@Sample Press"
+  source={<>Sample Press, Mar 2025</>}
+  variant="plain"
+  size="md"
+>
+  Judgment stays limited; the harness carries the rest.
+</Quote>`,
+          render: (
+            <Quote
+              cite="C. Reed, Editor@Sample Press"
+              source={<>Sample Press, Mar 2025</>}
+              variant="plain"
+              size="md"
+            >
+              Judgment stays limited; the harness carries the rest.
             </Quote>
           ),
         },
@@ -900,23 +1094,62 @@ export const slimSection: DocSection = {
       importLine: "import { FullBleedFigure, FigureDataTableToggle } from 'glt-ui';",
       examples: [
         {
-          title: 'Shell',
-          code: `<FullBleedFigure title="Figure 1 · Sample" caption="Caption only.">
+          title: 'Shell + data table',
+          description: 'title, caption, children; FigureDataTableToggle with label + hint.',
+          code: `<FullBleedFigure
+  title="Figure 1 · Sample throughput"
+  caption="Review latency vs release cadence for a fictional squad."
+  maxWidth={720}
+>
   <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
     Chart region
   </div>
-  <FigureDataTableToggle>
+  <FigureDataTableToggle
+    label="Row metrics"
+    hint="Sample rows for the figure above — fictional demo data."
+  >
     <Text size="sm">Hidden data table region</Text>
   </FigureDataTableToggle>
 </FullBleedFigure>`,
           render: (
-            <FullBleedFigure title="Figure 1 · Sample" caption="Caption only.">
+            <FullBleedFigure
+              title="Figure 1 · Sample throughput"
+              caption="Review latency vs release cadence for a fictional squad."
+              maxWidth={720}
+            >
               <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
                 Chart region
               </div>
-              <FigureDataTableToggle>
+              <FigureDataTableToggle
+                label="Row metrics"
+                hint="Sample rows for the figure above — fictional demo data."
+              >
                 <Text size="sm">Hidden data table region</Text>
               </FigureDataTableToggle>
+            </FullBleedFigure>
+          ),
+        },
+        {
+          title: 'Wider maxWidth',
+          description: 'maxWidth as a CSS length string for a broader frame.',
+          code: `<FullBleedFigure
+  title="Figure 2 · Wide frame"
+  caption="Same shell with a wider max-width constraint."
+  maxWidth="56rem"
+>
+  <div className="flex h-20 items-center justify-center text-sm text-[var(--secondary-text-color)]">
+    Wide chart region
+  </div>
+</FullBleedFigure>`,
+          render: (
+            <FullBleedFigure
+              title="Figure 2 · Wide frame"
+              caption="Same shell with a wider max-width constraint."
+              maxWidth="56rem"
+            >
+              <div className="flex h-20 items-center justify-center text-sm text-[var(--secondary-text-color)]">
+                Wide chart region
+              </div>
             </FullBleedFigure>
           ),
         },
@@ -988,6 +1221,7 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Diagram footer cites',
+          description: 'items, x, y, fontSize on a sample diagram.',
           code: `<svg
   viewBox="0 0 320 80"
   className="w-full max-w-md text-[var(--brand-primary)]"
@@ -1069,6 +1303,59 @@ export const slimSection: DocSection = {
             </svg>
           ),
         },
+        {
+          title: 'Wider gap',
+          description: 'gap spreads multi-cite markers further apart in viewBox units.',
+          code: `<svg
+  viewBox="0 0 320 56"
+  className="w-full max-w-md text-[var(--brand-primary)]"
+  role="img"
+  aria-label="Citation markers with wider gap"
+>
+  <SvgRefCite
+    items={[
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ]}
+    x={160}
+    y={28}
+    fontSize={12}
+    gap={18}
+  />
+</svg>`,
+          render: (
+            <svg
+              viewBox="0 0 320 56"
+              className="w-full max-w-md text-[var(--brand-primary)]"
+              role="img"
+              aria-label="Citation markers with wider gap"
+            >
+              <SvgRefCite
+                items={DEMO_REF_ITEMS}
+                x={160}
+                y={28}
+                fontSize={12}
+                gap={18}
+              />
+            </svg>
+          ),
+        },
       ],
     },
     {
@@ -1078,7 +1365,8 @@ export const slimSection: DocSection = {
       importLine: "import { Card, CardContent } from 'glt-ui';",
       examples: [
         {
-          title: 'Card',
+          title: 'Default + CardContent',
+          description: 'Default surface; pad through CardContent.',
           code: `<Card>
   <CardContent className="p-4">
     <Title size={5}>Topic</Title>
@@ -1098,6 +1386,102 @@ export const slimSection: DocSection = {
             </Card>
           ),
         },
+        {
+          title: 'Variants',
+          description: 'research, elevated, outline, and stat surfaces.',
+          code: `<div className="grid gap-3 sm:grid-cols-2">
+  <Card variant="research" padding="md">
+    <Title size={5}>Research</Title>
+    <Text size="sm" tone="secondary">Soft shadow surface.</Text>
+  </Card>
+  <Card variant="elevated" padding="md">
+    <Title size={5}>Elevated</Title>
+    <Text size="sm" tone="secondary">Raised box shadow.</Text>
+  </Card>
+  <Card variant="outline" padding="md">
+    <Title size={5}>Outline</Title>
+    <Text size="sm" tone="secondary">Transparent fill.</Text>
+  </Card>
+  <Card variant="stat" padding="md">
+    <Title size={5}>Stat</Title>
+    <Text size="sm" tone="secondary">Centered metric card.</Text>
+  </Card>
+</div>`,
+          render: (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Card variant="research" padding="md">
+                <Title size={5}>Research</Title>
+                <Text size="sm" tone="secondary">
+                  Soft shadow surface.
+                </Text>
+              </Card>
+              <Card variant="elevated" padding="md">
+                <Title size={5}>Elevated</Title>
+                <Text size="sm" tone="secondary">
+                  Raised box shadow.
+                </Text>
+              </Card>
+              <Card variant="outline" padding="md">
+                <Title size={5}>Outline</Title>
+                <Text size="sm" tone="secondary">
+                  Transparent fill.
+                </Text>
+              </Card>
+              <Card variant="stat" padding="md">
+                <Title size={5}>Stat</Title>
+                <Text size="sm" tone="secondary">
+                  Centered metric card.
+                </Text>
+              </Card>
+            </div>
+          ),
+        },
+        {
+          title: 'Padding ladder',
+          description: 'Container padding when skipping CardContent: sm / md / lg.',
+          code: `<div className="grid gap-3 sm:grid-cols-3">
+  <Card variant="outline" padding="sm">
+    <Text size="sm">padding=&quot;sm&quot;</Text>
+  </Card>
+  <Card variant="outline" padding="md">
+    <Text size="sm">padding=&quot;md&quot;</Text>
+  </Card>
+  <Card variant="outline" padding="lg">
+    <Text size="sm">padding=&quot;lg&quot;</Text>
+  </Card>
+</div>`,
+          render: (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Card variant="outline" padding="sm">
+                <Text size="sm">padding=&quot;sm&quot;</Text>
+              </Card>
+              <Card variant="outline" padding="md">
+                <Text size="sm">padding=&quot;md&quot;</Text>
+              </Card>
+              <Card variant="outline" padding="lg">
+                <Text size="sm">padding=&quot;lg&quot;</Text>
+              </Card>
+            </div>
+          ),
+        },
+        {
+          title: 'Interactive',
+          description: 'Hover lift + pointer affordance for clickable cards.',
+          code: `<Card variant="tech" interactive padding="md" role="button" tabIndex={0}>
+  <Title size={5}>Open series</Title>
+  <Text size="sm" tone="secondary">
+    Hover for lift; host wires navigation.
+  </Text>
+</Card>`,
+          render: (
+            <Card variant="tech" interactive padding="md" role="button" tabIndex={0}>
+              <Title size={5}>Open series</Title>
+              <Text size="sm" tone="secondary">
+                Hover for lift; host wires navigation.
+              </Text>
+            </Card>
+          ),
+        },
       ],
     },
     {
@@ -1107,8 +1491,9 @@ export const slimSection: DocSection = {
       importLine: "import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from 'glt-ui';",
       examples: [
         {
-          title: 'Basic',
-          code: `<Table>
+          title: 'Basic (fullWidth)',
+          description: 'Default fullWidth table with row dividers.',
+          code: `<Table fullWidth>
   <TableHead>
     <TableRow>
       <TableHeaderCell>Model</TableHeaderCell>
@@ -1117,13 +1502,17 @@ export const slimSection: DocSection = {
   </TableHead>
   <TableBody>
     <TableRow>
-      <TableCell>A</TableCell>
+      <TableCell>Alpha</TableCell>
       <TableCell>90</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>Beta</TableCell>
+      <TableCell>84</TableCell>
     </TableRow>
   </TableBody>
 </Table>`,
           render: (
-            <Table>
+            <Table fullWidth>
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>Model</TableHeaderCell>
@@ -1132,8 +1521,146 @@ export const slimSection: DocSection = {
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>A</TableCell>
+                  <TableCell>Alpha</TableCell>
                   <TableCell>90</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Beta</TableCell>
+                  <TableCell>84</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          ),
+        },
+        {
+          title: 'Striped + hoverable',
+          description: 'Zebra body rows and hover highlight.',
+          code: `<Table striped hoverable>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Squad</TableHeaderCell>
+      <TableHeaderCell>Latency</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>North</TableCell>
+      <TableCell>1.2d</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>Vale</TableCell>
+      <TableCell>0.8d</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>Reed</TableCell>
+      <TableCell>1.5d</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`,
+          render: (
+            <Table striped hoverable>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>Squad</TableHeaderCell>
+                  <TableHeaderCell>Latency</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>North</TableCell>
+                  <TableCell>1.2d</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Vale</TableCell>
+                  <TableCell>0.8d</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Reed</TableCell>
+                  <TableCell>1.5d</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          ),
+        },
+        {
+          title: 'Bordered + compact',
+          description: 'Cell borders with tighter padding.',
+          code: `<Table bordered compact>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Metric</TableHeaderCell>
+      <TableHeaderCell>Value</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>Pass rate</TableCell>
+      <TableCell>92%</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>Retries</TableCell>
+      <TableCell>3</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`,
+          render: (
+            <Table bordered compact>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>Metric</TableHeaderCell>
+                  <TableHeaderCell>Value</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Pass rate</TableCell>
+                  <TableCell>92%</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Retries</TableCell>
+                  <TableCell>3</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          ),
+        },
+        {
+          title: 'Borderless + auto width',
+          description: 'No borders; fullWidth={false} sizes to content.',
+          code: `<Table borderless fullWidth={false}>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Key</TableHeaderCell>
+      <TableHeaderCell>Flag</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>eval</TableCell>
+      <TableCell>on</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>cache</TableCell>
+      <TableCell>off</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`,
+          render: (
+            <Table borderless fullWidth={false}>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>Key</TableHeaderCell>
+                  <TableHeaderCell>Flag</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>eval</TableCell>
+                  <TableCell>on</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>cache</TableCell>
+                  <TableCell>off</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -1148,19 +1675,137 @@ export const slimSection: DocSection = {
       importLine: "import { Chart } from 'glt-ui';",
       examples: [
         {
-          title: 'Bar',
+          title: 'Bar (public props)',
           code: `<Chart
   type="bar"
-  labels={['X', 'Y']}
-  series={[{ label: 'v', data: [3, 7], color: 'brand' }]}
-  height={180}
+  title="Sample throughput"
+  caption="Fictional weekly tickets closed."
+  ariaLabel="Bar chart of weekly tickets closed"
+  labels={['Mon', 'Wed', 'Fri']}
+  series={[{ label: 'Closed', data: [4, 7, 5], color: 'brand' }]}
+  legend="top"
+  showGrid
+  dataLabels
+  palette={['brand', 'info', 'success']}
+  height={200}
 />`,
           render: (
             <Chart
               type="bar"
-              labels={['X', 'Y']}
-              series={[{ label: 'v', data: [3, 7], color: 'brand' }]}
-              height={180}
+              title="Sample throughput"
+              caption="Fictional weekly tickets closed."
+              ariaLabel="Bar chart of weekly tickets closed"
+              labels={['Mon', 'Wed', 'Fri']}
+              series={[{ label: 'Closed', data: [4, 7, 5], color: 'brand' }]}
+              legend="top"
+              showGrid
+              dataLabels
+              palette={['brand', 'info', 'success']}
+              height={200}
+            />
+          ),
+        },
+        {
+          title: 'Stacked bar + options',
+          code: `<Chart
+  type="bar"
+  title="Sample stacked load"
+  caption="Plan vs review share — fictional."
+  ariaLabel="Stacked bar of plan and review load"
+  labels={['Sprint A', 'Sprint B']}
+  series={[
+    { label: 'Plan', data: [30, 22], color: 'info' },
+    { label: 'Review', data: [40, 48], color: 'warning' },
+  ]}
+  stacked
+  legend="bottom"
+  showGrid={false}
+  dataLabels
+  height={220}
+  options={{
+    layout: { padding: { top: 8, right: 8, bottom: 4, left: 4 } },
+  }}
+/>`,
+          render: (
+            <Chart
+              type="bar"
+              title="Sample stacked load"
+              caption="Plan vs review share — fictional."
+              ariaLabel="Stacked bar of plan and review load"
+              labels={['Sprint A', 'Sprint B']}
+              series={[
+                { label: 'Plan', data: [30, 22], color: 'info' },
+                { label: 'Review', data: [40, 48], color: 'warning' },
+              ]}
+              stacked
+              legend="bottom"
+              showGrid={false}
+              dataLabels
+              height={220}
+              options={{
+                layout: { padding: { top: 8, right: 8, bottom: 4, left: 4 } },
+              }}
+            />
+          ),
+        },
+        {
+          title: 'Scatter (scatterFocus)',
+          code: `<Chart
+  type="scatter"
+  title="Sample cost vs score"
+  caption="Hover or click a point to pin focus."
+  ariaLabel="Scatter of suite cost against resolve rate"
+  series={[
+    {
+      label: 'Alpha',
+      color: 'brand',
+      data: [
+        { x: 80, y: 62 },
+        { x: 140, y: 74 },
+      ],
+    },
+    {
+      label: 'Beta',
+      color: 'success',
+      data: [
+        { x: 120, y: 68 },
+        { x: 210, y: 81 },
+      ],
+    },
+  ]}
+  legend="top"
+  dataLabels
+  scatterFocus
+  aspectRatio={1.6}
+/>`,
+          render: (
+            <Chart
+              type="scatter"
+              title="Sample cost vs score"
+              caption="Hover or click a point to pin focus."
+              ariaLabel="Scatter of suite cost against resolve rate"
+              series={[
+                {
+                  label: 'Alpha',
+                  color: 'brand',
+                  data: [
+                    { x: 80, y: 62 },
+                    { x: 140, y: 74 },
+                  ],
+                },
+                {
+                  label: 'Beta',
+                  color: 'success',
+                  data: [
+                    { x: 120, y: 68 },
+                    { x: 210, y: 81 },
+                  ],
+                },
+              ]}
+              legend="top"
+              dataLabels
+              scatterFocus
+              aspectRatio={1.6}
             />
           ),
         },
@@ -1169,19 +1814,132 @@ export const slimSection: DocSection = {
     {
       id: 'page-hero',
       name: 'PageHero',
-      description: 'Landing thesis hero.',
+      description: 'Landing thesis hero with optional trust rail.',
       importLine: "import { PageHero } from 'glt-ui';",
       examples: [
         {
-          title: 'Hero',
+          title: 'Rail items + actions',
           code: `<PageHero
-  title="Thesis line"
-  lead="Short lede under the title."
+  badge={<Badge variant="fact" size="sm">Series</Badge>}
+  title={
+    <>
+      Judgment stays limited.{' '}
+      <span className="text-[var(--brand-primary)]">Harness the rest.</span>
+    </>
+  }
+  lead="Sample hero for the design-system demo — host supplies all copy."
+  actions={
+    <Button size="sm" variant="primary">
+      Browse catalog
+    </Button>
+  }
+  meta={
+    <Text as="span" size="sm" tone="secondary" className="font-mono">
+      3 topics · demo
+    </Text>
+  }
+  footnote="Updated quarterly from field notes."
+  railTitle="On this page"
+  railItems={[
+    {
+      index: '01',
+      label: 'Thesis',
+      description: 'What stays limited when tools get cheaper.',
+    },
+    {
+      index: '02',
+      label: 'Evidence',
+      description: 'Figures and primary sources.',
+    },
+    {
+      index: '03',
+      label: 'Practice',
+      description: 'What teams change on Monday.',
+    },
+  ]}
 />`,
           render: (
             <PageHero
-              title="Thesis line"
-              lead="Short lede under the title."
+              badge={
+                <Badge variant="fact" size="sm">
+                  Series
+                </Badge>
+              }
+              title={
+                <>
+                  Judgment stays limited.{' '}
+                  <span className="text-[var(--brand-primary)]">Harness the rest.</span>
+                </>
+              }
+              lead="Sample hero for the design-system demo — host supplies all copy."
+              actions={
+                <Button size="sm" variant="primary">
+                  Browse catalog
+                </Button>
+              }
+              meta={
+                <Text as="span" size="sm" tone="secondary" className="font-mono">
+                  3 topics · demo
+                </Text>
+              }
+              footnote="Updated quarterly from field notes."
+              railTitle="On this page"
+              railItems={[
+                {
+                  index: '01',
+                  label: 'Thesis',
+                  description: 'What stays limited when tools get cheaper.',
+                },
+                {
+                  index: '02',
+                  label: 'Evidence',
+                  description: 'Figures and primary sources.',
+                },
+                {
+                  index: '03',
+                  label: 'Practice',
+                  description: 'What teams change on Monday.',
+                },
+              ]}
+            />
+          ),
+        },
+        {
+          title: 'Custom rail',
+          code: `<PageHero
+  title="Custom rail panel"
+  lead="Pass rail when the right column is free-form content."
+  rail={
+    <div className="rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--card-bg-color)]/70 p-5">
+      <Text as="p" size="xs" tone="secondary" weight="medium" className="mb-2 font-mono uppercase tracking-[0.16em]">
+        Trust note
+      </Text>
+      <Text as="p" size="sm">
+        Host-owned layout — badge stack, avatars, or a short quote.
+      </Text>
+    </div>
+  }
+/>`,
+          render: (
+            <PageHero
+              title="Custom rail panel"
+              lead="Pass rail when the right column is free-form content."
+              rail={
+                <div className="rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--card-bg-color)]/70 p-5">
+                  <Text
+                    as="p"
+                    size="xs"
+                    tone="secondary"
+                    weight="medium"
+                    className="mb-2 font-mono uppercase tracking-[0.16em]"
+                  >
+                    Trust note
+                  </Text>
+                  <Text as="p" size="sm">
+                    Host-owned layout — badge stack, avatars, or a short quote.
+                  </Text>
+                </div>
+              }
             />
           ),
         },
@@ -1194,17 +1952,40 @@ export const slimSection: DocSection = {
       importLine: "import { SiteHeader } from 'glt-ui';",
       examples: [
         {
-          title: 'Header',
+          title: 'Brand + actions',
           code: `<SiteHeader
-  brand={<Text weight="semibold">GLT Research</Text>}
-  actions={<Text size="sm">Theme</Text>}
+  brand={<Text weight="semibold">Sample kit</Text>}
+  actions={
+    <>
+      <Text size="sm" tone="secondary">
+        Docs
+      </Text>
+      <Button size="sm" variant="secondary">
+        Theme
+      </Button>
+    </>
+  }
 />`,
           render: (
             <SiteHeader
-              brand={<Text weight="semibold">GLT Research</Text>}
-              actions={<Text size="sm">Theme</Text>}
+              brand={<Text weight="semibold">Sample kit</Text>}
+              actions={
+                <>
+                  <Text size="sm" tone="secondary">
+                    Docs
+                  </Text>
+                  <Button size="sm" variant="secondary">
+                    Theme
+                  </Button>
+                </>
+              }
             />
           ),
+        },
+        {
+          title: 'Brand only',
+          code: `<SiteHeader brand={<Text weight="semibold">Sample kit</Text>} />`,
+          render: <SiteHeader brand={<Text weight="semibold">Sample kit</Text>} />,
         },
       ],
     },
@@ -1215,9 +1996,23 @@ export const slimSection: DocSection = {
       importLine: "import { SiteFooter } from 'glt-ui';",
       examples: [
         {
-          title: 'Footer',
-          code: '<SiteFooter>powered by GLT-UI</SiteFooter>',
-          render: <SiteFooter>powered by GLT-UI</SiteFooter>,
+          title: 'Children row',
+          code: `<SiteFooter>
+  <span>© Sample kit</span>
+  <span aria-hidden>·</span>
+  <a href="#privacy" className="text-[var(--brand-primary)] no-underline">
+    Privacy
+  </a>
+</SiteFooter>`,
+          render: (
+            <SiteFooter>
+              <span>© Sample kit</span>
+              <span aria-hidden>·</span>
+              <a href="#privacy" className="text-[var(--brand-primary)] no-underline">
+                Privacy
+              </a>
+            </SiteFooter>
+          ),
         },
       ],
     },
@@ -1228,8 +2023,44 @@ export const slimSection: DocSection = {
       importLine: "import { ProcessPipeline } from 'glt-ui';",
       examples: [
         {
-          title: 'Steps',
+          title: 'Quality loop (animated)',
           code: `<ProcessPipeline
+  animated
+  nodes={[
+    { id: 'signal', label: 'Signal', sublabel: 'Sources' },
+    { id: 'build', label: 'Build', sublabel: 'Harness' },
+    { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+  ]}
+  loop={{
+    from: 'build',
+    to: 'ship',
+    caption: 'QUALITY LOOP · raise the bar',
+    forwardLabel: 'refine →',
+    backLabel: '← feedback',
+  }}
+/>`,
+          render: (
+            <ProcessPipeline
+              animated
+              nodes={[
+                { id: 'signal', label: 'Signal', sublabel: 'Sources' },
+                { id: 'build', label: 'Build', sublabel: 'Harness' },
+                { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+              ]}
+              loop={{
+                from: 'build',
+                to: 'ship',
+                caption: 'QUALITY LOOP · raise the bar',
+                forwardLabel: 'refine →',
+                backLabel: '← feedback',
+              }}
+            />
+          ),
+        },
+        {
+          title: 'Static spine',
+          code: `<ProcessPipeline
+  animated={false}
   nodes={[
     { id: 'signal', label: 'Signal', sublabel: 'Sources' },
     { id: 'ship', label: 'Ship', sublabel: 'Publish' },
@@ -1237,6 +2068,7 @@ export const slimSection: DocSection = {
 />`,
           render: (
             <ProcessPipeline
+              animated={false}
               nodes={[
                 { id: 'signal', label: 'Signal', sublabel: 'Sources' },
                 { id: 'ship', label: 'Ship', sublabel: 'Publish' },
@@ -1254,11 +2086,14 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Split layout',
+          description: 'layout="split" with meta opposite the title on md+.',
           code: `<SectionIntro
   layout="split"
   eyebrow="Catalog"
   title="Active series"
   description="Open a topic for the full argument."
+  headingId="demo-section-intro-split"
+  titleSize={2}
   meta={
     <Text as="p" size="sm" tone="secondary" className="font-mono">
       2 topics
@@ -1271,11 +2106,35 @@ export const slimSection: DocSection = {
               eyebrow="Catalog"
               title="Active series"
               description="Open a topic for the full argument."
+              headingId="demo-section-intro-split"
+              titleSize={2}
               meta={
                 <Text as="p" size="sm" tone="secondary" className="font-mono">
                   2 topics
                 </Text>
               }
+            />
+          ),
+        },
+        {
+          title: 'Stack + smaller title',
+          description: 'layout="stack" with titleSize={3} and headingId for aria wiring.',
+          code: `<SectionIntro
+  layout="stack"
+  eyebrow="Method"
+  title="How the band is built"
+  description="Stacked column for compact section openers."
+  headingId="demo-section-intro-stack"
+  titleSize={3}
+/>`,
+          render: (
+            <SectionIntro
+              layout="stack"
+              eyebrow="Method"
+              title="How the band is built"
+              description="Stacked column for compact section openers."
+              headingId="demo-section-intro-stack"
+              titleSize={3}
             />
           ),
         },
@@ -1331,9 +2190,10 @@ export const slimSection: DocSection = {
       importLine: "import { CatalogList } from 'glt-ui';",
       examples: [
         {
-          title: 'Sample items',
+          title: 'Sample items + maxTags',
           code: `<CatalogList
   ctaLabel="Read the research"
+  maxTags={2}
   items={[
     {
       id: 'alpha',
@@ -1343,7 +2203,7 @@ export const slimSection: DocSection = {
         'A fictional topic for the design-system demo — not portal registry data.',
       date: '2026-01',
       status: 'active',
-      tags: ['demo', 'catalog'],
+      tags: ['demo', 'catalog', 'series', 'long-tag'],
     },
     {
       id: 'beta',
@@ -1359,6 +2219,7 @@ export const slimSection: DocSection = {
           render: (
             <CatalogList
               ctaLabel="Read the research"
+              maxTags={2}
               items={[
                 {
                   id: 'alpha',
@@ -1368,7 +2229,7 @@ export const slimSection: DocSection = {
                     'A fictional topic for the design-system demo — not portal registry data.',
                   date: '2026-01',
                   status: 'active',
-                  tags: ['demo', 'catalog'],
+                  tags: ['demo', 'catalog', 'series', 'long-tag'],
                 },
                 {
                   id: 'beta',
@@ -1383,6 +2244,70 @@ export const slimSection: DocSection = {
             />
           ),
         },
+        {
+          title: 'Empty state',
+          code: `<CatalogList
+  items={[]}
+  emptyMessage="No sample series in this demo catalog."
+/>`,
+          render: (
+            <CatalogList
+              items={[]}
+              emptyMessage="No sample series in this demo catalog."
+            />
+          ),
+        },
+        {
+          title: 'Custom renderLink',
+          code: `<CatalogList
+  ctaLabel="Open"
+  items={[
+    {
+      id: 'custom-link',
+      href: '#custom-link',
+      title: 'Custom link renderer',
+      summary: 'Host can pass Next.js Link or any interactive wrapper.',
+      date: '2026-06',
+      tags: ['link'],
+    },
+  ]}
+  renderLink={({ href, className, children, ...rest }) => (
+    <a
+      href={href}
+      className={className}
+      data-demo-custom-link="true"
+      {...rest}
+    >
+      {children}
+    </a>
+  )}
+/>`,
+          render: (
+            <CatalogList
+              ctaLabel="Open"
+              items={[
+                {
+                  id: 'custom-link',
+                  href: '#custom-link',
+                  title: 'Custom link renderer',
+                  summary: 'Host can pass Next.js Link or any interactive wrapper.',
+                  date: '2026-06',
+                  tags: ['link'],
+                },
+              ]}
+              renderLink={({ href, className, children, ...rest }) => (
+                <a
+                  href={href}
+                  className={className}
+                  data-demo-custom-link="true"
+                  {...rest}
+                >
+                  {children}
+                </a>
+              )}
+            />
+          ),
+        },
       ],
     },
     {
@@ -1393,10 +2318,12 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Three pillars',
+          description: 'eyebrow, title, description, pillars, and headingId for aria-labelledby.',
           code: `<MethodPillars
   eyebrow="Method"
   title="Built for scrutiny."
   description="Short sample description for the demo — host supplies all copy."
+  headingId="demo-method-pillars-heading"
   pillars={[
     { title: 'Claim', body: 'Open with a thesis you can defend.' },
     { title: 'Evidence', body: 'Cite primary sources beside the argument.' },
@@ -1408,6 +2335,7 @@ export const slimSection: DocSection = {
               eyebrow="Method"
               title="Built for scrutiny."
               description="Short sample description for the demo — host supplies all copy."
+              headingId="demo-method-pillars-heading"
               pillars={[
                 { title: 'Claim', body: 'Open with a thesis you can defend.' },
                 { title: 'Evidence', body: 'Cite primary sources beside the argument.' },
@@ -1427,6 +2355,7 @@ export const slimSection: DocSection = {
         {
           title: 'Sample pipeline',
           code: `<ProcessBand
+  headingId="demo-process-band-heading"
   eyebrow="Authorship"
   title="How the work is made."
   description="Sample process copy for the design-system demo — not portal registry data."
@@ -1446,6 +2375,10 @@ export const slimSection: DocSection = {
     caption: 'QUALITY LOOP',
     forwardLabel: 'refine →',
     backLabel: '← feedback',
+  }}
+  pipelineProps={{
+    animated: true,
+    'data-demo-pipeline': 'process-band',
   }}
   steps={[
     {
@@ -1470,6 +2403,7 @@ export const slimSection: DocSection = {
 />`,
           render: (
             <ProcessBand
+              headingId="demo-process-band-heading"
               eyebrow="Authorship"
               title="How the work is made."
               description="Sample process copy for the design-system demo — not portal registry data."
@@ -1489,6 +2423,10 @@ export const slimSection: DocSection = {
                 caption: 'QUALITY LOOP',
                 forwardLabel: 'refine →',
                 backLabel: '← feedback',
+              }}
+              pipelineProps={{
+                animated: true,
+                'data-demo-pipeline': 'process-band',
               }}
               steps={[
                 {
@@ -1525,6 +2463,9 @@ export const slimSection: DocSection = {
         {
           title: 'Sample slices',
           code: `<AttentionShiftBars
+  beforeTitle="Before automation"
+  afterTitle="After automation"
+  compact
   slices={[
     { key: 'build', label: 'Build', before: 50, after: 18, color: 'brand' },
     { key: 'review', label: 'Review', before: 28, after: 42, color: 'warning' },
@@ -1533,6 +2474,9 @@ export const slimSection: DocSection = {
 />`,
           render: (
             <AttentionShiftBars
+              beforeTitle="Before automation"
+              afterTitle="After automation"
+              compact
               slices={[
                 {
                   key: 'build',
@@ -1570,71 +2514,79 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Tiny sample series',
-          code: `<CostScoreScatter
-  points={[
-    {
-      model: 'Alpha',
-      chartLabel: 'Alpha · high',
-      effort: 'high',
-      resolveRate: 72,
-      costPerTest: 1.2,
-      taskCount: 100,
-      color: '#3b82f6',
-    },
-    {
-      model: 'Beta',
-      chartLabel: 'Beta · max',
-      effort: 'max',
-      resolveRate: 81,
-      costPerTest: 2.5,
-      taskCount: 100,
-      color: '#22c55e',
-    },
-    {
-      model: 'Gamma',
-      chartLabel: 'Gamma · default',
-      effort: 'default',
-      resolveRate: 64,
-      costPerTest: 0.8,
-      taskCount: 100,
-      color: '#a855f7',
-    },
-  ]}
-  height={280}
-/>`,
+          code: `<div className="h-[280px] w-full min-h-0">
+  <CostScoreScatter
+    fill
+    xAxisLabel="Total suite cost ($ · 100 tasks)"
+    yAxisLabel="Demo suite score (%)"
+    points={[
+      {
+        model: 'Alpha',
+        chartLabel: 'Alpha · high',
+        effort: 'high',
+        resolveRate: 72,
+        costPerTest: 1.2,
+        taskCount: 100,
+        color: '#3b82f6',
+      },
+      {
+        model: 'Beta',
+        chartLabel: 'Beta · max',
+        effort: 'max',
+        resolveRate: 81,
+        costPerTest: 2.5,
+        taskCount: 100,
+        color: '#22c55e',
+      },
+      {
+        model: 'Gamma',
+        chartLabel: 'Gamma · default',
+        effort: 'default',
+        resolveRate: 64,
+        costPerTest: 0.8,
+        taskCount: 100,
+        color: '#a855f7',
+      },
+    ]}
+  />
+</div>`,
           render: (
-            <CostScoreScatter
-              points={[
-                {
-                  model: 'Alpha',
-                  chartLabel: 'Alpha · high',
-                  effort: 'high',
-                  resolveRate: 72,
-                  costPerTest: 1.2,
-                  taskCount: 100,
-                  color: '#3b82f6',
-                },
-                {
-                  model: 'Beta',
-                  chartLabel: 'Beta · max',
-                  effort: 'max',
-                  resolveRate: 81,
-                  costPerTest: 2.5,
-                  taskCount: 100,
-                  color: '#22c55e',
-                },
-                {
-                  model: 'Gamma',
-                  chartLabel: 'Gamma · default',
-                  effort: 'default',
-                  resolveRate: 64,
-                  costPerTest: 0.8,
-                  taskCount: 100,
-                  color: '#a855f7',
-                },
-              ]}
-              height={280}
-            />
+            <div className="h-[280px] w-full min-h-0">
+              <CostScoreScatter
+                fill
+                xAxisLabel="Total suite cost ($ · 100 tasks)"
+                yAxisLabel="Demo suite score (%)"
+                points={[
+                  {
+                    model: 'Alpha',
+                    chartLabel: 'Alpha · high',
+                    effort: 'high',
+                    resolveRate: 72,
+                    costPerTest: 1.2,
+                    taskCount: 100,
+                    color: '#3b82f6',
+                  },
+                  {
+                    model: 'Beta',
+                    chartLabel: 'Beta · max',
+                    effort: 'max',
+                    resolveRate: 81,
+                    costPerTest: 2.5,
+                    taskCount: 100,
+                    color: '#22c55e',
+                  },
+                  {
+                    model: 'Gamma',
+                    chartLabel: 'Gamma · default',
+                    effort: 'default',
+                    resolveRate: 64,
+                    costPerTest: 0.8,
+                    taskCount: 100,
+                    color: '#a855f7',
+                  },
+                ]}
+              />
+            </div>
           ),
         },
       ],
@@ -1649,6 +2601,31 @@ export const slimSection: DocSection = {
         {
           title: 'Fictional board',
           code: `<CostScoreBoard
+  chartHeight={260}
+  suiteCites={{
+    'suite-a': [
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+    ],
+    'suite-b': [
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ],
+  }}
   points={[
     {
       model: 'Alpha',
@@ -1705,6 +2682,11 @@ export const slimSection: DocSection = {
 />`,
           render: (
             <CostScoreBoard
+              chartHeight={260}
+              suiteCites={{
+                'suite-a': DEMO_REF_ITEMS.slice(0, 1),
+                'suite-b': DEMO_REF_ITEMS.slice(1, 2),
+              }}
               points={[
                 {
                   model: 'Alpha',
@@ -1761,6 +2743,91 @@ export const slimSection: DocSection = {
             />
           ),
         },
+        {
+          title: 'Compact (slide chrome)',
+          code: `<CostScoreBoard
+  compact
+  chartHeight={220}
+  points={[
+    {
+      model: 'Alpha',
+      chartLabel: 'Alpha · high',
+      effort: 'high',
+      harness: 'Demo harness',
+      benchmark: 'suite-a',
+      benchmarkLabel: 'Suite A',
+      taskCount: 100,
+      resolveRate: 72,
+      costPerTest: 1.2,
+      totalCost: 120,
+      inputPerM: 3,
+      outputPerM: 15,
+      color: '#3b82f6',
+      scoreSource: '#alpha',
+      priceSource: '#price',
+    },
+    {
+      model: 'Beta',
+      chartLabel: 'Beta · max',
+      effort: 'max',
+      harness: 'Demo harness',
+      benchmark: 'suite-a',
+      benchmarkLabel: 'Suite A',
+      taskCount: 100,
+      resolveRate: 81,
+      costPerTest: 2.5,
+      totalCost: 250,
+      inputPerM: 5,
+      outputPerM: 25,
+      color: '#22c55e',
+      scoreSource: '#beta',
+      priceSource: '#price',
+    },
+  ]}
+/>`,
+          render: (
+            <CostScoreBoard
+              compact
+              chartHeight={220}
+              points={[
+                {
+                  model: 'Alpha',
+                  chartLabel: 'Alpha · high',
+                  effort: 'high',
+                  harness: 'Demo harness',
+                  benchmark: 'suite-a',
+                  benchmarkLabel: 'Suite A',
+                  taskCount: 100,
+                  resolveRate: 72,
+                  costPerTest: 1.2,
+                  totalCost: 120,
+                  inputPerM: 3,
+                  outputPerM: 15,
+                  color: '#3b82f6',
+                  scoreSource: '#alpha',
+                  priceSource: '#price',
+                },
+                {
+                  model: 'Beta',
+                  chartLabel: 'Beta · max',
+                  effort: 'max',
+                  harness: 'Demo harness',
+                  benchmark: 'suite-a',
+                  benchmarkLabel: 'Suite A',
+                  taskCount: 100,
+                  resolveRate: 81,
+                  costPerTest: 2.5,
+                  totalCost: 250,
+                  inputPerM: 5,
+                  outputPerM: 25,
+                  color: '#22c55e',
+                  scoreSource: '#beta',
+                  priceSource: '#price',
+                },
+              ]}
+            />
+          ),
+        },
       ],
     },
     {
@@ -1772,29 +2839,35 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Sample quarters',
-          code: `<ResolveRateTrend
-  points={[
-    { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
-    { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
-    { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
-  ]}
-  labelMap={{ 'Alpha-1': 'A1', 'Alpha-2': 'A2', 'Beta-1': 'B1' }}
-  height={280}
-/>`,
+          code: `<div className="h-[280px] w-full min-h-0">
+  <ResolveRateTrend
+    fill
+    compact
+    points={[
+      { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+      { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+      { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+    ]}
+    labelMap={{ 'Alpha-1': 'A1', 'Alpha-2': 'A2', 'Beta-1': 'B1' }}
+  />
+</div>`,
           render: (
-            <ResolveRateTrend
-              points={[
-                { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
-                { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
-                { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
-              ]}
-              labelMap={{
-                'Alpha-1': 'A1',
-                'Alpha-2': 'A2',
-                'Beta-1': 'B1',
-              }}
-              height={280}
-            />
+            <div className="h-[280px] w-full min-h-0">
+              <ResolveRateTrend
+                fill
+                compact
+                points={[
+                  { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+                  { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+                  { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+                ]}
+                labelMap={{
+                  'Alpha-1': 'A1',
+                  'Alpha-2': 'A2',
+                  'Beta-1': 'B1',
+                }}
+              />
+            </div>
           ),
         },
       ],
@@ -1811,12 +2884,37 @@ export const slimSection: DocSection = {
           code: `<MetricSparkBoard
   title="Sample fleet metrics"
   description="Fictional cycle time and NPS tiles for the design-system demo."
+  cites={{
+    cycle: [
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+    ],
+    nps: [
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ],
+  }}
   metrics={[
     {
       id: 'cycle',
       label: 'Cycle time',
       value: '−40%',
       hint: 'Demo ops · Q2',
+      citeKey: 'cycle',
       trend: [10, 9, 8, 7, 6.2, 5.8],
       trendIntent: 'success',
     },
@@ -1825,6 +2923,7 @@ export const slimSection: DocSection = {
       label: 'NPS',
       value: '+18',
       hint: 'Survey · n=120',
+      citeKey: 'nps',
       trend: [20, 22, 28, 32, 35, 38],
       trendIntent: 'brand',
     },
@@ -1850,12 +2949,17 @@ export const slimSection: DocSection = {
             <MetricSparkBoard
               title="Sample fleet metrics"
               description="Fictional cycle time and NPS tiles for the design-system demo."
+              cites={{
+                cycle: DEMO_REF_ITEMS.slice(0, 1),
+                nps: DEMO_REF_ITEMS.slice(1, 2),
+              }}
               metrics={[
                 {
                   id: 'cycle',
                   label: 'Cycle time',
                   value: '−40%',
                   hint: 'Demo ops · Q2',
+                  citeKey: 'cycle',
                   trend: [10, 9, 8, 7, 6.2, 5.8],
                   trendIntent: 'success',
                 },
@@ -1864,6 +2968,7 @@ export const slimSection: DocSection = {
                   label: 'NPS',
                   value: '+18',
                   hint: 'Survey · n=120',
+                  citeKey: 'nps',
                   trend: [20, 22, 28, 32, 35, 38],
                   trendIntent: 'brand',
                 },
@@ -1944,6 +3049,30 @@ export const slimSection: DocSection = {
   ]}
   leftLinks={['routing stays manual', 'review stays late']}
   rightLinks={['policy becomes the limit', 'review stays continuous']}
+  cites={{
+    l1: [
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+    ],
+    r2: [
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ],
+  }}
 />`,
           render: (
             <CausalShiftDiagram
@@ -1992,6 +3121,10 @@ export const slimSection: DocSection = {
               ]}
               leftLinks={['routing stays manual', 'review stays late']}
               rightLinks={['policy becomes the limit', 'review stays continuous']}
+              cites={{
+                l1: DEMO_REF_ITEMS.slice(0, 1),
+                r2: DEMO_REF_ITEMS.slice(1, 2),
+              }}
             />
           ),
         },
@@ -2036,6 +3169,26 @@ export const slimSection: DocSection = {
     { lines: ['Team', 'vision'] },
     { lines: ['Market', 'signal'] },
   ]}
+  cite={[
+    {
+      n: 1,
+      author: 'A. North',
+      date: '2025-03',
+      dateLabel: 'Mar 2025',
+      publisher: 'Sample Press',
+      title: 'Measuring review throughput in small teams',
+      summary: 'Field note on how review latency shapes release cadence.',
+    },
+    {
+      n: 2,
+      author: 'B. Vale',
+      date: '2024-11',
+      dateLabel: 'Nov 2024',
+      publisher: 'Toolkit Journal',
+      title: 'Harness patterns for long-running agents',
+      summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+    },
+  ]}
 />`,
           render: (
             <FeedbackLoopsDiagram
@@ -2068,6 +3221,7 @@ export const slimSection: DocSection = {
                 { lines: ['Team', 'vision'] },
                 { lines: ['Market', 'signal'] },
               ]}
+              cite={DEMO_REF_ITEMS}
             />
           ),
         },
@@ -2142,8 +3296,25 @@ export const slimSection: DocSection = {
     human: 'Operator',
     humanSteering: 'Steering',
     humanGoals: 'Goals · ship',
+    harness: 'Harness shell',
+    guides: 'Guides',
+    guidesSub: 'Feedforward · before the runner acts',
+    sensors: 'Sensors',
+    sensorsSub: 'Feedback · while the runner acts',
+    feedforward: 'feedforward',
+    feedback: 'feedback',
     agent: 'Task runner',
     agentSub: 'Model + tools',
+    initialGen: 'Initial generation',
+    initialGenLines: ['Model · skills · MCP', 'Tools · descriptions'],
+    selfCorrecting: 'Self-correcting',
+    selfCorrectingLines: [
+      'Orchestration · handoffs',
+      'Sandbox · browser',
+      'Linters · types',
+    ],
+    store: 'store',
+    retrieve: 'retrieve',
     durableState: 'Shared memory',
     durableStateSub: 'Lives outside the prompt',
     ratchet: 'Each miss becomes a permanent harness rule',
@@ -2170,8 +3341,25 @@ export const slimSection: DocSection = {
                 human: 'Operator',
                 humanSteering: 'Steering',
                 humanGoals: 'Goals · ship',
+                harness: 'Harness shell',
+                guides: 'Guides',
+                guidesSub: 'Feedforward · before the runner acts',
+                sensors: 'Sensors',
+                sensorsSub: 'Feedback · while the runner acts',
+                feedforward: 'feedforward',
+                feedback: 'feedback',
                 agent: 'Task runner',
                 agentSub: 'Model + tools',
+                initialGen: 'Initial generation',
+                initialGenLines: ['Model · skills · MCP', 'Tools · descriptions'],
+                selfCorrecting: 'Self-correcting',
+                selfCorrectingLines: [
+                  'Orchestration · handoffs',
+                  'Sandbox · browser',
+                  'Linters · types',
+                ],
+                store: 'store',
+                retrieve: 'retrieve',
                 durableState: 'Shared memory',
                 durableStateSub: 'Lives outside the prompt',
                 ratchet: 'Each miss becomes a permanent harness rule',
@@ -2197,63 +3385,15 @@ export const slimSection: DocSection = {
   { id: 'close', num: '03', label: 'Close' },
 ];
 
-const slideCopy = {
-  title: {
-    kicker: '01 · Sample deck',
-    title: 'Northstar toolkit walkthrough',
-    bullets: [],
-    hideHeader: true,
-  },
-  plan: {
-    kicker: '02 · Plan',
-    title: 'Ship the first slice',
-    bullets: [
-      'Define the success metric before building.',
-      'Keep the harness thin until the loop is honest.',
-      'Review the high-risk path first.',
-    ],
-  },
-  close: {
-    kicker: '03 · Close',
-    title: 'What to do next',
-    bullets: [
-      'Pick one metric the team already owns.',
-      'Instrument the review loop this week.',
-      'Retire one low-signal status meeting.',
-    ],
-  },
-};
-
 function renderSlide(_i, slide) {
-  const copy = slideCopy[slide.id] ?? slideCopy.plan;
-  if (copy.hideHeader) {
-    return (
-      <PresentationSlideFrame
-        slideId={slide.id}
-        slideNum={slide.num}
-        hideHeader
-        className="shadow-sm"
-      >
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-10 text-center">
-          <p className="m-0 text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-primary)]">
-            {copy.kicker}
-          </p>
-          <h2 className="m-0 mt-5 max-w-[34rem] text-[34px] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--strong-text-color)]">
-            {copy.title}
-          </h2>
-          <p className="m-0 mt-8 text-[13px] text-[var(--secondary-text-color)]">
-            Sample kit demo · host supplies brand meta
-          </p>
-        </div>
-      </PresentationSlideFrame>
-    );
-  }
   return (
     <PresentationSlideFrame
       slideId={slide.id}
       slideNum={slide.num}
-      kicker={copy.kicker}
-      title={copy.title}
+      naturalW={960}
+      naturalH={540}
+      kicker={\`\${slide.num} · Sample\`}
+      title={slide.label}
       brandMeta={
         <>
           kit.demo
@@ -2261,13 +3401,10 @@ function renderSlide(_i, slide) {
           <span className="font-normal normal-case tracking-normal">Sample deck</span>
         </>
       }
+      hideHeader={slide.id === 'title'}
       className="shadow-sm"
     >
-      <ul className="m-0 flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug text-[var(--text-color)]">
-        {copy.bullets.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
-      </ul>
+      {/* host body */}
     </PresentationSlideFrame>
   );
 }
@@ -2277,6 +3414,8 @@ function renderSlide(_i, slide) {
   title="Sample deck"
   description="Host-supplied slides for the design-system demo. Scroll thumbs, step, or open full screen."
   dialogTitle="Sample presentation"
+  slideNaturalW={960}
+  slideNaturalH={540}
   slides={slides}
   renderSlide={renderSlide}
 />`,
@@ -2286,31 +3425,82 @@ function renderSlide(_i, slide) {
               title="Sample deck"
               description="Host-supplied slides for the design-system demo. Scroll thumbs, step, or open full screen."
               dialogTitle="Sample presentation"
+              slideNaturalW={960}
+              slideNaturalH={540}
               slides={DEMO_PRESENTATION_SLIDES}
-              renderSlide={(_i, slide) => <DemoPresentationSlide slide={slide} />}
+              renderSlide={(_i, slide) => (
+                <DemoPresentationSlide slide={slide} naturalW={960} naturalH={540} />
+              )}
             />
           ),
         },
         {
-          title: 'FitContain',
+          title: 'PresentationSlideFrame',
+          code: `<PresentationSlideFrame
+  slideId="frame-demo"
+  slideNum="04"
+  naturalW={640}
+  naturalH={360}
+  kicker="04 · Frame"
+  title="Standalone board chrome"
+  brandMeta={
+    <>
+      kit.demo
+      <br />
+      <span className="font-normal normal-case tracking-normal">Frame props</span>
+    </>
+  }
+  className="shadow-sm max-w-full"
+>
+  <Text size="sm" tone="secondary">
+    naturalW / naturalH set board size; kicker, title, brandMeta fill the header.
+  </Text>
+</PresentationSlideFrame>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideFrame
+                slideId="frame-demo"
+                slideNum="04"
+                naturalW={640}
+                naturalH={360}
+                kicker="04 · Frame"
+                title="Standalone board chrome"
+                brandMeta={
+                  <>
+                    kit.demo
+                    <br />
+                    <span className="font-normal normal-case tracking-normal">Frame props</span>
+                  </>
+                }
+                className="shadow-sm max-w-full"
+              >
+                <Text size="sm" tone="secondary">
+                  naturalW / naturalH set board size; kicker, title, brandMeta fill the header.
+                </Text>
+              </PresentationSlideFrame>
+            </div>
+          ),
+        },
+        {
+          title: 'FitContain (active + pad)',
           code: `<div className="h-40 w-full rounded-lg border border-[var(--border-color)] bg-[var(--card-bg-color)]">
-  <FitContain naturalW={320} naturalH={180}>
+  <FitContain active naturalW={320} naturalH={180} pad={24}>
     <div
       className="flex items-center justify-center rounded-md border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-sm font-semibold text-[var(--strong-text-color)]"
       style={{ width: 320, height: 180 }}
     >
-      320×180 board scaled to fit
+      320×180 board · pad 24 · active remeasure
     </div>
   </FitContain>
 </div>`,
           render: (
             <div className="h-40 w-full rounded-lg border border-[var(--border-color)] bg-[var(--card-bg-color)]">
-              <FitContain naturalW={320} naturalH={180}>
+              <FitContain active naturalW={320} naturalH={180} pad={24}>
                 <div
                   className="flex items-center justify-center rounded-md border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-sm font-semibold text-[var(--strong-text-color)]"
                   style={{ width: 320, height: 180 }}
                 >
-                  320×180 board scaled to fit
+                  320×180 board · pad 24 · active remeasure
                 </div>
               </FitContain>
             </div>
@@ -2332,8 +3522,11 @@ function renderSlide(_i, slide) {
   description="Fictional progressive-disclosure tree for the design-system demo."
   claim="Map in context · encyclopedia on disk"
   claimSub="Open only the branch needed"
+  mapPanelKicker="Injected into context"
   mapName="MAP.md"
   mapMeta={['~80 lines', 'table of contents']}
+  mapFoot="Stable prefix · cheap to re-read"
+  storeKicker="System of record · knowledge store"
   tree={[
     { name: 'MAP.md', kind: 'map' },
     { name: 'OVERVIEW.md', kind: 'file' },
@@ -2368,8 +3561,11 @@ function renderSlide(_i, slide) {
               description="Fictional progressive-disclosure tree for the design-system demo."
               claim="Map in context · encyclopedia on disk"
               claimSub="Open only the branch needed"
+              mapPanelKicker="Injected into context"
               mapName="MAP.md"
               mapMeta={['~80 lines', 'table of contents']}
+              mapFoot="Stable prefix · cheap to re-read"
+              storeKicker="System of record · knowledge store"
               tree={[
                 { name: 'MAP.md', kind: 'map' },
                 { name: 'OVERVIEW.md', kind: 'file' },
