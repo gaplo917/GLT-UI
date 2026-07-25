@@ -177,12 +177,18 @@ export const slimSection: DocSection = {
     {
       id: 'text',
       name: 'Text',
-      description: 'Body copy with size, tone, and weight props.',
+      description: 'Body copy with size, tone, weight, align, as, and truncate props.',
       importLine: "import { Text } from 'glt-ui';",
       examples: [
         {
           title: 'Sizes',
-          code: '<Text size="lg">Lead</Text>\n<Text>Body</Text>\n<Text size="sm" tone="secondary">Meta</Text>',
+          code: `<div className="space-y-1">
+  <Text size="lg">Lead</Text>
+  <Text>Body</Text>
+  <Text size="sm" tone="secondary">
+    Meta
+  </Text>
+</div>`,
           render: (
             <div className="space-y-1">
               <Text size="lg">Lead</Text>
@@ -193,21 +199,138 @@ export const slimSection: DocSection = {
             </div>
           ),
         },
+        {
+          title: 'Tones',
+          code: `<div className="space-y-1">
+  <Text tone="default">Default</Text>
+  <Text tone="secondary">Secondary</Text>
+  <Text tone="strong">Strong</Text>
+  <Text tone="brand">Brand</Text>
+  <Text tone="danger">Danger</Text>
+  <Text tone="success">Success</Text>
+</div>`,
+          render: (
+            <div className="space-y-1">
+              <Text tone="default">Default</Text>
+              <Text tone="secondary">Secondary</Text>
+              <Text tone="strong">Strong</Text>
+              <Text tone="brand">Brand</Text>
+              <Text tone="danger">Danger</Text>
+              <Text tone="success">Success</Text>
+            </div>
+          ),
+        },
+        {
+          title: 'Weights',
+          code: `<div className="space-y-1">
+  <Text weight="normal">Normal</Text>
+  <Text weight="medium">Medium</Text>
+  <Text weight="semibold">Semibold</Text>
+  <Text weight="bold">Bold</Text>
+</div>`,
+          render: (
+            <div className="space-y-1">
+              <Text weight="normal">Normal</Text>
+              <Text weight="medium">Medium</Text>
+              <Text weight="semibold">Semibold</Text>
+              <Text weight="bold">Bold</Text>
+            </div>
+          ),
+        },
+        {
+          title: 'Align',
+          code: `<div className="space-y-1">
+  <Text align="left">Left aligned</Text>
+  <Text align="center">Center aligned</Text>
+  <Text align="right">Right aligned</Text>
+</div>`,
+          render: (
+            <div className="space-y-1">
+              <Text align="left">Left aligned</Text>
+              <Text align="center">Center aligned</Text>
+              <Text align="right">Right aligned</Text>
+            </div>
+          ),
+        },
+        {
+          title: 'As element',
+          code: `<div>
+  <Text as="span" size="sm">
+    Inline span
+  </Text>
+  {' · '}
+  <Text as="span" size="sm" tone="brand">
+    paired span
+  </Text>
+</div>`,
+          render: (
+            <div>
+              <Text as="span" size="sm">
+                Inline span
+              </Text>
+              {' · '}
+              <Text as="span" size="sm" tone="brand">
+                paired span
+              </Text>
+            </div>
+          ),
+        },
+        {
+          title: 'Truncate',
+          code: `<div className="max-w-[12rem]">
+  <Text truncate>
+    Long kit label that should ellipsize at the edge of the box
+  </Text>
+</div>`,
+          render: (
+            <div className="max-w-[12rem]">
+              <Text truncate>
+                Long kit label that should ellipsize at the edge of the box
+              </Text>
+            </div>
+          ),
+        },
       ],
     },
     {
       id: 'title',
       name: 'Title',
-      description: 'Display headings.',
+      description: 'Display headings with size and as props.',
       importLine: "import { Title } from 'glt-ui';",
       examples: [
         {
-          title: 'Title ladder',
-          code: '<Title size={2}>Section</Title>\n<Title size={4}>Card</Title>',
+          title: 'Sizes',
+          code: `<div className="space-y-2">
+  <Title size={2}>Section</Title>
+  <Title size={4}>Card</Title>
+  <Title size={6}>Eyebrow</Title>
+</div>`,
           render: (
             <div className="space-y-2">
               <Title size={2}>Section</Title>
               <Title size={4}>Card</Title>
+              <Title size={6}>Eyebrow</Title>
+            </div>
+          ),
+        },
+        {
+          title: 'As element',
+          code: `<div className="space-y-2">
+  <Title as="h2" size={3}>
+    Semantic h2
+  </Title>
+  <Title as="p" size={5}>
+    Styled as p
+  </Title>
+</div>`,
+          render: (
+            <div className="space-y-2">
+              <Title as="h2" size={3}>
+                Semantic h2
+              </Title>
+              <Title as="p" size={5}>
+                Styled as p
+              </Title>
             </div>
           ),
         },
@@ -216,24 +339,46 @@ export const slimSection: DocSection = {
     {
       id: 'icon',
       name: 'Icon',
-      description: 'Glyph wrapper (used by Quote and Callout).',
+      description: 'Glyph wrapper with icon, tone, and optional label.',
       importLine: "import { Icon } from 'glt-ui';",
       examples: [
         {
-          title: 'Quote mark',
-          code: '<Icon icon="“" className="text-4xl text-[var(--brand-primary)]" />',
-          render: <Icon icon={'“'} className="text-4xl text-[var(--brand-primary)]" />,
+          title: 'Icon glyph',
+          code: '<Icon icon="★" />',
+          render: <Icon icon="★" />,
+        },
+        {
+          title: 'Tones',
+          code: `<div className="flex flex-wrap items-center gap-4">
+  <Icon icon="★" tone="brand" />
+  <Icon icon="★" tone="default" />
+  <Icon icon="★" tone="secondary" />
+  <Icon icon="★" tone="strong" />
+</div>`,
+          render: (
+            <div className="flex flex-wrap items-center gap-4">
+              <Icon icon="★" tone="brand" />
+              <Icon icon="★" tone="default" />
+              <Icon icon="★" tone="secondary" />
+              <Icon icon="★" tone="strong" />
+            </div>
+          ),
+        },
+        {
+          title: 'With label',
+          code: '<Icon icon="★" label="Featured" tone="brand" />',
+          render: <Icon icon="★" label="Featured" tone="brand" />,
         },
       ],
     },
     {
       id: 'list',
       name: 'List',
-      description: 'Unordered or decimal lists.',
+      description: 'Unordered or decimal lists with variant, spacing, and as.',
       importLine: "import { List, ListItem } from 'glt-ui';",
       examples: [
         {
-          title: 'Items',
+          title: 'Disc',
           code: `<List>
   <ListItem>One</ListItem>
   <ListItem>Two</ListItem>
@@ -245,12 +390,75 @@ export const slimSection: DocSection = {
             </List>
           ),
         },
+        {
+          title: 'Variants',
+          code: `<div className="space-y-4">
+  <List variant="decimal">
+    <ListItem>First</ListItem>
+    <ListItem>Second</ListItem>
+  </List>
+  <List variant="none" spacing={2}>
+    <ListItem>· Plain</ListItem>
+    <ListItem>· Plain</ListItem>
+  </List>
+</div>`,
+          render: (
+            <div className="space-y-4">
+              <List variant="decimal">
+                <ListItem>First</ListItem>
+                <ListItem>Second</ListItem>
+              </List>
+              <List variant="none" spacing={2}>
+                <ListItem>· Plain</ListItem>
+                <ListItem>· Plain</ListItem>
+              </List>
+            </div>
+          ),
+        },
+        {
+          title: 'Spacing',
+          code: `<div className="space-y-4">
+  <List spacing={0}>
+    <ListItem>Tight A</ListItem>
+    <ListItem>Tight B</ListItem>
+  </List>
+  <List spacing={3}>
+    <ListItem>Loose A</ListItem>
+    <ListItem>Loose B</ListItem>
+  </List>
+</div>`,
+          render: (
+            <div className="space-y-4">
+              <List spacing={0}>
+                <ListItem>Tight A</ListItem>
+                <ListItem>Tight B</ListItem>
+              </List>
+              <List spacing={3}>
+                <ListItem>Loose A</ListItem>
+                <ListItem>Loose B</ListItem>
+              </List>
+            </div>
+          ),
+        },
+        {
+          title: 'As element',
+          code: `<List as="ol" variant="decimal">
+  <ListItem>Explicit ol</ListItem>
+  <ListItem>Second step</ListItem>
+</List>`,
+          render: (
+            <List as="ol" variant="decimal">
+              <ListItem>Explicit ol</ListItem>
+              <ListItem>Second step</ListItem>
+            </List>
+          ),
+        },
       ],
     },
     {
       id: 'container',
       name: 'Container',
-      description: 'Centered page width constraint.',
+      description: 'Centered page width constraint with max prop.',
       importLine: "import { Container } from 'glt-ui';",
       examples: [
         {
@@ -264,16 +472,43 @@ export const slimSection: DocSection = {
             </Container>
           ),
         },
+        {
+          title: 'Max widths',
+          code: `<div>
+  <Container max="sm" className="border border-dashed border-[var(--border-color)] py-2">
+    <Text size="sm">max=sm</Text>
+  </Container>
+  <Container max="md" className="mt-2 border border-dashed border-[var(--border-color)] py-2">
+    <Text size="sm">max=md</Text>
+  </Container>
+  <Container max="lg" className="mt-2 border border-dashed border-[var(--border-color)] py-2">
+    <Text size="sm">max=lg</Text>
+  </Container>
+</div>`,
+          render: (
+            <div>
+              <Container max="sm" className="border border-dashed border-[var(--border-color)] py-2">
+                <Text size="sm">max=sm</Text>
+              </Container>
+              <Container max="md" className="mt-2 border border-dashed border-[var(--border-color)] py-2">
+                <Text size="sm">max=md</Text>
+              </Container>
+              <Container max="lg" className="mt-2 border border-dashed border-[var(--border-color)] py-2">
+                <Text size="sm">max=lg</Text>
+              </Container>
+            </div>
+          ),
+        },
       ],
     },
     {
       id: 'grid',
       name: 'Grid',
-      description: 'Responsive CSS grid helper.',
+      description: 'Responsive CSS grid helper with columns, mdColumns, and gap.',
       importLine: "import { Grid } from 'glt-ui';",
       examples: [
         {
-          title: 'Two columns',
+          title: 'Columns and gap',
           code: `<Grid columns={2} gap={4}>
   <Text>A</Text>
   <Text>B</Text>
@@ -285,12 +520,27 @@ export const slimSection: DocSection = {
             </Grid>
           ),
         },
+        {
+          title: 'Responsive mdColumns',
+          code: `<Grid columns={1} mdColumns={3} gap={3}>
+  <Text>One</Text>
+  <Text>Two</Text>
+  <Text>Three</Text>
+</Grid>`,
+          render: (
+            <Grid columns={1} mdColumns={3} gap={3}>
+              <Text>One</Text>
+              <Text>Two</Text>
+              <Text>Three</Text>
+            </Grid>
+          ),
+        },
       ],
     },
     {
       id: 'divider',
       name: 'Divider',
-      description: 'Horizontal rule.',
+      description: 'Horizontal or vertical rule with optional label.',
       importLine: "import { Divider } from 'glt-ui';",
       examples: [
         {
@@ -298,30 +548,106 @@ export const slimSection: DocSection = {
           code: '<Divider />',
           render: <Divider />,
         },
-      ],
-    },
-    {
-      id: 'button',
-      name: 'Button',
-      description: 'Primary actions (transitive via Callout/Card).',
-      importLine: "import { Button } from 'glt-ui';",
-      examples: [
         {
-          title: 'Variants',
-          code: '<Button>Primary</Button>\n<Button variant="outline">Outline</Button>',
+          title: 'Label',
+          code: '<Divider label="Or continue" />',
+          render: <Divider label="Or continue" />,
+        },
+        {
+          title: 'Vertical',
+          code: `<div className="flex h-10 items-stretch gap-3">
+  <Text size="sm">Left</Text>
+  <Divider orientation="vertical" />
+  <Text size="sm">Right</Text>
+</div>`,
           render: (
-            <div className="flex flex-wrap gap-2">
-              <Button>Primary</Button>
-              <Button variant="outline">Outline</Button>
+            <div className="flex h-10 items-stretch gap-3">
+              <Text size="sm">Left</Text>
+              <Divider orientation="vertical" />
+              <Text size="sm">Right</Text>
             </div>
           ),
         },
       ],
     },
     {
+      id: 'button',
+      name: 'Button',
+      description: 'Actions with variant, size, icons, loading, and fullWidth.',
+      importLine: "import { Button } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Variants',
+          code: `<div className="flex flex-wrap gap-2">
+  <Button variant="primary">Primary</Button>
+  <Button variant="secondary">Secondary</Button>
+  <Button variant="outline">Outline</Button>
+  <Button variant="ghost">Ghost</Button>
+  <Button variant="link">Link</Button>
+  <Button variant="danger">Danger</Button>
+  <Button variant="success">Success</Button>
+</div>`,
+          render: (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="primary">Primary</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="link">Link</Button>
+              <Button variant="danger">Danger</Button>
+              <Button variant="success">Success</Button>
+            </div>
+          ),
+        },
+        {
+          title: 'Sizes',
+          code: `<div className="flex flex-wrap items-center gap-2">
+  <Button size="xs">XS</Button>
+  <Button size="sm">SM</Button>
+  <Button size="md">MD</Button>
+  <Button size="lg">LG</Button>
+  <Button size="icon" aria-label="Star">
+    ★
+  </Button>
+</div>`,
+          render: (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="xs">XS</Button>
+              <Button size="sm">SM</Button>
+              <Button size="md">MD</Button>
+              <Button size="lg">LG</Button>
+              <Button size="icon" aria-label="Star">
+                ★
+              </Button>
+            </div>
+          ),
+        },
+        {
+          title: 'Icons and loading',
+          code: `<div className="flex flex-wrap gap-2">
+  <Button leftIcon="→">Next</Button>
+  <Button rightIcon="↗">Open</Button>
+  <Button loading>Saving</Button>
+</div>`,
+          render: (
+            <div className="flex flex-wrap gap-2">
+              <Button leftIcon="→">Next</Button>
+              <Button rightIcon="↗">Open</Button>
+              <Button loading>Saving</Button>
+            </div>
+          ),
+        },
+        {
+          title: 'Full width',
+          code: '<Button fullWidth>Full width action</Button>',
+          render: <Button fullWidth>Full width action</Button>,
+        },
+      ],
+    },
+    {
       id: 'checkbox',
       name: 'Checkbox',
-      description: 'Filter controls on research charts.',
+      description: 'Single checkbox with optional inline label.',
       importLine: "import { Checkbox } from 'glt-ui';",
       examples: [
         {
@@ -334,37 +660,136 @@ export const slimSection: DocSection = {
     {
       id: 'badge',
       name: 'Badge',
-      description: 'Compact status chip.',
+      description: 'Compact status chip with variant, size, dot, and removable.',
       importLine: "import { Badge } from 'glt-ui';",
       examples: [
         {
-          title: 'Badge',
-          code: '<Badge>Research</Badge>',
-          render: <Badge>Research</Badge>,
+          title: 'Variants',
+          code: `<div className="flex flex-wrap gap-2">
+  <Badge variant="default">Default</Badge>
+  <Badge variant="fact">Fact</Badge>
+  <Badge variant="pill">Pill</Badge>
+  <Badge variant="outline">Outline</Badge>
+  <Badge variant="info">Info</Badge>
+  <Badge variant="success">Success</Badge>
+  <Badge variant="warning">Warning</Badge>
+  <Badge variant="danger">Danger</Badge>
+  <Badge variant="neutral">Neutral</Badge>
+</div>`,
+          render: (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="default">Default</Badge>
+              <Badge variant="fact">Fact</Badge>
+              <Badge variant="pill">Pill</Badge>
+              <Badge variant="outline">Outline</Badge>
+              <Badge variant="info">Info</Badge>
+              <Badge variant="success">Success</Badge>
+              <Badge variant="warning">Warning</Badge>
+              <Badge variant="danger">Danger</Badge>
+              <Badge variant="neutral">Neutral</Badge>
+            </div>
+          ),
+        },
+        {
+          title: 'Sizes',
+          code: `<div className="flex flex-wrap items-center gap-2">
+  <Badge size="sm">Small</Badge>
+  <Badge size="md">Medium</Badge>
+  <Badge size="lg">Large</Badge>
+</div>`,
+          render: (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge size="sm">Small</Badge>
+              <Badge size="md">Medium</Badge>
+              <Badge size="lg">Large</Badge>
+            </div>
+          ),
+        },
+        {
+          title: 'Dot',
+          code: `<Badge dot variant="success">
+  Live
+</Badge>`,
+          render: (
+            <Badge dot variant="success">
+              Live
+            </Badge>
+          ),
+        },
+        {
+          title: 'Removable',
+          code: `<Badge removable onRemove={() => {}}>
+  Filter tag
+</Badge>`,
+          render: (
+            <Badge removable onRemove={() => {}}>
+              Filter tag
+            </Badge>
+          ),
         },
       ],
     },
     {
       id: 'spinner',
       name: 'Spinner',
-      description: 'Loading indicator (used by Button loading state).',
+      description: 'Loading indicator with size, intent, and label.',
       importLine: "import { Spinner } from 'glt-ui';",
       examples: [
         {
-          title: 'Spinner',
-          code: '<Spinner />',
-          render: <Spinner />,
+          title: 'Sizes',
+          code: `<div className="flex flex-wrap items-center gap-4">
+  <Spinner size="sm" />
+  <Spinner size="md" />
+  <Spinner size="lg" />
+</div>`,
+          render: (
+            <div className="flex flex-wrap items-center gap-4">
+              <Spinner size="sm" />
+              <Spinner size="md" />
+              <Spinner size="lg" />
+            </div>
+          ),
+        },
+        {
+          title: 'Intents',
+          code: `<div className="flex flex-wrap items-center gap-4">
+  <Spinner intent="brand" />
+  <Spinner intent="info" />
+  <Spinner intent="success" />
+  <Spinner intent="warning" />
+  <Spinner intent="danger" />
+  <span className="text-[var(--brand-primary)]">
+    <Spinner intent="current" />
+  </span>
+</div>`,
+          render: (
+            <div className="flex flex-wrap items-center gap-4">
+              <Spinner intent="brand" />
+              <Spinner intent="info" />
+              <Spinner intent="success" />
+              <Spinner intent="warning" />
+              <Spinner intent="danger" />
+              <span className="text-[var(--brand-primary)]">
+                <Spinner intent="current" />
+              </span>
+            </div>
+          ),
+        },
+        {
+          title: 'Label',
+          code: '<Spinner label="Syncing kit" />',
+          render: <Spinner label="Syncing kit" />,
         },
       ],
     },
     {
       id: 'tooltip',
       name: 'Tooltip',
-      description: 'Hover preview for citations.',
+      description: 'Hover preview with content and side placement.',
       importLine: "import { Tooltip } from 'glt-ui';",
       examples: [
         {
-          title: 'Hover me',
+          title: 'Default side',
           code: `<Tooltip content="Reference preview">
   <a href="#ref" className="font-semibold text-[var(--brand-primary)]">
     [1]
@@ -376,6 +801,55 @@ export const slimSection: DocSection = {
                 [1]
               </a>
             </Tooltip>
+          ),
+        },
+        {
+          title: 'Sides',
+          code: `<div className="flex flex-wrap gap-6 py-6">
+  <Tooltip content="Top tip" side="top">
+    <Button size="sm" variant="outline">
+      Top
+    </Button>
+  </Tooltip>
+  <Tooltip content="Bottom tip" side="bottom">
+    <Button size="sm" variant="outline">
+      Bottom
+    </Button>
+  </Tooltip>
+  <Tooltip content="Left tip" side="left">
+    <Button size="sm" variant="outline">
+      Left
+    </Button>
+  </Tooltip>
+  <Tooltip content="Right tip" side="right">
+    <Button size="sm" variant="outline">
+      Right
+    </Button>
+  </Tooltip>
+</div>`,
+          render: (
+            <div className="flex flex-wrap gap-6 py-6">
+              <Tooltip content="Top tip" side="top">
+                <Button size="sm" variant="outline">
+                  Top
+                </Button>
+              </Tooltip>
+              <Tooltip content="Bottom tip" side="bottom">
+                <Button size="sm" variant="outline">
+                  Bottom
+                </Button>
+              </Tooltip>
+              <Tooltip content="Left tip" side="left">
+                <Button size="sm" variant="outline">
+                  Left
+                </Button>
+              </Tooltip>
+              <Tooltip content="Right tip" side="right">
+                <Button size="sm" variant="outline">
+                  Right
+                </Button>
+              </Tooltip>
+            </div>
           ),
         },
       ],
