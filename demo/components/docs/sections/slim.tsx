@@ -221,7 +221,7 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Quote mark',
-          code: '<Icon icon="“" className="text-[var(--brand-primary)]" />',
+          code: '<Icon icon="“" className="text-4xl text-[var(--brand-primary)]" />',
           render: <Icon icon={'“'} className="text-4xl text-[var(--brand-primary)]" />,
         },
       ],
@@ -234,7 +234,10 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Items',
-          code: '<List><ListItem>One</ListItem><ListItem>Two</ListItem></List>',
+          code: `<List>
+  <ListItem>One</ListItem>
+  <ListItem>Two</ListItem>
+</List>`,
           render: (
             <List>
               <ListItem>One</ListItem>
@@ -252,7 +255,9 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Default',
-          code: '<Container><Text>Content</Text></Container>',
+          code: `<Container>
+  <Text>Content in container</Text>
+</Container>`,
           render: (
             <Container>
               <Text>Content in container</Text>
@@ -269,7 +274,10 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Two columns',
-          code: '<Grid columns={2} gap={4}>…</Grid>',
+          code: `<Grid columns={2} gap={4}>
+  <Text>A</Text>
+  <Text>B</Text>
+</Grid>`,
           render: (
             <Grid columns={2} gap={4}>
               <Text>A</Text>
@@ -357,7 +365,11 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Hover me',
-          code: '<Tooltip content="Preview"><a href="#">[1]</a></Tooltip>',
+          code: `<Tooltip content="Reference preview">
+  <a href="#ref" className="font-semibold text-[var(--brand-primary)]">
+    [1]
+  </a>
+</Tooltip>`,
           render: (
             <Tooltip content="Reference preview">
               <a href="#ref" className="font-semibold text-[var(--brand-primary)]">
