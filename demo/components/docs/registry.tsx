@@ -32,6 +32,8 @@ const moleculesSection = layer('molecules', 'Molecules', 'Small composed units.'
   'callout',
   'quote',
   'figure',
+  'section-intro',
+  'hash-scroll-cta',
 ]);
 
 const organismsSection = layer('organisms', 'Organisms', 'Page sections and data.', [
@@ -42,6 +44,9 @@ const organismsSection = layer('organisms', 'Organisms', 'Page sections and data
   'site-header',
   'site-footer',
   'process-pipeline',
+  'catalog-list',
+  'method-pillars',
+  'process-band',
 ]);
 
 const pagesSection: DocSection = {

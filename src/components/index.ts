@@ -21,12 +21,17 @@ export * from './atoms/Tooltip/Tooltip.js';
 export * from './molecules/Callout/Callout.js';
 export * from './molecules/CodeBlock/CodeBlock.js';
 export * from './molecules/Figure/index.js';
+export * from './molecules/HashScrollCta/HashScrollCta.js';
 export * from './molecules/Quote/Quote.js';
+export * from './molecules/SectionIntro/SectionIntro.js';
 
 // organisms
 export * from './organisms/Card/Card.js';
+export * from './organisms/CatalogList/CatalogList.js';
 export * from './organisms/Chart/Chart.js';
+export * from './organisms/MethodPillars/MethodPillars.js';
 export * from './organisms/PageHero/PageHero.js';
+export * from './organisms/ProcessBand/ProcessBand.js';
 export * from './organisms/ProcessPipeline/ProcessPipeline.js';
 export * from './organisms/SiteFooter/SiteFooter.js';
 export * from './organisms/SiteHeader/SiteHeader.js';

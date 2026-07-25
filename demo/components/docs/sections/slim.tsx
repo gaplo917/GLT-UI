@@ -7,6 +7,7 @@ import {
   Callout,
   Card,
   CardContent,
+  CatalogList,
   Chart,
   Checkbox,
   Container,
@@ -14,12 +15,16 @@ import {
   FigureDataTableToggle,
   FullBleedFigure,
   Grid,
+  HashScrollCta,
   Icon,
   List,
   ListItem,
+  MethodPillars,
   PageHero,
+  ProcessBand,
   ProcessPipeline,
   Quote,
+  SectionIntro,
   SiteFooter,
   SiteHeader,
   Spinner,
@@ -413,17 +418,242 @@ export const slimSection: DocSection = {
     {
       id: 'process-pipeline',
       name: 'ProcessPipeline',
-      description: 'Landing process steps.',
+      description: 'Horizontal process diagram with optional quality loop.',
       importLine: "import { ProcessPipeline } from 'glt-ui';",
       examples: [
         {
           title: 'Steps',
-          code: '<ProcessPipeline steps={[…]} />',
+          code: `<ProcessPipeline
+  nodes={[
+    { id: 'signal', label: 'Signal', sublabel: 'Sources' },
+    { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+  ]}
+/>`,
           render: (
             <ProcessPipeline
               nodes={[
                 { id: 'signal', label: 'Signal', sublabel: 'Sources' },
                 { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'section-intro',
+      name: 'SectionIntro',
+      description: 'Editorial section header: eyebrow, title, description, optional meta.',
+      importLine: "import { SectionIntro } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Split layout',
+          code: `<SectionIntro
+  layout="split"
+  eyebrow="Catalog"
+  title="Active series"
+  description="Open a topic for the full argument."
+  meta={<Text size="sm" tone="secondary">2 topics</Text>}
+/>`,
+          render: (
+            <SectionIntro
+              layout="split"
+              eyebrow="Catalog"
+              title="Active series"
+              description="Open a topic for the full argument."
+              meta={
+                <Text as="p" size="sm" tone="secondary" className="font-mono">
+                  2 topics
+                </Text>
+              }
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'hash-scroll-cta',
+      name: 'HashScrollCta',
+      description: 'In-page hash CTA with smooth scroll and URL sync.',
+      importLine: "import { HashScrollCta } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Scroll target',
+          code: `<HashScrollCta
+  targetId="demo-catalog"
+  className="font-semibold text-[var(--brand-primary)]"
+>
+  Browse catalog ↓
+</HashScrollCta>`,
+          render: (
+            <div className="space-y-4">
+              <HashScrollCta
+                targetId="demo-catalog"
+                className="inline-flex items-center gap-2 font-semibold text-[var(--brand-primary)] no-underline"
+              >
+                Browse catalog
+                <span aria-hidden>↓</span>
+              </HashScrollCta>
+              <div
+                id="demo-catalog"
+                className="rounded-[var(--radius-card)] border border-dashed border-[var(--border-color)] px-4 py-6 text-sm text-[var(--secondary-text-color)]"
+              >
+                Demo catalog target
+              </div>
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'catalog-list',
+      name: 'CatalogList',
+      description: 'Ordered linked catalog cards (topics, series, releases). Host maps domain data.',
+      importLine: "import { CatalogList } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample items',
+          code: `<CatalogList
+  ctaLabel="Read the research"
+  items={[
+    {
+      id: 'alpha',
+      href: '#alpha',
+      title: 'Sample research series',
+      summary: 'A fictional topic for the design-system demo.',
+      date: '2026-01',
+      status: 'active',
+      tags: ['demo', 'catalog'],
+    },
+  ]}
+/>`,
+          render: (
+            <CatalogList
+              ctaLabel="Read the research"
+              items={[
+                {
+                  id: 'alpha',
+                  href: '#alpha',
+                  title: 'Sample research series',
+                  summary:
+                    'A fictional topic for the design-system demo — not portal registry data.',
+                  date: '2026-01',
+                  status: 'active',
+                  tags: ['demo', 'catalog'],
+                },
+                {
+                  id: 'beta',
+                  href: '#beta',
+                  title: 'Second sample series',
+                  summary: 'Another placeholder card showing multi-item layout.',
+                  date: '2026-03',
+                  status: 'draft',
+                  tags: ['demo'],
+                },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'method-pillars',
+      name: 'MethodPillars',
+      description: 'Method band: section intro plus equal pillar cards.',
+      importLine: "import { MethodPillars } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Three pillars',
+          code: `<MethodPillars
+  eyebrow="Method"
+  title="Built for scrutiny."
+  description="Short sample description for the demo."
+  pillars={[
+    { title: 'Claim', body: 'Open with a thesis.' },
+    { title: 'Evidence', body: 'Cite primary sources.' },
+    { title: 'Deck', body: 'Ship a walkthrough.' },
+  ]}
+/>`,
+          render: (
+            <MethodPillars
+              eyebrow="Method"
+              title="Built for scrutiny."
+              description="Short sample description for the demo — host supplies all copy."
+              pillars={[
+                { title: 'Claim', body: 'Open with a thesis you can defend.' },
+                { title: 'Evidence', body: 'Cite primary sources beside the argument.' },
+                { title: 'Deck', body: 'Ship a presentation-ready walkthrough.' },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'process-band',
+      name: 'ProcessBand',
+      description: 'Authorship / process band: intro column, pipeline diagram, step cards.',
+      importLine: "import { ProcessBand } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample pipeline',
+          code: `<ProcessBand
+  eyebrow="Authorship"
+  title="How the work is made."
+  description="Sample process copy for the design-system demo."
+  nodes={[
+    { id: 'observe', label: 'Observe', sublabel: 'Field' },
+    { id: 'build', label: 'Build', sublabel: 'Harness' },
+    { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+  ]}
+  loop={{ from: 'build', to: 'ship', caption: 'QUALITY LOOP' }}
+  steps={[
+    { id: 'observe', short: 'Observe', title: 'Watch', body: 'Start from signals.' },
+    { id: 'build', short: 'Build', title: 'Research', body: 'Harnessed investigation.' },
+    { id: 'ship', short: 'Ship', title: 'Publish', body: 'Release the package.' },
+  ]}
+/>`,
+          render: (
+            <ProcessBand
+              eyebrow="Authorship"
+              title="How the work is made."
+              description="Sample process copy for the design-system demo — not portal registry data."
+              credit={
+                <p className="m-0 font-mono text-sm text-[var(--brand-primary)]">
+                  Demo · Co-authored sample
+                </p>
+              }
+              nodes={[
+                { id: 'observe', label: 'Observe', sublabel: 'Field' },
+                { id: 'build', label: 'Build', sublabel: 'Harness' },
+                { id: 'ship', label: 'Ship', sublabel: 'Publish' },
+              ]}
+              loop={{
+                from: 'build',
+                to: 'ship',
+                caption: 'QUALITY LOOP',
+                forwardLabel: 'refine →',
+                backLabel: '← feedback',
+              }}
+              steps={[
+                {
+                  id: 'observe',
+                  short: 'Observe',
+                  title: 'Field signals',
+                  body: 'Start from real industry signals in the domain of judgment.',
+                },
+                {
+                  id: 'build',
+                  short: 'Build',
+                  title: 'Harnessed research',
+                  body: 'Autonomous research through a multi-agent fact-check loop.',
+                },
+                {
+                  id: 'ship',
+                  short: 'Ship',
+                  title: 'Publish',
+                  body: 'Release a presentation-ready package on the portal.',
+                },
               ]}
             />
           ),

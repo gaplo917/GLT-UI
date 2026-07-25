@@ -24,6 +24,7 @@ const REQUIRED = [
   'Callout',
   'Card',
   'CardContent',
+  'CatalogList',
   'Chart',
   'Checkbox',
   'Code',
@@ -33,13 +34,17 @@ const REQUIRED = [
   'FigureDataTableToggle',
   'FullBleedFigure',
   'Grid',
+  'HashScrollCta',
   'Icon',
   'List',
   'ListItem',
   'Markdown',
+  'MethodPillars',
   'PageHero',
+  'ProcessBand',
   'ProcessPipeline',
   'Quote',
+  'SectionIntro',
   'SiteFooter',
   'SiteHeader',
   'Spinner',
@@ -146,6 +151,27 @@ for (const [rel, names] of Object.entries(coExportSources)) {
   }
 }
 
+// No Next.js / host-portal coupling in kit source (landing extract rule).
+// Note: glt-ui itself uses `@/components/*` and `@/lib/*` path aliases — those are OK.
+const forbiddenImportRe =
+  /from\s+['"]next(?:\/[^'"]*)?['"]|from\s+['"]@\/research(?:\/[^'"]*)?['"]|require\(\s*['"]next(?:\/[^'"]*)?['"]/;
+const couplingHits = [];
+function walkTs(dir) {
+  if (!fs.existsSync(dir)) return;
+  for (const name of fs.readdirSync(dir)) {
+    const abs = path.join(dir, name);
+    const st = fs.statSync(abs);
+    if (st.isDirectory()) walkTs(abs);
+    else if (/\.(tsx?|jsx?)$/.test(name)) {
+      const text = fs.readFileSync(abs, 'utf8');
+      if (forbiddenImportRe.test(text)) {
+        couplingHits.push(path.relative(pkgRoot, abs));
+      }
+    }
+  }
+}
+walkTs(path.join(pkgRoot, 'src'));
+
 let failed = false;
 if (missing.length) {
   console.error('FAIL: required exports missing:', missing.join(', '));
@@ -161,6 +187,10 @@ if (leftoverDirs.length) {
 }
 if (sourceHits.length) {
   console.error('FAIL: stripped co-exports still in source:\n ', sourceHits.join('\n  '));
+  failed = true;
+}
+if (couplingHits.length) {
+  console.error('FAIL: Next/portal imports in kit source:\n ', couplingHits.join('\n  '));
   failed = true;
 }
 
@@ -181,9 +211,15 @@ console.log('OK slim surface');
 console.log('  required exports:', REQUIRED.length - missing.length, '/', REQUIRED.length);
 console.log('  forbidden exports present:', presentForbidden.length);
 console.log('  co-export source hits:', sourceHits.length);
+console.log('  next/portal coupling hits:', couplingHits.length);
 console.log('  layer folder counts:', counts);
 console.log('  sample export Chart:', typeof mod.Chart);
 console.log('  sample export CardContent:', typeof mod.CardContent);
+console.log('  CatalogList present?:', 'CatalogList' in mod);
+console.log('  MethodPillars present?:', 'MethodPillars' in mod);
+console.log('  ProcessBand present?:', 'ProcessBand' in mod);
+console.log('  HashScrollCta present?:', 'HashScrollCta' in mod);
+console.log('  SectionIntro present?:', 'SectionIntro' in mod);
 console.log('  CardHeader present?:', 'CardHeader' in mod);
 console.log('  Subtitle present?:', 'Subtitle' in mod);
 console.log('  GridItem present?:', 'GridItem' in mod);
