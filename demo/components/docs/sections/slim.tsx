@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import {
+  AttentionShiftBars,
   Badge,
   Button,
   Callout,
@@ -11,6 +12,8 @@ import {
   Chart,
   Checkbox,
   Container,
+  CostScoreBoard,
+  CostScoreScatter,
   Divider,
   FigureDataTableToggle,
   FullBleedFigure,
@@ -24,10 +27,13 @@ import {
   ProcessBand,
   ProcessPipeline,
   Quote,
+  RefCite,
+  ResolveRateTrend,
   SectionIntro,
   SiteFooter,
   SiteHeader,
   Spinner,
+  SvgRefCite,
   Table,
   TableBody,
   TableCell,
@@ -37,8 +43,31 @@ import {
   Text,
   Title,
   Tooltip,
+  type RefCiteItem,
 } from 'glt-ui';
 import type { DocSection } from '../types';
+
+/** Fictional demo cites — not portal bibliography data. */
+const DEMO_REF_ITEMS: readonly RefCiteItem[] = [
+  {
+    n: 1,
+    author: 'A. North',
+    date: '2025-03',
+    dateLabel: 'Mar 2025',
+    publisher: 'Sample Press',
+    title: 'Measuring review throughput in small teams',
+    summary: 'Field note on how review latency shapes release cadence.',
+  },
+  {
+    n: 2,
+    author: 'B. Vale',
+    date: '2024-11',
+    dateLabel: 'Nov 2024',
+    publisher: 'Toolkit Journal',
+    title: 'Harness patterns for long-running agents',
+    summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+  },
+];
 
 /** Single section documenting every component kept in the slim package. */
 export const slimSection: DocSection = {
@@ -292,6 +321,74 @@ export const slimSection: DocSection = {
                 <Text size="sm">Hidden data table region</Text>
               </FigureDataTableToggle>
             </FullBleedFigure>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'ref-cite',
+      name: 'RefCite',
+      description:
+        'Compact [n] citation markers with hover preview. HTML body, captions, tables.',
+      importLine: "import { RefCite, type RefCiteItem } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Inline markers',
+          code: `<Text>
+  Throughput rose after the harness landed
+  <RefCite items={[{ n: 1, author: 'A. North', … }]} />.
+</Text>`,
+          render: (
+            <Text>
+              Throughput rose after the harness landed
+              <RefCite items={DEMO_REF_ITEMS.slice(0, 1)} />. Two sources can stack
+              <RefCite items={DEMO_REF_ITEMS} /> when a claim needs dual backing.
+            </Text>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'svg-ref-cite',
+      name: 'SvgRefCite',
+      description:
+        'In-SVG [n] markers via native <a href="#ref-n"> + portaled HTML tooltip.',
+      importLine: "import { SvgRefCite, type RefCiteItem } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Diagram footer cites',
+          code: `<svg viewBox="0 0 320 80" className="w-full">
+  <rect … />
+  <SvgRefCite items={items} x={160} y={64} fontSize={11} />
+</svg>`,
+          render: (
+            <svg
+              viewBox="0 0 320 80"
+              className="w-full max-w-md text-[var(--brand-primary)]"
+              role="img"
+              aria-label="Sample diagram with citation markers"
+            >
+              <rect
+                x={24}
+                y={12}
+                width={272}
+                height={36}
+                rx={6}
+                fill="var(--bg-color)"
+                stroke="var(--border-color)"
+              />
+              <text
+                x={160}
+                y={34}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="fill-[var(--strong-text-color)]"
+                style={{ fontSize: 12 }}
+              >
+                Sample diagram region
+              </text>
+              <SvgRefCite items={DEMO_REF_ITEMS} x={160} y={64} fontSize={11} />
+            </svg>
           ),
         },
       ],
@@ -655,6 +752,247 @@ export const slimSection: DocSection = {
                   body: 'Release a presentation-ready package on the portal.',
                 },
               ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'attention-shift-bars',
+      name: 'AttentionShiftBars',
+      description:
+        'Side-by-side horizontal bar charts for before/after attention share. Host supplies slices.',
+      importLine: "import { AttentionShiftBars } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample slices',
+          code: `<AttentionShiftBars
+  slices={[
+    { key: 'build', label: 'Build', before: 50, after: 18, color: 'brand' },
+    { key: 'review', label: 'Review', before: 28, after: 42, color: 'warning' },
+    { key: 'plan', label: 'Plan', before: 22, after: 40, color: 'info' },
+  ]}
+/>`,
+          render: (
+            <AttentionShiftBars
+              slices={[
+                {
+                  key: 'build',
+                  label: 'Build',
+                  before: 50,
+                  after: 18,
+                  color: 'brand',
+                },
+                {
+                  key: 'review',
+                  label: 'Review',
+                  before: 28,
+                  after: 42,
+                  color: 'warning',
+                },
+                {
+                  key: 'plan',
+                  label: 'Plan',
+                  before: 22,
+                  after: 40,
+                  color: 'info',
+                },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'cost-score-scatter',
+      name: 'CostScoreScatter',
+      description:
+        'Scatter of suite cost vs score. Points are host-supplied; no hardcoded models.',
+      importLine: "import { CostScoreScatter } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Tiny sample series',
+          code: `<CostScoreScatter
+  points={[
+    {
+      model: 'Alpha',
+      chartLabel: 'Alpha · high',
+      effort: 'high',
+      resolveRate: 72,
+      costPerTest: 1.2,
+      taskCount: 100,
+      color: '#3b82f6',
+    },
+    {
+      model: 'Beta',
+      chartLabel: 'Beta · max',
+      effort: 'max',
+      resolveRate: 81,
+      costPerTest: 2.5,
+      taskCount: 100,
+      color: '#22c55e',
+    },
+  ]}
+  height={280}
+/>`,
+          render: (
+            <CostScoreScatter
+              points={[
+                {
+                  model: 'Alpha',
+                  chartLabel: 'Alpha · high',
+                  effort: 'high',
+                  resolveRate: 72,
+                  costPerTest: 1.2,
+                  taskCount: 100,
+                  color: '#3b82f6',
+                },
+                {
+                  model: 'Beta',
+                  chartLabel: 'Beta · max',
+                  effort: 'max',
+                  resolveRate: 81,
+                  costPerTest: 2.5,
+                  taskCount: 100,
+                  color: '#22c55e',
+                },
+                {
+                  model: 'Gamma',
+                  chartLabel: 'Gamma · default',
+                  effort: 'default',
+                  resolveRate: 64,
+                  costPerTest: 0.8,
+                  taskCount: 100,
+                  color: '#a855f7',
+                },
+              ]}
+              height={280}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'cost-score-board',
+      name: 'CostScoreBoard',
+      description:
+        'Filterable cost/score board: benchmark pills, model filter, scatter, optional data table.',
+      importLine: "import { CostScoreBoard } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Fictional board',
+          code: `<CostScoreBoard
+  points={[
+    {
+      model: 'Alpha',
+      chartLabel: 'Alpha · high',
+      effort: 'high',
+      harness: 'Demo harness',
+      benchmark: 'suite-a',
+      benchmarkLabel: 'Suite A',
+      taskCount: 100,
+      resolveRate: 72,
+      costPerTest: 1.2,
+      totalCost: 120,
+      inputPerM: 3,
+      outputPerM: 15,
+      color: '#3b82f6',
+      scoreSource: '#',
+      priceSource: '#',
+    },
+  ]}
+/>`,
+          render: (
+            <CostScoreBoard
+              points={[
+                {
+                  model: 'Alpha',
+                  chartLabel: 'Alpha · high',
+                  effort: 'high',
+                  harness: 'Demo harness',
+                  benchmark: 'suite-a',
+                  benchmarkLabel: 'Suite A',
+                  taskCount: 100,
+                  resolveRate: 72,
+                  costPerTest: 1.2,
+                  totalCost: 120,
+                  inputPerM: 3,
+                  outputPerM: 15,
+                  color: '#3b82f6',
+                  scoreSource: '#alpha',
+                  priceSource: '#price',
+                },
+                {
+                  model: 'Beta',
+                  chartLabel: 'Beta · max',
+                  effort: 'max',
+                  harness: 'Demo harness',
+                  benchmark: 'suite-a',
+                  benchmarkLabel: 'Suite A',
+                  taskCount: 100,
+                  resolveRate: 81,
+                  costPerTest: 2.5,
+                  totalCost: 250,
+                  inputPerM: 5,
+                  outputPerM: 25,
+                  color: '#22c55e',
+                  scoreSource: '#beta',
+                  priceSource: '#price',
+                },
+                {
+                  model: 'Alpha',
+                  chartLabel: 'Alpha · high',
+                  effort: 'high',
+                  harness: 'Alt harness',
+                  benchmark: 'suite-b',
+                  benchmarkLabel: 'Suite B',
+                  taskCount: 50,
+                  resolveRate: 68,
+                  costPerTest: 0.9,
+                  totalCost: 45,
+                  inputPerM: 3,
+                  outputPerM: 15,
+                  color: '#3b82f6',
+                  scoreSource: '#alpha-b',
+                  priceSource: '#price',
+                },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'resolve-rate-trend',
+      name: 'ResolveRateTrend',
+      description:
+        'Quarterly resolve-rate scatter with frontier envelope. Optional labelMap for short names.',
+      importLine: "import { ResolveRateTrend } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample quarters',
+          code: `<ResolveRateTrend
+  points={[
+    { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+    { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+    { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+  ]}
+  labelMap={{ 'Alpha-1': 'A1', 'Alpha-2': 'A2', 'Beta-1': 'B1' }}
+  height={280}
+/>`,
+          render: (
+            <ResolveRateTrend
+              points={[
+                { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
+                { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
+                { period: '2025 Q3', model: 'Beta-1', resolveRate: 71 },
+              ]}
+              labelMap={{
+                'Alpha-1': 'A1',
+                'Alpha-2': 'A2',
+                'Beta-1': 'B1',
+              }}
+              height={280}
             />
           ),
         },
