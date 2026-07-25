@@ -405,10 +405,15 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Attributed',
-          code: '<Quote cite="Name, Title@Org" source={<>Venue, Jun 2026</>}>…</Quote>',
+          code: `<Quote
+  cite="A. North, Lead@Northstar"
+  source={<>Sample podcast, 2026</>}
+>
+  Ship the harness before the model.
+</Quote>`,
           render: (
-            <Quote cite="Fiona Fung, Manager of Claude Code@Anthropic" source={<>Lenny’s Podcast, Jun 2026</>}>
-              Coding is no longer the bottleneck.
+            <Quote cite="A. North, Lead@Northstar" source={<>Sample podcast, 2026</>}>
+              Ship the harness before the model.
             </Quote>
           ),
         },
@@ -422,7 +427,14 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Shell',
-          code: '<FullBleedFigure title="Figure 1" caption="Caption">…</FullBleedFigure>',
+          code: `<FullBleedFigure title="Figure 1 · Sample" caption="Caption only.">
+  <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
+    Chart region
+  </div>
+  <FigureDataTableToggle>
+    <Text size="sm">Hidden data table region</Text>
+  </FigureDataTableToggle>
+</FullBleedFigure>`,
           render: (
             <FullBleedFigure title="Figure 1 · Sample" caption="Caption only.">
               <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
@@ -447,7 +459,41 @@ export const slimSection: DocSection = {
           title: 'Inline markers',
           code: `<Text>
   Throughput rose after the harness landed
-  <RefCite items={[{ n: 1, author: 'A. North', … }]} />.
+  <RefCite
+    items={[
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+    ]}
+  />. Two sources can stack
+  <RefCite
+    items={[
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ]}
+  /> when a claim needs dual backing.
 </Text>`,
           render: (
             <Text>
@@ -468,9 +514,56 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Diagram footer cites',
-          code: `<svg viewBox="0 0 320 80" className="w-full">
-  <rect … />
-  <SvgRefCite items={items} x={160} y={64} fontSize={11} />
+          code: `<svg
+  viewBox="0 0 320 80"
+  className="w-full max-w-md text-[var(--brand-primary)]"
+  role="img"
+  aria-label="Sample diagram with citation markers"
+>
+  <rect
+    x={24}
+    y={12}
+    width={272}
+    height={36}
+    rx={6}
+    fill="var(--bg-color)"
+    stroke="var(--border-color)"
+  />
+  <text
+    x={160}
+    y={34}
+    textAnchor="middle"
+    dominantBaseline="middle"
+    className="fill-[var(--strong-text-color)]"
+    style={{ fontSize: 12 }}
+  >
+    Sample diagram region
+  </text>
+  <SvgRefCite
+    items={[
+      {
+        n: 1,
+        author: 'A. North',
+        date: '2025-03',
+        dateLabel: 'Mar 2025',
+        publisher: 'Sample Press',
+        title: 'Measuring review throughput in small teams',
+        summary: 'Field note on how review latency shapes release cadence.',
+      },
+      {
+        n: 2,
+        author: 'B. Vale',
+        date: '2024-11',
+        dateLabel: 'Nov 2024',
+        publisher: 'Toolkit Journal',
+        title: 'Harness patterns for long-running agents',
+        summary: 'Checklist of evals, hooks, and docs that keep agents honest.',
+      },
+    ]}
+    x={160}
+    y={64}
+    fontSize={11}
+  />
 </svg>`,
           render: (
             <svg
@@ -512,7 +605,14 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Card',
-          code: '<Card><CardContent>…</CardContent></Card>',
+          code: `<Card>
+  <CardContent className="p-4">
+    <Title size={5}>Topic</Title>
+    <Text size="sm" tone="secondary">
+      Deck line
+    </Text>
+  </CardContent>
+</Card>`,
           render: (
             <Card>
               <CardContent className="p-4">
@@ -534,7 +634,20 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Basic',
-          code: '<Table>…</Table>',
+          code: `<Table>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Model</TableHeaderCell>
+      <TableHeaderCell>Score</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>A</TableCell>
+      <TableCell>90</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`,
           render: (
             <Table>
               <TableHead>
@@ -562,7 +675,12 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Bar',
-          code: '<Chart type="bar" labels={[…]} series={[…]} />',
+          code: `<Chart
+  type="bar"
+  labels={['X', 'Y']}
+  series={[{ label: 'v', data: [3, 7], color: 'brand' }]}
+  height={180}
+/>`,
           render: (
             <Chart
               type="bar"
@@ -582,7 +700,10 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Hero',
-          code: '<PageHero eyebrow="…" title="…" lead="…" />',
+          code: `<PageHero
+  title="Thesis line"
+  lead="Short lede under the title."
+/>`,
           render: (
             <PageHero
               title="Thesis line"
@@ -600,7 +721,10 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Header',
-          code: '<SiteHeader brand={…} actions={…} />',
+          code: `<SiteHeader
+  brand={<Text weight="semibold">GLT Research</Text>}
+  actions={<Text size="sm">Theme</Text>}
+/>`,
           render: (
             <SiteHeader
               brand={<Text weight="semibold">GLT Research</Text>}
@@ -618,7 +742,7 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Footer',
-          code: '<SiteFooter>…</SiteFooter>',
+          code: '<SiteFooter>powered by GLT-UI</SiteFooter>',
           render: <SiteFooter>powered by GLT-UI</SiteFooter>,
         },
       ],
@@ -661,7 +785,11 @@ export const slimSection: DocSection = {
   eyebrow="Catalog"
   title="Active series"
   description="Open a topic for the full argument."
-  meta={<Text size="sm" tone="secondary">2 topics</Text>}
+  meta={
+    <Text as="p" size="sm" tone="secondary" className="font-mono">
+      2 topics
+    </Text>
+  }
 />`,
           render: (
             <SectionIntro
@@ -687,12 +815,21 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Scroll target',
-          code: `<HashScrollCta
-  targetId="demo-catalog"
-  className="font-semibold text-[var(--brand-primary)]"
->
-  Browse catalog ↓
-</HashScrollCta>`,
+          code: `<div className="space-y-4">
+  <HashScrollCta
+    targetId="demo-catalog"
+    className="inline-flex items-center gap-2 font-semibold text-[var(--brand-primary)] no-underline"
+  >
+    Browse catalog
+    <span aria-hidden>↓</span>
+  </HashScrollCta>
+  <div
+    id="demo-catalog"
+    className="rounded-[var(--radius-card)] border border-dashed border-[var(--border-color)] px-4 py-6 text-sm text-[var(--secondary-text-color)]"
+  >
+    Demo catalog target
+  </div>
+</div>`,
           render: (
             <div className="space-y-4">
               <HashScrollCta
@@ -728,10 +865,20 @@ export const slimSection: DocSection = {
       id: 'alpha',
       href: '#alpha',
       title: 'Sample research series',
-      summary: 'A fictional topic for the design-system demo.',
+      summary:
+        'A fictional topic for the design-system demo — not portal registry data.',
       date: '2026-01',
       status: 'active',
       tags: ['demo', 'catalog'],
+    },
+    {
+      id: 'beta',
+      href: '#beta',
+      title: 'Second sample series',
+      summary: 'Another placeholder card showing multi-item layout.',
+      date: '2026-03',
+      status: 'draft',
+      tags: ['demo'],
     },
   ]}
 />`,
@@ -775,11 +922,11 @@ export const slimSection: DocSection = {
           code: `<MethodPillars
   eyebrow="Method"
   title="Built for scrutiny."
-  description="Short sample description for the demo."
+  description="Short sample description for the demo — host supplies all copy."
   pillars={[
-    { title: 'Claim', body: 'Open with a thesis.' },
-    { title: 'Evidence', body: 'Cite primary sources.' },
-    { title: 'Deck', body: 'Ship a walkthrough.' },
+    { title: 'Claim', body: 'Open with a thesis you can defend.' },
+    { title: 'Evidence', body: 'Cite primary sources beside the argument.' },
+    { title: 'Deck', body: 'Ship a presentation-ready walkthrough.' },
   ]}
 />`,
           render: (
@@ -808,17 +955,43 @@ export const slimSection: DocSection = {
           code: `<ProcessBand
   eyebrow="Authorship"
   title="How the work is made."
-  description="Sample process copy for the design-system demo."
+  description="Sample process copy for the design-system demo — not portal registry data."
+  credit={
+    <p className="m-0 font-mono text-sm text-[var(--brand-primary)]">
+      Demo · Co-authored sample
+    </p>
+  }
   nodes={[
     { id: 'observe', label: 'Observe', sublabel: 'Field' },
     { id: 'build', label: 'Build', sublabel: 'Harness' },
     { id: 'ship', label: 'Ship', sublabel: 'Publish' },
   ]}
-  loop={{ from: 'build', to: 'ship', caption: 'QUALITY LOOP' }}
+  loop={{
+    from: 'build',
+    to: 'ship',
+    caption: 'QUALITY LOOP',
+    forwardLabel: 'refine →',
+    backLabel: '← feedback',
+  }}
   steps={[
-    { id: 'observe', short: 'Observe', title: 'Watch', body: 'Start from signals.' },
-    { id: 'build', short: 'Build', title: 'Research', body: 'Harnessed investigation.' },
-    { id: 'ship', short: 'Ship', title: 'Publish', body: 'Release the package.' },
+    {
+      id: 'observe',
+      short: 'Observe',
+      title: 'Field signals',
+      body: 'Start from real industry signals in the domain of judgment.',
+    },
+    {
+      id: 'build',
+      short: 'Build',
+      title: 'Harnessed research',
+      body: 'Autonomous research through a multi-agent fact-check loop.',
+    },
+    {
+      id: 'ship',
+      short: 'Ship',
+      title: 'Publish',
+      body: 'Release a presentation-ready package on the portal.',
+    },
   ]}
 />`,
           render: (
