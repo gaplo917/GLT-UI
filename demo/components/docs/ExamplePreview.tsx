@@ -1,13 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { CodeBlock } from 'glt-ui';
 import type { DocExample } from './types';
 
 /**
- * Renders one documentation example: a live preview surface stacked above its
- * source snippet (collapsible). The preview and the code are authored together
- * so what you see is what the snippet produces.
+ * Renders one documentation example: live preview + collapsible source.
+ * Source is a plain <pre> (CodeBlock was removed from the slim package).
  */
 export function ExamplePreview({ example }: { example: DocExample }) {
   const [showCode, setShowCode] = React.useState(true);
@@ -36,7 +34,9 @@ export function ExamplePreview({ example }: { example: DocExample }) {
 
       {showCode && (
         <div className="border-t border-[var(--border-color)]">
-          <CodeBlock code={example.code} lang={example.lang ?? 'tsx'} copyable />
+          <pre className="overflow-x-auto bg-[var(--card-bg-color)] p-4 text-xs leading-relaxed text-[var(--text-color)]">
+            <code>{example.code}</code>
+          </pre>
         </div>
       )}
     </section>

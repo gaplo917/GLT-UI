@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Badge, Code, CodeBlock } from 'glt-ui';
+import { Badge } from 'glt-ui';
 import { ExamplePreview } from './ExamplePreview';
 import type { DocEntry, DocPropsTable, DocSection } from './types';
 
@@ -189,7 +189,9 @@ function EntryView({ entry }: { entry: DocEntry }) {
         <p className="mt-3 max-w-2xl text-lg leading-relaxed text-[var(--secondary-text-color)]">{entry.description}</p>
         {entry.importLine && (
           <div className="mt-5 max-w-2xl">
-            <CodeBlock code={entry.importLine} lang="tsx" copyable />
+            <pre className="overflow-x-auto rounded-lg border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3 text-xs leading-relaxed text-[var(--text-color)]">
+              <code>{entry.importLine}</code>
+            </pre>
           </div>
         )}
       </header>
@@ -236,7 +238,7 @@ function PropsTable({ table, fallbackTitle }: { table: DocPropsTable; fallbackTi
             {table.props.map((p) => (
               <tr key={p.name} className="border-b border-[var(--border-color)] last:border-0 align-top">
                 <td className="whitespace-nowrap px-5 py-3">
-                  <Code>{p.name}</Code>
+                  <code className="font-mono text-xs">{p.name}</code>
                   {p.required && (
                     <Badge variant="danger" size="sm" className="ml-1.5 align-middle">
                       required
@@ -244,11 +246,11 @@ function PropsTable({ table, fallbackTitle }: { table: DocPropsTable; fallbackTi
                   )}
                 </td>
                 <td className="px-5 py-3">
-                  <Code className="text-[var(--brand-primary)]">{p.type}</Code>
+                  <code className="font-mono text-xs text-[var(--brand-primary)]">{p.type}</code>
                 </td>
                 <td className="whitespace-nowrap px-5 py-3">
                   {p.default ? (
-                    <Code>{p.default}</Code>
+                    <code className="font-mono text-xs">{p.default}</code>
                   ) : (
                     <span className="text-[var(--secondary-text-color)]">—</span>
                   )}

@@ -55,6 +55,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "assert:slim": "node scripts/assert-slim-surface.mjs",
+    "test:slim": "npm run build && npm run assert:slim",
     "build:watch": "concurrently -k -n tsc,alias -c blue,yellow \"tsc -p tsconfig.build.json -w --preserveWatchOutput\" \"tsc-alias -p tsconfig.build.json -w\"",
     "prepublishOnly": "npm run build",
     "predev": "npm run build",
@@ -75,7 +77,6 @@
   "dependencies": {
     "chart.js": "^4.5.1",
     "clsx": "^2",
-    "shiki": "^4.3.1",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
