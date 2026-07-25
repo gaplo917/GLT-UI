@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import {
+  AgentHarnessDiagram,
   AttentionShiftBars,
   Badge,
   Button,
@@ -9,20 +10,24 @@ import {
   Card,
   CardContent,
   CatalogList,
+  CausalShiftDiagram,
   Chart,
   Checkbox,
   Container,
   CostScoreBoard,
   CostScoreScatter,
   Divider,
+  FeedbackLoopsDiagram,
   FigureDataTableToggle,
   FullBleedFigure,
   Grid,
   HashScrollCta,
   Icon,
+  KnowledgeTreeMap,
   List,
   ListItem,
   MethodPillars,
+  MetricSparkBoard,
   PageHero,
   ProcessBand,
   ProcessPipeline,
@@ -33,6 +38,7 @@ import {
   SiteFooter,
   SiteHeader,
   Spinner,
+  StepLoopFlow,
   SvgRefCite,
   Table,
   TableBody,
@@ -993,6 +999,322 @@ export const slimSection: DocSection = {
                 'Beta-1': 'B1',
               }}
               height={280}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'metric-spark-board',
+      name: 'MetricSparkBoard',
+      description:
+        'Fluid SVG metric tiles with sparklines. Host supplies metrics (and optional cites).',
+      importLine: "import { MetricSparkBoard } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample fleet tiles',
+          code: `<MetricSparkBoard
+  metrics={[
+    { id: 'cycle', label: 'Cycle time', value: '−40%', hint: 'Demo ops · Q2', trend: [10, 9, 8, 7, 6], trendIntent: 'success' },
+    { id: 'nps', label: 'NPS', value: '+18', hint: 'Survey · n=120', trend: [20, 22, 28, 32, 38], trendIntent: 'brand' },
+  ]}
+/>`,
+          render: (
+            <MetricSparkBoard
+              title="Sample fleet metrics"
+              description="Fictional cycle time and NPS tiles for the design-system demo."
+              metrics={[
+                {
+                  id: 'cycle',
+                  label: 'Cycle time',
+                  value: '−40%',
+                  hint: 'Demo ops · Q2',
+                  trend: [10, 9, 8, 7, 6.2, 5.8],
+                  trendIntent: 'success',
+                },
+                {
+                  id: 'nps',
+                  label: 'NPS',
+                  value: '+18',
+                  hint: 'Survey · n=120',
+                  trend: [20, 22, 28, 32, 35, 38],
+                  trendIntent: 'brand',
+                },
+                {
+                  id: 'uptime',
+                  label: 'Uptime',
+                  value: '99.9%',
+                  hint: 'Rolling 90d',
+                  trend: [99.2, 99.4, 99.5, 99.7, 99.8, 99.9],
+                  trendIntent: 'brand',
+                },
+                {
+                  id: 'cost',
+                  label: 'Unit cost',
+                  value: '−22%',
+                  hint: 'Infra · YoY',
+                  trend: [12, 11, 10.5, 10, 9.5, 9.4],
+                  trendIntent: 'success',
+                },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'causal-shift-diagram',
+      name: 'CausalShiftDiagram',
+      description:
+        'Two causal chains with vertical link chips and a center flip. Host supplies cards and links.',
+      importLine: "import { CausalShiftDiagram } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample before / after',
+          code: `<CausalShiftDiagram
+  leftHeader="Before"
+  rightHeader="After"
+  leftChain={[{ id: 'l1', title: 'Manual intake', detail: 'Tickets wait on people', highlight: true }]}
+  rightChain={[{ id: 'r1', title: 'Auto triage', detail: 'Queue sorts itself', highlight: true }]}
+  leftLinks={[]}
+  rightLinks={[]}
+/>`,
+          render: (
+            <CausalShiftDiagram
+              title="Sample ops flip"
+              description="Fictional before/after causal chains for the design-system demo."
+              claim="Same backlog. Different bottleneck."
+              claimSub="People bound intake first. Policy bounds it after automation."
+              leftHeader="Before automation"
+              rightHeader="After automation"
+              footer="Intake got cheap. Policy still sets the pace."
+              leftChain={[
+                {
+                  id: 'l1',
+                  title: 'Manual intake',
+                  detail: 'Tickets wait on people',
+                  highlight: true,
+                },
+                {
+                  id: 'l2',
+                  title: 'Ad-hoc routing',
+                  detail: 'Experts re-sort the queue',
+                },
+                {
+                  id: 'l3',
+                  title: 'Late review',
+                  detail: 'QA sees work after ship pressure',
+                },
+              ]}
+              rightChain={[
+                {
+                  id: 'r1',
+                  title: 'Auto triage',
+                  detail: 'Queue sorts itself',
+                },
+                {
+                  id: 'r2',
+                  title: 'Policy is the bottleneck',
+                  detail: 'Rules and exceptions set the calendar',
+                  highlight: true,
+                },
+                {
+                  id: 'r3',
+                  title: 'Continuous review',
+                  detail: 'Checks run with every batch',
+                },
+              ]}
+              leftLinks={['routing stays manual', 'review stays late']}
+              rightLinks={['policy becomes the limit', 'review stays continuous']}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'feedback-loops-diagram',
+      name: 'FeedbackLoopsDiagram',
+      description:
+        'Animated multi-loop diagram with pace labels and interstitial nodes. Host supplies loops and nodes.',
+      importLine: "import { FeedbackLoopsDiagram } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Three sample loops',
+          code: `<FeedbackLoopsDiagram
+  heading="3 product loops"
+  loops={[
+    { id: 'inner', titleTop: 'Inner', titleBot: 'Build Loop', pace: '~minutes' },
+  ]}
+  nodes={[{ lines: ['Builder'] }, { lines: ['Spec'] }]}
+/>`,
+          render: (
+            <FeedbackLoopsDiagram
+              title="Sample product loops"
+              description="Fictional three-loop diagram for the design-system demo."
+              heading="3 product feedback loops"
+              loops={[
+                {
+                  id: 'inner',
+                  titleTop: 'Inner',
+                  titleBot: 'Build Loop',
+                  pace: '~minutes',
+                },
+                {
+                  id: 'team',
+                  titleTop: 'Team',
+                  titleBot: 'Review Loop',
+                  pace: '~hours',
+                },
+                {
+                  id: 'market',
+                  titleTop: 'Market',
+                  titleBot: 'Signal Loop',
+                  pace: '~days',
+                },
+              ]}
+              nodes={[
+                { lines: ['Builder', 'agent'] },
+                { lines: ['Spec', 'suite'] },
+                { lines: ['Team', 'vision'] },
+                { lines: ['Market', 'signal'] },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'step-loop-flow',
+      name: 'StepLoopFlow',
+      description:
+        'Closed step loop: top-row pipeline plus a return node underneath. Host supplies steps.',
+      importLine: "import { StepLoopFlow } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample daily loop',
+          code: `<StepLoopFlow
+  steps={[
+    { n: '01', label: 'Queue', detail: 'Pick work' },
+    { n: '02', label: 'Draft', detail: 'Propose', tone: 'brand' },
+    { n: '03', label: 'Check', detail: 'Verify', tone: 'brand' },
+    { n: '04', label: 'Ship', detail: 'Merge' },
+    { n: '05', label: 'Owner', detail: 'Exceptions', tone: 'brand' },
+  ]}
+/>`,
+          render: (
+            <StepLoopFlow
+              title="Sample work loop"
+              description="Fictional closed step loop for the design-system demo."
+              returnLabel="↻ next ticket"
+              steps={[
+                { n: '01', label: 'Queue', detail: 'Pick work' },
+                { n: '02', label: 'Branch', detail: 'Isolate' },
+                { n: '03', label: 'Draft', detail: 'Propose', tone: 'brand' },
+                { n: '04', label: 'Check', detail: 'Verify', tone: 'brand' },
+                { n: '05', label: 'Ship', detail: 'Merge' },
+                { n: '06', label: 'Owner', detail: 'Exceptions', tone: 'brand' },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'agent-harness-diagram',
+      name: 'AgentHarnessDiagram',
+      description:
+        'Harness architecture: guides, sensors, agent, durable state. Host supplies tile lists and labels.',
+      importLine: "import { AgentHarnessDiagram } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample harness tiles',
+          code: `<AgentHarnessDiagram
+  guideItems={['Playbooks', 'Templates']}
+  sensorItems={['Lint gates', 'Trace hooks']}
+/>`,
+          render: (
+            <AgentHarnessDiagram
+              title="Sample harness"
+              description="Fictional agent harness architecture for the design-system demo."
+              guideItems={[
+                'Playbooks',
+                'Templates',
+                'Style rules',
+                'API maps',
+              ]}
+              sensorItems={[
+                'Lint gates',
+                'Trace hooks',
+                'Cost caps',
+                'Retry policy',
+              ]}
+              labels={{
+                diagramTitle: 'Runner = Model + Harness',
+                human: 'Operator',
+                humanSteering: 'Steering',
+                humanGoals: 'Goals · ship',
+                agent: 'Task runner',
+                agentSub: 'Model + tools',
+                durableState: 'Shared memory',
+                durableStateSub: 'Lives outside the prompt',
+                ratchet: 'Each miss becomes a permanent harness rule',
+              }}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'knowledge-tree-map',
+      name: 'KnowledgeTreeMap',
+      description:
+        'Map-in-context vs encyclopedia-on-disk tree. Host supplies the tree and chrome labels.',
+      importLine: "import { KnowledgeTreeMap } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample knowledge tree',
+          code: `<KnowledgeTreeMap
+  mapName="MAP.md"
+  tree={[
+    { name: 'MAP.md', kind: 'map' },
+    { name: 'docs/', kind: 'folder', children: [{ name: 'overview.md', kind: 'leaf' }] },
+  ]}
+/>`,
+          render: (
+            <KnowledgeTreeMap
+              title="Sample knowledge map"
+              description="Fictional progressive-disclosure tree for the design-system demo."
+              claim="Map in context · encyclopedia on disk"
+              claimSub="Open only the branch needed"
+              mapName="MAP.md"
+              mapMeta={['~80 lines', 'table of contents']}
+              tree={[
+                { name: 'MAP.md', kind: 'map' },
+                { name: 'OVERVIEW.md', kind: 'file' },
+                {
+                  name: 'docs/',
+                  kind: 'folder',
+                  children: [
+                    {
+                      name: 'guides/',
+                      kind: 'folder',
+                      children: [
+                        { name: 'onboarding.md', kind: 'leaf' },
+                        { name: '…', kind: 'ellipsis' },
+                      ],
+                    },
+                    {
+                      name: 'runbooks/',
+                      kind: 'folder',
+                      children: [
+                        { name: 'deploy.md', kind: 'leaf' },
+                        { name: 'rollback.md', kind: 'leaf' },
+                      ],
+                    },
+                    { name: 'GLOSSARY.md', kind: 'leaf' },
+                  ],
+                },
+              ]}
             />
           ),
         },

@@ -28,17 +28,23 @@ export * from './molecules/SectionIntro/SectionIntro.js';
 export * from './molecules/SvgRefCite/index.js';
 
 // organisms
+export * from './organisms/AgentHarnessDiagram/AgentHarnessDiagram.js';
 export * from './organisms/AttentionShiftBars/AttentionShiftBars.js';
 export * from './organisms/Card/Card.js';
 export * from './organisms/CatalogList/CatalogList.js';
+export * from './organisms/CausalShiftDiagram/CausalShiftDiagram.js';
 export * from './organisms/Chart/Chart.js';
 export * from './organisms/CostScoreBoard/CostScoreBoard.js';
 export * from './organisms/CostScoreScatter/CostScoreScatter.js';
+export * from './organisms/FeedbackLoopsDiagram/FeedbackLoopsDiagram.js';
+export * from './organisms/KnowledgeTreeMap/KnowledgeTreeMap.js';
 export * from './organisms/MethodPillars/MethodPillars.js';
+export * from './organisms/MetricSparkBoard/MetricSparkBoard.js';
 export * from './organisms/PageHero/PageHero.js';
 export * from './organisms/ProcessBand/ProcessBand.js';
 export * from './organisms/ProcessPipeline/ProcessPipeline.js';
 export * from './organisms/ResolveRateTrend/ResolveRateTrend.js';
 export * from './organisms/SiteFooter/SiteFooter.js';
 export * from './organisms/SiteHeader/SiteHeader.js';
+export * from './organisms/StepLoopFlow/StepLoopFlow.js';
 export * from './organisms/Table/Table.js';
