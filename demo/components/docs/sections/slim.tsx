@@ -1116,6 +1116,15 @@ export const slimSection: DocSection = {
       taskCount: 100,
       color: '#22c55e',
     },
+    {
+      model: 'Gamma',
+      chartLabel: 'Gamma · default',
+      effort: 'default',
+      resolveRate: 64,
+      costPerTest: 0.8,
+      taskCount: 100,
+      color: '#a855f7',
+    },
   ]}
   height={280}
 />`,
@@ -1181,8 +1190,42 @@ export const slimSection: DocSection = {
       inputPerM: 3,
       outputPerM: 15,
       color: '#3b82f6',
-      scoreSource: '#',
-      priceSource: '#',
+      scoreSource: '#alpha',
+      priceSource: '#price',
+    },
+    {
+      model: 'Beta',
+      chartLabel: 'Beta · max',
+      effort: 'max',
+      harness: 'Demo harness',
+      benchmark: 'suite-a',
+      benchmarkLabel: 'Suite A',
+      taskCount: 100,
+      resolveRate: 81,
+      costPerTest: 2.5,
+      totalCost: 250,
+      inputPerM: 5,
+      outputPerM: 25,
+      color: '#22c55e',
+      scoreSource: '#beta',
+      priceSource: '#price',
+    },
+    {
+      model: 'Alpha',
+      chartLabel: 'Alpha · high',
+      effort: 'high',
+      harness: 'Alt harness',
+      benchmark: 'suite-b',
+      benchmarkLabel: 'Suite B',
+      taskCount: 50,
+      resolveRate: 68,
+      costPerTest: 0.9,
+      totalCost: 45,
+      inputPerM: 3,
+      outputPerM: 15,
+      color: '#3b82f6',
+      scoreSource: '#alpha-b',
+      priceSource: '#price',
     },
   ]}
 />`,
@@ -1292,9 +1335,41 @@ export const slimSection: DocSection = {
         {
           title: 'Sample fleet tiles',
           code: `<MetricSparkBoard
+  title="Sample fleet metrics"
+  description="Fictional cycle time and NPS tiles for the design-system demo."
   metrics={[
-    { id: 'cycle', label: 'Cycle time', value: '−40%', hint: 'Demo ops · Q2', trend: [10, 9, 8, 7, 6], trendIntent: 'success' },
-    { id: 'nps', label: 'NPS', value: '+18', hint: 'Survey · n=120', trend: [20, 22, 28, 32, 38], trendIntent: 'brand' },
+    {
+      id: 'cycle',
+      label: 'Cycle time',
+      value: '−40%',
+      hint: 'Demo ops · Q2',
+      trend: [10, 9, 8, 7, 6.2, 5.8],
+      trendIntent: 'success',
+    },
+    {
+      id: 'nps',
+      label: 'NPS',
+      value: '+18',
+      hint: 'Survey · n=120',
+      trend: [20, 22, 28, 32, 35, 38],
+      trendIntent: 'brand',
+    },
+    {
+      id: 'uptime',
+      label: 'Uptime',
+      value: '99.9%',
+      hint: 'Rolling 90d',
+      trend: [99.2, 99.4, 99.5, 99.7, 99.8, 99.9],
+      trendIntent: 'brand',
+    },
+    {
+      id: 'cost',
+      label: 'Unit cost',
+      value: '−22%',
+      hint: 'Infra · YoY',
+      trend: [12, 11, 10.5, 10, 9.5, 9.4],
+      trendIntent: 'success',
+    },
   ]}
 />`,
           render: (
@@ -1350,12 +1425,51 @@ export const slimSection: DocSection = {
         {
           title: 'Sample before / after',
           code: `<CausalShiftDiagram
-  leftHeader="Before"
-  rightHeader="After"
-  leftChain={[{ id: 'l1', title: 'Manual intake', detail: 'Tickets wait on people', highlight: true }]}
-  rightChain={[{ id: 'r1', title: 'Auto triage', detail: 'Queue sorts itself', highlight: true }]}
-  leftLinks={[]}
-  rightLinks={[]}
+  title="Sample ops flip"
+  description="Fictional before/after causal chains for the design-system demo."
+  claim="Same backlog. Different bottleneck."
+  claimSub="People bound intake first. Policy bounds it after automation."
+  leftHeader="Before automation"
+  rightHeader="After automation"
+  footer="Intake got cheap. Policy still sets the pace."
+  leftChain={[
+    {
+      id: 'l1',
+      title: 'Manual intake',
+      detail: 'Tickets wait on people',
+      highlight: true,
+    },
+    {
+      id: 'l2',
+      title: 'Ad-hoc routing',
+      detail: 'Experts re-sort the queue',
+    },
+    {
+      id: 'l3',
+      title: 'Late review',
+      detail: 'QA sees work after ship pressure',
+    },
+  ]}
+  rightChain={[
+    {
+      id: 'r1',
+      title: 'Auto triage',
+      detail: 'Queue sorts itself',
+    },
+    {
+      id: 'r2',
+      title: 'Policy is the bottleneck',
+      detail: 'Rules and exceptions set the calendar',
+      highlight: true,
+    },
+    {
+      id: 'r3',
+      title: 'Continuous review',
+      detail: 'Checks run with every batch',
+    },
+  ]}
+  leftLinks={['routing stays manual', 'review stays late']}
+  rightLinks={['policy becomes the limit', 'review stays continuous']}
 />`,
           render: (
             <CausalShiftDiagram
@@ -1419,11 +1533,35 @@ export const slimSection: DocSection = {
         {
           title: 'Three sample loops',
           code: `<FeedbackLoopsDiagram
-  heading="3 product loops"
+  title="Sample product loops"
+  description="Fictional three-loop diagram for the design-system demo."
+  heading="3 product feedback loops"
   loops={[
-    { id: 'inner', titleTop: 'Inner', titleBot: 'Build Loop', pace: '~minutes' },
+    {
+      id: 'inner',
+      titleTop: 'Inner',
+      titleBot: 'Build Loop',
+      pace: '~minutes',
+    },
+    {
+      id: 'team',
+      titleTop: 'Team',
+      titleBot: 'Review Loop',
+      pace: '~hours',
+    },
+    {
+      id: 'market',
+      titleTop: 'Market',
+      titleBot: 'Signal Loop',
+      pace: '~days',
+    },
   ]}
-  nodes={[{ lines: ['Builder'] }, { lines: ['Spec'] }]}
+  nodes={[
+    { lines: ['Builder', 'agent'] },
+    { lines: ['Spec', 'suite'] },
+    { lines: ['Team', 'vision'] },
+    { lines: ['Market', 'signal'] },
+  ]}
 />`,
           render: (
             <FeedbackLoopsDiagram
@@ -1471,12 +1609,16 @@ export const slimSection: DocSection = {
         {
           title: 'Sample daily loop',
           code: `<StepLoopFlow
+  title="Sample work loop"
+  description="Fictional closed step loop for the design-system demo."
+  returnLabel="↻ next ticket"
   steps={[
     { n: '01', label: 'Queue', detail: 'Pick work' },
-    { n: '02', label: 'Draft', detail: 'Propose', tone: 'brand' },
-    { n: '03', label: 'Check', detail: 'Verify', tone: 'brand' },
-    { n: '04', label: 'Ship', detail: 'Merge' },
-    { n: '05', label: 'Owner', detail: 'Exceptions', tone: 'brand' },
+    { n: '02', label: 'Branch', detail: 'Isolate' },
+    { n: '03', label: 'Draft', detail: 'Propose', tone: 'brand' },
+    { n: '04', label: 'Check', detail: 'Verify', tone: 'brand' },
+    { n: '05', label: 'Ship', detail: 'Merge' },
+    { n: '06', label: 'Owner', detail: 'Exceptions', tone: 'brand' },
   ]}
 />`,
           render: (
@@ -1507,8 +1649,31 @@ export const slimSection: DocSection = {
         {
           title: 'Sample harness tiles',
           code: `<AgentHarnessDiagram
-  guideItems={['Playbooks', 'Templates']}
-  sensorItems={['Lint gates', 'Trace hooks']}
+  title="Sample harness"
+  description="Fictional agent harness architecture for the design-system demo."
+  guideItems={[
+    'Playbooks',
+    'Templates',
+    'Style rules',
+    'API maps',
+  ]}
+  sensorItems={[
+    'Lint gates',
+    'Trace hooks',
+    'Cost caps',
+    'Retry policy',
+  ]}
+  labels={{
+    diagramTitle: 'Runner = Model + Harness',
+    human: 'Operator',
+    humanSteering: 'Steering',
+    humanGoals: 'Goals · ship',
+    agent: 'Task runner',
+    agentSub: 'Model + tools',
+    durableState: 'Shared memory',
+    durableStateSub: 'Lives outside the prompt',
+    ratchet: 'Each miss becomes a permanent harness rule',
+  }}
 />`,
           render: (
             <AgentHarnessDiagram
@@ -1552,24 +1717,94 @@ export const slimSection: DocSection = {
       examples: [
         {
           title: 'Sample three-slide deck',
-          code: `<PresentationStrip
+          code: `const slides = [
+  { id: 'title', num: '01', label: 'Title' },
+  { id: 'plan', num: '02', label: 'Plan' },
+  { id: 'close', num: '03', label: 'Close' },
+];
+
+const slideCopy = {
+  title: {
+    kicker: '01 · Sample deck',
+    title: 'Northstar toolkit walkthrough',
+    bullets: [],
+    hideHeader: true,
+  },
+  plan: {
+    kicker: '02 · Plan',
+    title: 'Ship the first slice',
+    bullets: [
+      'Define the success metric before building.',
+      'Keep the harness thin until the loop is honest.',
+      'Review the high-risk path first.',
+    ],
+  },
+  close: {
+    kicker: '03 · Close',
+    title: 'What to do next',
+    bullets: [
+      'Pick one metric the team already owns.',
+      'Instrument the review loop this week.',
+      'Retire one low-signal status meeting.',
+    ],
+  },
+};
+
+function renderSlide(_i, slide) {
+  const copy = slideCopy[slide.id] ?? slideCopy.plan;
+  if (copy.hideHeader) {
+    return (
+      <PresentationSlideFrame
+        slideId={slide.id}
+        slideNum={slide.num}
+        hideHeader
+        className="shadow-sm"
+      >
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-10 text-center">
+          <p className="m-0 text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-primary)]">
+            {copy.kicker}
+          </p>
+          <h2 className="m-0 mt-5 max-w-[34rem] text-[34px] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--strong-text-color)]">
+            {copy.title}
+          </h2>
+          <p className="m-0 mt-8 text-[13px] text-[var(--secondary-text-color)]">
+            Sample kit demo · host supplies brand meta
+          </p>
+        </div>
+      </PresentationSlideFrame>
+    );
+  }
+  return (
+    <PresentationSlideFrame
+      slideId={slide.id}
+      slideNum={slide.num}
+      kicker={copy.kicker}
+      title={copy.title}
+      brandMeta={
+        <>
+          kit.demo
+          <br />
+          <span className="font-normal normal-case tracking-normal">Sample deck</span>
+        </>
+      }
+      className="shadow-sm"
+    >
+      <ul className="m-0 flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug text-[var(--text-color)]">
+        {copy.bullets.map((b) => (
+          <li key={b}>{b}</li>
+        ))}
+      </ul>
+    </PresentationSlideFrame>
+  );
+}
+
+<PresentationStrip
   label="Presentation"
   title="Sample deck"
-  description="Host-supplied slides — double-click a thumb or open full screen."
-  slides={[
-    { id: 'title', num: '01', label: 'Title' },
-    { id: 'plan', num: '02', label: 'Plan' },
-    { id: 'close', num: '03', label: 'Close' },
-  ]}
-  renderSlide={(i, slide) => (
-    <PresentationSlideFrame
-      kicker={\`\${slide.num} · Topic\`}
-      title="Slide title"
-      brandMeta="kit.demo"
-    >
-      <ul><li>Bullet one</li><li>Bullet two</li></ul>
-    </PresentationSlideFrame>
-  )}
+  description="Host-supplied slides for the design-system demo. Scroll thumbs, step, or open full screen."
+  dialogTitle="Sample presentation"
+  slides={slides}
+  renderSlide={renderSlide}
 />`,
           render: (
             <PresentationStrip
@@ -1584,9 +1819,14 @@ export const slimSection: DocSection = {
         },
         {
           title: 'FitContain',
-          code: `<div className="h-40 w-full">
+          code: `<div className="h-40 w-full rounded-lg border border-[var(--border-color)] bg-[var(--card-bg-color)]">
   <FitContain naturalW={320} naturalH={180}>
-    <div style={{ width: 320, height: 180 }}>Board</div>
+    <div
+      className="flex items-center justify-center rounded-md border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-sm font-semibold text-[var(--strong-text-color)]"
+      style={{ width: 320, height: 180 }}
+    >
+      320×180 board scaled to fit
+    </div>
   </FitContain>
 </div>`,
           render: (
@@ -1614,10 +1854,38 @@ export const slimSection: DocSection = {
         {
           title: 'Sample knowledge tree',
           code: `<KnowledgeTreeMap
+  title="Sample knowledge map"
+  description="Fictional progressive-disclosure tree for the design-system demo."
+  claim="Map in context · encyclopedia on disk"
+  claimSub="Open only the branch needed"
   mapName="MAP.md"
+  mapMeta={['~80 lines', 'table of contents']}
   tree={[
     { name: 'MAP.md', kind: 'map' },
-    { name: 'docs/', kind: 'folder', children: [{ name: 'overview.md', kind: 'leaf' }] },
+    { name: 'OVERVIEW.md', kind: 'file' },
+    {
+      name: 'docs/',
+      kind: 'folder',
+      children: [
+        {
+          name: 'guides/',
+          kind: 'folder',
+          children: [
+            { name: 'onboarding.md', kind: 'leaf' },
+            { name: '…', kind: 'ellipsis' },
+          ],
+        },
+        {
+          name: 'runbooks/',
+          kind: 'folder',
+          children: [
+            { name: 'deploy.md', kind: 'leaf' },
+            { name: 'rollback.md', kind: 'leaf' },
+          ],
+        },
+        { name: 'GLOSSARY.md', kind: 'leaf' },
+      ],
+    },
   ]}
 />`,
           render: (
