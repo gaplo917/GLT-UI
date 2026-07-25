@@ -17,6 +17,8 @@ import {
   CostScoreBoard,
   CostScoreScatter,
   Divider,
+  ExecBriefListItem,
+  ExecBriefSheet,
   FeedbackLoopsDiagram,
   FigureDataTableToggle,
   FitContain,
@@ -30,8 +32,14 @@ import {
   MethodPillars,
   MetricSparkBoard,
   PageHero,
+  PresentationBulletList,
+  PresentationDecisionCallout,
+  PresentationFigureKeypoints,
+  PresentationMythGrid,
+  PresentationSlideBoard,
   PresentationSlideFrame,
   PresentationStrip,
+  PresentationTitlePage,
   ProcessBand,
   ProcessPipeline,
   Quote,
@@ -56,6 +64,15 @@ import {
   type RefCiteItem,
 } from 'glt-ui';
 import type { DocSection } from '../types';
+
+/** Compact figure stand-in for presentation demos (not a real chart). */
+function DemoFigurePlaceholder({ label = 'Sample figure' }: { label?: string }) {
+  return (
+    <div className="flex h-full min-h-[100px] w-full items-center justify-center rounded-md border border-dashed border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/10 px-3 text-center text-xs font-semibold text-[var(--strong-text-color)]">
+      {label}
+    </div>
+  );
+}
 
 /** Fictional deck for PresentationStrip demo — no portal product copy. */
 const DEMO_PRESENTATION_SLIDES: readonly PresentationThumb[] = [
@@ -3532,6 +3549,794 @@ export const slimSection: DocSection = {
                 durableStateSub: 'Lives outside the prompt',
                 ratchet: 'Each miss becomes a permanent harness rule',
               }}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-bullet-list',
+      name: 'PresentationBulletList',
+      description:
+        'Compact brand-dot bullet list for presentation decks. Host supplies every item.',
+      importLine: "import { PresentationBulletList } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Northstar plan bullets',
+          description: 'items accepts strings or rich React nodes.',
+          code: `<PresentationBulletList
+  items={[
+    'Define the Northstar metric before the first build slice.',
+    <>
+      Keep the harness <strong>thin</strong> until the review loop is honest.
+    </>,
+    <>
+      Ship the <em>high-risk path</em> first, then expand coverage.
+    </>,
+  ]}
+/>`,
+          render: (
+            <PresentationBulletList
+              items={[
+                'Define the Northstar metric before the first build slice.',
+                <>
+                  Keep the harness <strong>thin</strong> until the review loop is honest.
+                </>,
+                <>
+                  Ship the <em>high-risk path</em> first, then expand coverage.
+                </>,
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-decision-callout',
+      name: 'PresentationDecisionCallout',
+      description:
+        'Impact · takeaways · next actions block for presentation decks. Row labels are optional overrides.',
+      importLine: "import { PresentationDecisionCallout } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Custom row labels',
+          description: 'All body props plus impactLabel / takeawaysLabel / nextActionsLabel.',
+          code: `<PresentationDecisionCallout
+  impact="Cycle time fell after the Northstar review gate landed."
+  takeaways="Review latency was the hidden constraint, not model speed."
+  nextActions="Pin one weekly review slot; retire two status meetings."
+  impactLabel="Signal"
+  takeawaysLabel="Read"
+  nextActionsLabel="This week"
+/>`,
+          render: (
+            <PresentationDecisionCallout
+              impact="Cycle time fell after the Northstar review gate landed."
+              takeaways="Review latency was the hidden constraint, not model speed."
+              nextActions="Pin one weekly review slot; retire two status meetings."
+              impactLabel="Signal"
+              takeawaysLabel="Read"
+              nextActionsLabel="This week"
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-title-page',
+      name: 'PresentationTitlePage',
+      description:
+        'Centered title-page body: kicker, title, optional credit lines. No product defaults.',
+      importLine: "import { PresentationTitlePage } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Kicker, title, credits',
+          code: `<div className="min-h-[280px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)]">
+  <PresentationTitlePage
+    kicker="01 · Northstar kit"
+    title="Toolkit walkthrough for the sample deck"
+    credit="Northstar Labs"
+    creditDetail="Demo series · Q2 sample"
+  />
+</div>`,
+          render: (
+            <div className="min-h-[280px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)]">
+              <PresentationTitlePage
+                kicker="01 · Northstar kit"
+                title="Toolkit walkthrough for the sample deck"
+                credit="Northstar Labs"
+                creditDetail="Demo series · Q2 sample"
+              />
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-myth-grid',
+      name: 'PresentationMythGrid',
+      description:
+        'Two-column myth / watch card grid for close slides. Host supplies all titles and bodies.',
+      importLine: "import { PresentationMythGrid } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Watch items',
+          code: `<PresentationMythGrid
+  cards={[
+    {
+      title: 'Myth · speed alone',
+      body: 'Faster models do not fix a slow review gate.',
+    },
+    {
+      title: 'Watch · shadow work',
+      body: 'Unowned review queues hide the real cycle cost.',
+    },
+    {
+      title: 'Debt · status theater',
+      body: 'Meetings without a metric drift into noise.',
+    },
+    {
+      title: 'Watch · thin harness',
+      body: 'Evals and hooks land before the agent fleet grows.',
+    },
+  ]}
+/>`,
+          render: (
+            <PresentationMythGrid
+              cards={[
+                {
+                  title: 'Myth · speed alone',
+                  body: 'Faster models do not fix a slow review gate.',
+                },
+                {
+                  title: 'Watch · shadow work',
+                  body: 'Unowned review queues hide the real cycle cost.',
+                },
+                {
+                  title: 'Debt · status theater',
+                  body: 'Meetings without a metric drift into noise.',
+                },
+                {
+                  title: 'Watch · thin harness',
+                  body: 'Evals and hooks land before the agent fleet grows.',
+                },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-figure-keypoints',
+      name: 'PresentationFigureKeypoints',
+      description:
+        'Figure + keypoints layout. wide stacks figure over keypoints; side-by-side uses a column split.',
+      importLine: "import { PresentationFigureKeypoints } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Wide + caption + callout labels',
+          description: 'wide figure, caption, bullets, and callout with custom labels.',
+          code: `<div className="min-h-[320px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3">
+  <PresentationFigureKeypoints
+    wide
+    caption="Fleet pulse · demo series"
+    figure={
+      <div className="flex h-full min-h-[100px] w-full items-center justify-center rounded-md border border-dashed border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/10 px-3 text-center text-xs font-semibold text-[var(--strong-text-color)]">
+        Sample wide figure
+      </div>
+    }
+    bullets={[
+      'Envelope tightened after the Northstar gate.',
+      'Unit cost tracked the review queue, not model price.',
+    ]}
+    callout={{
+      impact: 'Lead time dropped once review owned a metric.',
+      takeaways: 'Instrument the gate before scaling agents.',
+      nextActions: 'Publish the queue dashboard this sprint.',
+      impactLabel: 'Signal',
+      takeawaysLabel: 'Read',
+      nextActionsLabel: 'Next',
+    }}
+  />
+</div>`,
+          render: (
+            <div className="min-h-[320px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3">
+              <PresentationFigureKeypoints
+                wide
+                caption="Fleet pulse · demo series"
+                figure={<DemoFigurePlaceholder label="Sample wide figure" />}
+                bullets={[
+                  'Envelope tightened after the Northstar gate.',
+                  'Unit cost tracked the review queue, not model price.',
+                ]}
+                callout={{
+                  impact: 'Lead time dropped once review owned a metric.',
+                  takeaways: 'Instrument the gate before scaling agents.',
+                  nextActions: 'Publish the queue dashboard this sprint.',
+                  impactLabel: 'Signal',
+                  takeawaysLabel: 'Read',
+                  nextActionsLabel: 'Next',
+                }}
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'Side-by-side (wide=false)',
+          description: 'Taller/square figures keep keypoints in a right column.',
+          code: `<div className="min-h-[280px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3">
+  <PresentationFigureKeypoints
+    wide={false}
+    figure={
+      <div className="flex h-full min-h-[100px] w-full items-center justify-center rounded-md border border-dashed border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/10 px-3 text-center text-xs font-semibold text-[var(--strong-text-color)]">
+        Sample side figure
+      </div>
+    }
+    bullets={['Pin the eval suite.', 'Retire one low-signal meeting.']}
+    callout={{
+      impact: 'Review ownership cut rework.',
+      takeaways: 'Harness depth follows honest loops.',
+      nextActions: 'Name a single review owner.',
+    }}
+  />
+</div>`,
+          render: (
+            <div className="min-h-[280px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3">
+              <PresentationFigureKeypoints
+                wide={false}
+                figure={<DemoFigurePlaceholder label="Sample side figure" />}
+                bullets={['Pin the eval suite.', 'Retire one low-signal meeting.']}
+                callout={{
+                  impact: 'Review ownership cut rework.',
+                  takeaways: 'Harness depth follows honest loops.',
+                  nextActions: 'Name a single review owner.',
+                }}
+              />
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'presentation-slide-board',
+      name: 'PresentationSlideBoard',
+      description:
+        'Content-agnostic slide board: layout chrome via PresentationSlideFrame; body by layout (title, bullets, figure-wide, figure-side, close).',
+      importLine: "import { PresentationSlideBoard } from 'glt-ui';",
+      examples: [
+        {
+          title: 'layout="title"',
+          description: 'Title page with credit lines; hideHeader is applied automatically.',
+          code: `<div className="overflow-x-auto">
+  <PresentationSlideBoard
+    layout="title"
+    naturalW={640}
+    naturalH={360}
+    slideId="ns-title"
+    slideNum="01"
+    kicker="01 · Northstar kit"
+    title="Sample deck title page"
+    credit="Northstar Labs"
+    creditDetail="Demo series · host supplies brand"
+    className="shadow-sm max-w-full"
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideBoard
+                layout="title"
+                naturalW={640}
+                naturalH={360}
+                slideId="ns-title"
+                slideNum="01"
+                kicker="01 · Northstar kit"
+                title="Sample deck title page"
+                credit="Northstar Labs"
+                creditDetail="Demo series · host supplies brand"
+                className="shadow-sm max-w-full"
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'layout="bullets"',
+          description: 'Header band + bullets + decision callout + brandMeta.',
+          code: `<div className="overflow-x-auto">
+  <PresentationSlideBoard
+    layout="bullets"
+    naturalW={640}
+    naturalH={360}
+    slideId="ns-plan"
+    slideNum="02"
+    kicker="02 · Plan"
+    title="Ship the first slice"
+    brandMeta={
+      <>
+        kit.demo
+        <br />
+        <span className="font-normal normal-case tracking-normal">Northstar</span>
+      </>
+    }
+    bullets={[
+      'Define the success metric before building.',
+      'Keep the harness thin until the loop is honest.',
+      'Review the high-risk path first.',
+    ]}
+    callout={{
+      impact: 'A named metric keeps the slice honest.',
+      takeaways: 'Thin harness beats early ceremony.',
+      nextActions: 'Pick one metric the team already owns.',
+    }}
+    className="shadow-sm max-w-full"
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideBoard
+                layout="bullets"
+                naturalW={640}
+                naturalH={360}
+                slideId="ns-plan"
+                slideNum="02"
+                kicker="02 · Plan"
+                title="Ship the first slice"
+                brandMeta={
+                  <>
+                    kit.demo
+                    <br />
+                    <span className="font-normal normal-case tracking-normal">Northstar</span>
+                  </>
+                }
+                bullets={[
+                  'Define the success metric before building.',
+                  'Keep the harness thin until the loop is honest.',
+                  'Review the high-risk path first.',
+                ]}
+                callout={{
+                  impact: 'A named metric keeps the slice honest.',
+                  takeaways: 'Thin harness beats early ceremony.',
+                  nextActions: 'Pick one metric the team already owns.',
+                }}
+                className="shadow-sm max-w-full"
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'layout="figure-wide"',
+          description: 'Wide figure stack with figureCaption, bullets, and callout.',
+          code: `<div className="overflow-x-auto">
+  <PresentationSlideBoard
+    layout="figure-wide"
+    naturalW={640}
+    naturalH={360}
+    slideId="ns-wide"
+    slideNum="03"
+    kicker="03 · Pulse"
+    title="Fleet envelope"
+    brandMeta={
+      <>
+        kit.demo
+        <br />
+        <span className="font-normal normal-case tracking-normal">Northstar</span>
+      </>
+    }
+    figure={
+      <div className="flex h-full min-h-[100px] w-full items-center justify-center rounded-md border border-dashed border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/10 px-3 text-center text-xs font-semibold text-[var(--strong-text-color)]">
+        Sample wide figure
+      </div>
+    }
+    figureCaption="Demo fleet · weekly"
+    bullets={['Envelope tightened after the gate.', 'Cost tracked the queue depth.']}
+    callout={{
+      impact: 'Lead time followed review ownership.',
+      takeaways: 'Instrument before scale.',
+      nextActions: 'Publish the queue board.',
+    }}
+    className="shadow-sm max-w-full"
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideBoard
+                layout="figure-wide"
+                naturalW={640}
+                naturalH={360}
+                slideId="ns-wide"
+                slideNum="03"
+                kicker="03 · Pulse"
+                title="Fleet envelope"
+                brandMeta={
+                  <>
+                    kit.demo
+                    <br />
+                    <span className="font-normal normal-case tracking-normal">Northstar</span>
+                  </>
+                }
+                figure={<DemoFigurePlaceholder label="Sample wide figure" />}
+                figureCaption="Demo fleet · weekly"
+                bullets={['Envelope tightened after the gate.', 'Cost tracked the queue depth.']}
+                callout={{
+                  impact: 'Lead time followed review ownership.',
+                  takeaways: 'Instrument before scale.',
+                  nextActions: 'Publish the queue board.',
+                }}
+                className="shadow-sm max-w-full"
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'layout="figure-side"',
+          description: 'Side-by-side figure + keypoints column.',
+          code: `<div className="overflow-x-auto">
+  <PresentationSlideBoard
+    layout="figure-side"
+    naturalW={640}
+    naturalH={360}
+    slideId="ns-side"
+    slideNum="04"
+    kicker="04 · Split"
+    title="Side figure board"
+    brandMeta={
+      <>
+        kit.demo
+        <br />
+        <span className="font-normal normal-case tracking-normal">Northstar</span>
+      </>
+    }
+    figure={
+      <div className="flex h-full min-h-[100px] w-full items-center justify-center rounded-md border border-dashed border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/10 px-3 text-center text-xs font-semibold text-[var(--strong-text-color)]">
+        Sample side figure
+      </div>
+    }
+    bullets={['Pin the eval suite.', 'Name one review owner.']}
+    callout={{
+      impact: 'Ownership cut rework.',
+      takeaways: 'Harness follows honest loops.',
+      nextActions: 'Retire one status meeting.',
+    }}
+    className="shadow-sm max-w-full"
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideBoard
+                layout="figure-side"
+                naturalW={640}
+                naturalH={360}
+                slideId="ns-side"
+                slideNum="04"
+                kicker="04 · Split"
+                title="Side figure board"
+                brandMeta={
+                  <>
+                    kit.demo
+                    <br />
+                    <span className="font-normal normal-case tracking-normal">Northstar</span>
+                  </>
+                }
+                figure={<DemoFigurePlaceholder label="Sample side figure" />}
+                bullets={['Pin the eval suite.', 'Name one review owner.']}
+                callout={{
+                  impact: 'Ownership cut rework.',
+                  takeaways: 'Harness follows honest loops.',
+                  nextActions: 'Retire one status meeting.',
+                }}
+                className="shadow-sm max-w-full"
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'layout="close"',
+          description: 'Close slide with bullets, myth cards, and callout.',
+          code: `<div className="overflow-x-auto">
+  <PresentationSlideBoard
+    layout="close"
+    naturalW={640}
+    naturalH={360}
+    slideId="ns-close"
+    slideNum="05"
+    kicker="05 · Close"
+    title="What to do next"
+    brandMeta={
+      <>
+        kit.demo
+        <br />
+        <span className="font-normal normal-case tracking-normal">Northstar</span>
+      </>
+    }
+    bullets={[
+      'Pick one metric the team already owns.',
+      'Instrument the review loop this week.',
+    ]}
+    cards={[
+      {
+        title: 'Myth · speed alone',
+        body: 'Faster models do not fix a slow review gate.',
+      },
+      {
+        title: 'Watch · shadow work',
+        body: 'Unowned queues hide the real cycle cost.',
+      },
+    ]}
+    callout={{
+      impact: 'A single owned metric beats a busy calendar.',
+      takeaways: 'Close on habits, not more tooling.',
+      nextActions: 'Retire one low-signal status meeting.',
+    }}
+    className="shadow-sm max-w-full"
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <PresentationSlideBoard
+                layout="close"
+                naturalW={640}
+                naturalH={360}
+                slideId="ns-close"
+                slideNum="05"
+                kicker="05 · Close"
+                title="What to do next"
+                brandMeta={
+                  <>
+                    kit.demo
+                    <br />
+                    <span className="font-normal normal-case tracking-normal">Northstar</span>
+                  </>
+                }
+                bullets={[
+                  'Pick one metric the team already owns.',
+                  'Instrument the review loop this week.',
+                ]}
+                cards={[
+                  {
+                    title: 'Myth · speed alone',
+                    body: 'Faster models do not fix a slow review gate.',
+                  },
+                  {
+                    title: 'Watch · shadow work',
+                    body: 'Unowned queues hide the real cycle cost.',
+                  },
+                ]}
+                callout={{
+                  impact: 'A single owned metric beats a busy calendar.',
+                  takeaways: 'Close on habits, not more tooling.',
+                  nextActions: 'Retire one low-signal status meeting.',
+                }}
+                className="shadow-sm max-w-full"
+              />
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'exec-brief-sheet',
+      name: 'ExecBriefSheet',
+      description:
+        'Dense A4-proportion executive brief. Free-form panels or composed attention / do-dont helpers. Host supplies all copy.',
+      importLine:
+        "import { ExecBriefSheet, ExecBriefListItem } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Full panels + footer (layout="sheet")',
+          description:
+            'eyebrow, title, subtitle, meta, panels (accents + takeaways), footer, layout="sheet".',
+          code: `<div className="overflow-x-auto">
+  <ExecBriefSheet
+    layout="sheet"
+    eyebrow="Northstar · sample brief"
+    title="Fleet review brief"
+    subtitle={
+      <p className="m-0">
+        Fictional weekly snapshot for the design-system demo. Host owns every panel.
+      </p>
+    }
+    meta={
+      <span className="rounded-full bg-[var(--brand-primary)]/12 px-2 py-0.5 text-[0.58rem] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
+        12 Jun
+      </span>
+    }
+    panels={[
+      {
+        n: 1,
+        title: 'Attention shift',
+        accent: 'warning',
+        body: (
+          <p className="m-0 text-[0.62rem] leading-snug">
+            Review ownership moved from rotating volunteers to a named gate owner.
+          </p>
+        ),
+        takeaway: 'Name the gate before scaling agents.',
+      },
+      {
+        n: 2,
+        title: 'Loop health',
+        accent: 'info',
+        body: (
+          <p className="m-0 text-[0.62rem] leading-snug">
+            Cycle time fell after the Northstar metric landed on the team board.
+          </p>
+        ),
+        takeaway: 'Instrument the queue the team already reads.',
+      },
+      {
+        n: 3,
+        title: 'Do',
+        accent: 'success',
+        body: (
+          <ul className="m-0 list-none space-y-0.5 p-0">
+            <ExecBriefListItem ok>Pin one weekly review slot.</ExecBriefListItem>
+            <ExecBriefListItem ok>Publish the queue dashboard.</ExecBriefListItem>
+          </ul>
+        ),
+      },
+      {
+        n: 4,
+        title: "Don't",
+        accent: 'brand',
+        body: (
+          <ul className="m-0 list-none space-y-0.5 p-0">
+            <ExecBriefListItem ok={false}>Add meetings without a metric.</ExecBriefListItem>
+            <ExecBriefListItem ok={false}>Grow the agent fleet on a thin harness.</ExecBriefListItem>
+          </ul>
+        ),
+      },
+    ]}
+    footer={
+      <p className="m-0 text-[0.62rem] leading-snug text-[var(--secondary-text-color)]">
+        Watch · shadow queues · status theater · unowned evals
+      </p>
+    }
+  />
+</div>`,
+          render: (
+            <div className="overflow-x-auto">
+              <ExecBriefSheet
+                layout="sheet"
+                eyebrow="Northstar · sample brief"
+                title="Fleet review brief"
+                subtitle={
+                  <p className="m-0">
+                    Fictional weekly snapshot for the design-system demo. Host owns every panel.
+                  </p>
+                }
+                meta={
+                  <span className="rounded-full bg-[var(--brand-primary)]/12 px-2 py-0.5 text-[0.58rem] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
+                    12 Jun
+                  </span>
+                }
+                panels={[
+                  {
+                    n: 1,
+                    title: 'Attention shift',
+                    accent: 'warning',
+                    body: (
+                      <p className="m-0 text-[0.62rem] leading-snug">
+                        Review ownership moved from rotating volunteers to a named gate owner.
+                      </p>
+                    ),
+                    takeaway: 'Name the gate before scaling agents.',
+                  },
+                  {
+                    n: 2,
+                    title: 'Loop health',
+                    accent: 'info',
+                    body: (
+                      <p className="m-0 text-[0.62rem] leading-snug">
+                        Cycle time fell after the Northstar metric landed on the team board.
+                      </p>
+                    ),
+                    takeaway: 'Instrument the queue the team already reads.',
+                  },
+                  {
+                    n: 3,
+                    title: 'Do',
+                    accent: 'success',
+                    body: (
+                      <ul className="m-0 list-none space-y-0.5 p-0">
+                        <ExecBriefListItem ok>Pin one weekly review slot.</ExecBriefListItem>
+                        <ExecBriefListItem ok>Publish the queue dashboard.</ExecBriefListItem>
+                      </ul>
+                    ),
+                  },
+                  {
+                    n: 4,
+                    title: "Don't",
+                    accent: 'brand',
+                    body: (
+                      <ul className="m-0 list-none space-y-0.5 p-0">
+                        <ExecBriefListItem ok={false}>
+                          Add meetings without a metric.
+                        </ExecBriefListItem>
+                        <ExecBriefListItem ok={false}>
+                          Grow the agent fleet on a thin harness.
+                        </ExecBriefListItem>
+                      </ul>
+                    ),
+                  },
+                ]}
+                footer={
+                  <p className="m-0 text-[0.62rem] leading-snug text-[var(--secondary-text-color)]">
+                    Watch · shadow queues · status theater · unowned evals
+                  </p>
+                }
+              />
+            </div>
+          ),
+        },
+        {
+          title: 'Composed attention + do/dont (responsive)',
+          description:
+            'When panels is omitted, attentionRows and do/dont helpers compose panels. Covers all attention* and do/dont props.',
+          code: `<ExecBriefSheet
+  layout="responsive"
+  title="Northstar attention brief"
+  subtitle={
+    <p className="m-0">
+      Composed mode: attention table + do/dont checklists without free-form panels.
+    </p>
+  }
+  attentionTitle="Attention reweight"
+  attentionCaption="Share of weekly focus · fictional demo series"
+  attentionTakeaway="Move hours toward review ownership and harness depth."
+  attentionMax={50}
+  attentionBeforeLabel="Before"
+  attentionAfterLabel="After"
+  attentionDeltaLabel="Δpp"
+  attentionRows={[
+    { label: 'Status meetings', before: 28, after: 12 },
+    { label: 'Review gate', before: 10, after: 26 },
+    { label: 'Harness evals', before: 8, after: 18 },
+    { label: 'Ad-hoc firefight', before: 22, after: 14 },
+  ]}
+  doTitle="Invest"
+  dontTitle="Cut"
+  doItems={['Name a review owner', 'Publish queue latency', 'Pin weekly eval suite']}
+  dontItems={['Grow agents without hooks', 'Add meetings without a metric']}
+  footer={
+    <p className="m-0 text-[0.62rem] leading-snug text-[var(--secondary-text-color)]">
+      Sample kit · host supplies every row
+    </p>
+  }
+/>`,
+          render: (
+            <ExecBriefSheet
+              layout="responsive"
+              title="Northstar attention brief"
+              subtitle={
+                <p className="m-0">
+                  Composed mode: attention table + do/dont checklists without free-form panels.
+                </p>
+              }
+              attentionTitle="Attention reweight"
+              attentionCaption="Share of weekly focus · fictional demo series"
+              attentionTakeaway="Move hours toward review ownership and harness depth."
+              attentionMax={50}
+              attentionBeforeLabel="Before"
+              attentionAfterLabel="After"
+              attentionDeltaLabel="Δpp"
+              attentionRows={[
+                { label: 'Status meetings', before: 28, after: 12 },
+                { label: 'Review gate', before: 10, after: 26 },
+                { label: 'Harness evals', before: 8, after: 18 },
+                { label: 'Ad-hoc firefight', before: 22, after: 14 },
+              ]}
+              doTitle="Invest"
+              dontTitle="Cut"
+              doItems={[
+                'Name a review owner',
+                'Publish queue latency',
+                'Pin weekly eval suite',
+              ]}
+              dontItems={['Grow agents without hooks', 'Add meetings without a metric']}
+              footer={
+                <p className="m-0 text-[0.62rem] leading-snug text-[var(--secondary-text-color)]">
+                  Sample kit · host supplies every row
+                </p>
+              }
             />
           ),
         },
