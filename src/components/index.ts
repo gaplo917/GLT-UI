@@ -5,11 +5,13 @@
 export * from './atoms/Badge/Badge.js';
 export * from './atoms/Button/Button.js';
 export * from './atoms/Checkbox/Checkbox.js';
+export * from './atoms/Code/Code.js';
 export * from './atoms/Container/Container.js';
 export * from './atoms/Divider/Divider.js';
 export * from './atoms/Grid/Grid.js';
 export * from './atoms/Icon/Icon.js';
 export * from './atoms/List/List.js';
+export * from './atoms/Markdown/Markdown.js';
 export * from './atoms/Spinner/Spinner.js';
 export * from './atoms/Text/Text.js';
 export * from './atoms/Title/Title.js';
@@ -17,6 +19,7 @@ export * from './atoms/Tooltip/Tooltip.js';
 
 // molecules
 export * from './molecules/Callout/Callout.js';
+export * from './molecules/CodeBlock/CodeBlock.js';
 export * from './molecules/Figure/index.js';
 export * from './molecules/Quote/Quote.js';
 
