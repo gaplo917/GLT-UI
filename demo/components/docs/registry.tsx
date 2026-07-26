@@ -31,6 +31,11 @@ const atomsSection = layer('atoms', 'Atoms', 'Indivisible UI primitives.', [
 const moleculesSection = layer('molecules', 'Molecules', 'Small composed units.', [
   'callout',
   'quote',
+  'cite',
+  'prose',
+  'p',
+  'h2',
+  'infographic',
   'figure',
   'ref-cite',
   'svg-ref-cite',

@@ -19,15 +19,20 @@ export * from './atoms/Tooltip/Tooltip.js';
 
 // molecules
 export * from './molecules/Callout/Callout.js';
+export * from './molecules/Cite/Cite.js';
 export * from './molecules/CodeBlock/CodeBlock.js';
 export * from './molecules/Figure/index.js';
 export * from './molecules/FitContain/FitContain.js';
+export * from './molecules/H2/H2.js';
 export * from './molecules/HashScrollCta/HashScrollCta.js';
+export * from './molecules/Infographic/Infographic.js';
+export * from './molecules/P/P.js';
 export * from './molecules/PresentationBulletList/index.js';
 export * from './molecules/PresentationDecisionCallout/index.js';
 export * from './molecules/PresentationFigureKeypoints/index.js';
 export * from './molecules/PresentationMythGrid/index.js';
 export * from './molecules/PresentationTitlePage/index.js';
+export * from './molecules/Prose/Prose.js';
 export * from './molecules/Quote/Quote.js';
 export * from './molecules/RefCite/index.js';
 export * from './molecules/SectionIntro/SectionIntro.js';

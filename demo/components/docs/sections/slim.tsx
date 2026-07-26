@@ -13,6 +13,7 @@ import {
   CausalShiftDiagram,
   Chart,
   Checkbox,
+  Cite,
   Container,
   CostScoreBoard,
   CostScoreScatter,
@@ -24,15 +25,19 @@ import {
   FitContain,
   FullBleedFigure,
   Grid,
+  H2,
   HashScrollCta,
   Icon,
+  Infographic,
   KnowledgeTreeMap,
   List,
   ListItem,
   MethodPillars,
   MetricSparkBoard,
+  P,
   PageHero,
   PresentationBulletList,
+  Prose,
   PresentationDecisionCallout,
   PresentationFigureKeypoints,
   PresentationMythGrid,
@@ -1100,6 +1105,161 @@ export const slimSection: DocSection = {
             >
               Judgment stays limited; the harness carries the rest.
             </Quote>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'cite',
+      name: 'Cite',
+      description:
+        'In-prose external citation link (underlined brand). Distinct from RefCite [n] markers.',
+      importLine: "import { Cite } from 'glt-ui';",
+      examples: [
+        {
+          title: 'External link',
+          description: 'href + children; external defaults to target blank + noreferrer.',
+          code: `<P>
+  See the{' '}
+  <Cite href="https://example.com/paper">Northstar field note</Cite>
+  {' '}for the full method.
+</P>`,
+          render: (
+            <P>
+              See the{' '}
+              <Cite href="https://example.com/paper">Northstar field note</Cite>{' '}
+              for the full method.
+            </P>
+          ),
+        },
+        {
+          title: 'Same-tab link',
+          description: 'external={false} keeps navigation in the current tab.',
+          code: `<Cite href="#refs" external={false}>
+  Jump to references
+</Cite>`,
+          render: (
+            <Cite href="#refs" external={false}>
+              Jump to references
+            </Cite>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'prose',
+      name: 'Prose',
+      description: 'Vertical stack for essay body blocks with fixed research rhythm.',
+      importLine: "import { Prose, P, H2 } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Default gap',
+          description: 'gap defaults to 5 (space-y-5).',
+          code: `<Prose>
+  <H2>Section</H2>
+  <P>First body paragraph for the sample essay.</P>
+  <P>Second paragraph sits on the research rhythm stack.</P>
+</Prose>`,
+          render: (
+            <Prose>
+              <H2>Section</H2>
+              <P>First body paragraph for the sample essay.</P>
+              <P>Second paragraph sits on the research rhythm stack.</P>
+            </Prose>
+          ),
+        },
+        {
+          title: 'Tighter gap',
+          description: 'gap={3} for denser stacks.',
+          code: `<Prose gap={3}>
+  <P>Compact first line.</P>
+  <P>Compact second line.</P>
+</Prose>`,
+          render: (
+            <Prose gap={3}>
+              <P>Compact first line.</P>
+              <P>Compact second line.</P>
+            </Prose>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'p',
+      name: 'P',
+      description: 'Research essay body paragraph (Text as p, size lg, leading 1.75).',
+      importLine: "import { P } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Default body',
+          code: `<P>
+  Judgment stays limited when execution gets cheap.
+</P>`,
+          render: (
+            <P>Judgment stays limited when execution gets cheap.</P>
+          ),
+        },
+        {
+          title: 'Size override + tone',
+          description: 'size and tone passthrough to Text.',
+          code: `<P size="base" tone="secondary">
+  Smaller secondary paragraph for asides.
+</P>`,
+          render: (
+            <P size="base" tone="secondary">
+              Smaller secondary paragraph for asides.
+            </P>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'h2',
+      name: 'H2',
+      description: 'Research essay section heading (Title as h2, size 3, tight tracking).',
+      importLine: "import { H2 } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Default section head',
+          code: `<H2>1 · Leaving the coding bottleneck</H2>`,
+          render: <H2>1 · Leaving the coding bottleneck</H2>,
+        },
+        {
+          title: 'Size override',
+          code: `<H2 size={4}>Smaller section label</H2>`,
+          render: <H2 size={4}>Smaller section label</H2>,
+        },
+      ],
+    },
+    {
+      id: 'infographic',
+      name: 'Infographic',
+      description:
+        'Research figure shell — FullBleedFigure alias for essay authoring consistency.',
+      importLine: "import { Infographic } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Figure shell',
+          description: 'title, caption, children (same layout as FullBleedFigure).',
+          code: `<Infographic
+  title="Figure 1 · Sample"
+  caption="Fictional demo caption under the figure title."
+  maxWidth={720}
+>
+  <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
+    Chart region
+  </div>
+</Infographic>`,
+          render: (
+            <Infographic
+              title="Figure 1 · Sample"
+              caption="Fictional demo caption under the figure title."
+              maxWidth={720}
+            >
+              <div className="flex h-24 items-center justify-center text-sm text-[var(--secondary-text-color)]">
+                Chart region
+              </div>
+            </Infographic>
           ),
         },
       ],
