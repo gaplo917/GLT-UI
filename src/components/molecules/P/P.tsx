@@ -22,7 +22,7 @@ export function P({
     <Text
       as="p"
       size={size}
-      className={cn('leading-[1.75] text-[var(--text-color)]', className)}
+      className={cn('leading-[1.75]', className)}
       {...props}
     >
       {children}
