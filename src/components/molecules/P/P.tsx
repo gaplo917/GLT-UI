@@ -1,11 +1,20 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
-import { Text, type TextProps } from '@/components/atoms/Text/Text.js';
+import { Text, type TextProps, type TextSizeProp } from '@/components/atoms/Text/Text.js';
 
 export interface PProps extends Omit<TextProps, 'as' | 'size'> {
   children: React.ReactNode;
-  /** Override body size (default `lg` for research essays). */
-  size?: TextProps['size'];
+  /**
+   * Body size (default `lg` for research essays).
+   * Use `inherit` for MDX blocks so Quote / layout shell scale is not overridden.
+   */
+  size?: TextSizeProp;
+  /**
+   * Rendered element. Default `p`.
+   * Use `div` for MDX body blocks that may nest interactive chips (`RefCite`
+   * tooltips) — a real `<p>` cannot contain those descendants.
+   */
+  as?: 'p' | 'div';
 }
 
 /**
@@ -16,13 +25,20 @@ export function P({
   children,
   className,
   size = 'lg',
+  as = 'p',
   ...props
 }: PProps) {
+  const inherit = size === 'inherit';
   return (
     <Text
-      as="p"
+      as={as}
       size={size}
-      className={cn('leading-[1.75]', className)}
+      className={cn(
+        !inherit && 'leading-[1.75]',
+        'text-pretty',
+        as === 'div' && 'mdx-prose-block',
+        className
+      )}
       {...props}
     >
       {children}

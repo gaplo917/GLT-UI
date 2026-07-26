@@ -2,6 +2,8 @@ import * as React from 'react';
 import { cn } from '@/lib/cn.js';
 
 export type TextSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
+/** `inherit` — no font-size utility; parent scale wins (MDX blocks inside Quote). */
+export type TextSizeProp = TextSize | 'inherit';
 export type TextTone = 'default' | 'secondary' | 'strong' | 'brand' | 'danger' | 'success' | 'inherit';
 export type TextWeight = 'normal' | 'medium' | 'semibold' | 'bold';
 export type TextAlign = 'left' | 'center' | 'right';
@@ -9,7 +11,7 @@ export type TextAlign = 'left' | 'center' | 'right';
 export interface TextProps extends React.HTMLAttributes<HTMLElement> {
   /** Rendered element. Defaults to <p>. */
   as?: 'p' | 'span' | 'div' | 'label';
-  size?: TextSize;
+  size?: TextSizeProp;
   tone?: TextTone;
   weight?: TextWeight;
   align?: TextAlign;
@@ -62,7 +64,7 @@ export const Text = React.forwardRef<HTMLElement, TextProps>(
       <Component
         ref={ref}
         className={cn(
-          sizeClasses[size],
+          size !== 'inherit' && sizeClasses[size],
           toneClasses[tone],
           weightClasses[weight],
           align && alignClasses[align],
