@@ -35,6 +35,7 @@ export * from './molecules/PresentationTitlePage/index.js';
 export * from './molecules/Prose/Prose.js';
 export * from './molecules/Quote/Quote.js';
 export * from './molecules/RefCite/index.js';
+export * from './molecules/ReferenceCatalog/index.js';
 export * from './molecules/ReferenceItem/index.js';
 export * from './molecules/AttentionFigureBody/index.js';
 export * from './molecules/ResolveRateFigureBody/index.js';
