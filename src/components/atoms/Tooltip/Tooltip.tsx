@@ -29,11 +29,6 @@ export function Tooltip({
   const triggerRef = React.useRef<HTMLSpanElement>(null);
   const [open, setOpen] = React.useState(false);
   const [coords, setCoords] = React.useState<Coords | null>(null);
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const updatePosition = React.useCallback(() => {
     const el = triggerRef.current;
@@ -85,8 +80,9 @@ export function Tooltip({
           ? 'translate(-100%, -50%)'
           : 'translate(0, -50%)';
 
+  // Portals only run after client interaction sets coords; no mount flag needed.
   const bubble =
-    mounted && open && coords
+    open && coords && typeof document !== 'undefined'
       ? createPortal(
           <span
             role="tooltip"

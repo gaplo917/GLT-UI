@@ -51,12 +51,7 @@ export function SvgRefCite({
   className,
 }: SvgRefCiteProps) {
   const tipId = useId();
-  const [mounted, setMounted] = useState(false);
   const [tip, setTip] = useState<TipState | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const hide = useCallback(() => setTip(null), []);
 
@@ -108,7 +103,7 @@ export function SvgRefCite({
   let cursor = x - total / 2;
 
   const bubble =
-    mounted && tip
+    tip && typeof document !== "undefined"
       ? createPortal(
           <span
             id={tipId}
