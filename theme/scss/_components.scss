@@ -70,6 +70,22 @@
     }
   }
 
+  // Quote: MDX maps bare text → p → .mdx-prose-block with body type scale
+  // (text-lg / font-normal). That child would shrink the pull-quote; inherit
+  // size, weight, lead, and color from .glt-quote__body instead.
+  .glt-quote__body {
+    .mdx-prose-block,
+    > p {
+      margin: 0;
+      padding: 0;
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+    }
+  }
+
   // Editorial PageHero (wash + grid backdrop)
   .glt-page-hero__title {
     font-family: var(--font-display, var(--blockquote-font-family));

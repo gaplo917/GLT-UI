@@ -43,7 +43,12 @@ const serif: React.CSSProperties = { fontFamily: 'var(--blockquote-font-family)'
  */
 export const Quote = React.forwardRef<HTMLElement, QuoteProps>(
   ({ className, cite, source, variant = 'highlight', size = 'lg', children, ...props }, ref) => (
-    <figure ref={ref} className={cn('flex flex-col', variantClasses[variant], className)} {...props}>
+    <figure
+      ref={ref}
+      className={cn('glt-quote flex flex-col', variantClasses[variant], className)}
+      data-size={size}
+      {...props}
+    >
       <Icon
         icon={'“'}
         tone="inherit"
@@ -53,7 +58,7 @@ export const Quote = React.forwardRef<HTMLElement, QuoteProps>(
       <blockquote
         style={serif}
         className={cn(
-          'text-pretty font-medium tracking-[-0.01em] text-[var(--strong-text-color)]',
+          'glt-quote__body text-pretty font-medium tracking-[-0.01em] text-[var(--strong-text-color)]',
           textSize[size],
           size === 'lg' ? 'leading-[1.18]' : 'leading-[1.28]'
         )}
