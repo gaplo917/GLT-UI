@@ -10,6 +10,16 @@ export type PresentationSlideCallout = {
   impact: React.ReactNode;
   takeaways: React.ReactNode;
   nextActions: React.ReactNode;
+  impactLabel?: string;
+  takeawaysLabel?: string;
+  nextActionsLabel?: string;
+};
+
+/** Row overlines for PresentationDecisionCallout (host-locale). */
+export type PresentationCalloutLabels = {
+  impactLabel: string;
+  takeawaysLabel: string;
+  nextActionsLabel: string;
 };
 
 export type PresentationSlideBoardLayout =
@@ -41,6 +51,11 @@ export interface PresentationSlideBoardProps {
   creditDetail?: React.ReactNode;
   bullets?: readonly React.ReactNode[];
   callout?: PresentationSlideCallout;
+  /**
+   * Locale row labels for the decision callout (Impact / Takeaways / Next actions).
+   * Applied whenever `callout` is set; host should always pass these for i18n.
+   */
+  calloutLabels?: PresentationCalloutLabels;
   figure?: React.ReactNode;
   figureCaption?: string;
   /** Close layout myth / watch cards. */
@@ -65,12 +80,25 @@ export function PresentationSlideBoard({
   creditDetail,
   bullets,
   callout,
+  calloutLabels,
   figure,
   figureCaption,
   cards,
   className,
 }: PresentationSlideBoardProps) {
   const isTitle = layout === 'title';
+  const labeledCallout =
+    callout == null
+      ? undefined
+      : {
+          impact: callout.impact,
+          takeaways: callout.takeaways,
+          nextActions: callout.nextActions,
+          impactLabel: callout.impactLabel ?? calloutLabels?.impactLabel,
+          takeawaysLabel: callout.takeawaysLabel ?? calloutLabels?.takeawaysLabel,
+          nextActionsLabel:
+            callout.nextActionsLabel ?? calloutLabels?.nextActionsLabel,
+        };
 
   return (
     <PresentationSlideFrame
@@ -96,11 +124,14 @@ export function PresentationSlideBoard({
       {layout === 'bullets' ? (
         <>
           {bullets ? <PresentationBulletList items={bullets} /> : null}
-          {callout ? (
+          {labeledCallout ? (
             <PresentationDecisionCallout
-              impact={callout.impact}
-              takeaways={callout.takeaways}
-              nextActions={callout.nextActions}
+              impact={labeledCallout.impact}
+              takeaways={labeledCallout.takeaways}
+              nextActions={labeledCallout.nextActions}
+              impactLabel={labeledCallout.impactLabel}
+              takeawaysLabel={labeledCallout.takeawaysLabel}
+              nextActionsLabel={labeledCallout.nextActionsLabel}
             />
           ) : null}
         </>
@@ -112,7 +143,7 @@ export function PresentationSlideBoard({
           caption={figureCaption}
           figure={figure}
           bullets={bullets}
-          callout={callout}
+          callout={labeledCallout}
         />
       ) : null}
 
@@ -122,7 +153,7 @@ export function PresentationSlideBoard({
           caption={figureCaption}
           figure={figure}
           bullets={bullets}
-          callout={callout}
+          callout={labeledCallout}
         />
       ) : null}
 
@@ -132,11 +163,14 @@ export function PresentationSlideBoard({
           {cards && cards.length > 0 ? (
             <PresentationMythGrid cards={cards} />
           ) : null}
-          {callout ? (
+          {labeledCallout ? (
             <PresentationDecisionCallout
-              impact={callout.impact}
-              takeaways={callout.takeaways}
-              nextActions={callout.nextActions}
+              impact={labeledCallout.impact}
+              takeaways={labeledCallout.takeaways}
+              nextActions={labeledCallout.nextActions}
+              impactLabel={labeledCallout.impactLabel}
+              takeawaysLabel={labeledCallout.takeawaysLabel}
+              nextActionsLabel={labeledCallout.nextActionsLabel}
             />
           ) : null}
         </>
