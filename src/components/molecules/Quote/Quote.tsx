@@ -39,7 +39,8 @@ const serif: React.CSSProperties = { fontFamily: 'var(--blockquote-font-family)'
  *
  * Uses the design system's display serif (`--blockquote-font-family`). The
  * decorative quotation mark sits on its own line above the text — deliberate,
- * not overlapping — followed by an optional attribution line.
+ * not overlapping — followed by optional attribution: cite on the first line,
+ * source on the second.
  */
 export const Quote = React.forwardRef<HTMLElement, QuoteProps>(
   ({ className, cite, source, variant = 'highlight', size = 'lg', children, ...props }, ref) => (
@@ -66,10 +67,23 @@ export const Quote = React.forwardRef<HTMLElement, QuoteProps>(
         {children}
       </blockquote>
       {(cite || source) && (
-        <figcaption className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span aria-hidden="true" className="h-px w-8 shrink-0 bg-[var(--brand-primary)]" />
-          {cite && <Text as="span" size="sm" weight="semibold" tone="strong">{cite}</Text>}
-          {source && <Text as="span" size="sm" tone="secondary">{source}</Text>}
+        <figcaption className="mt-6 flex items-start gap-x-3 text-sm">
+          <span
+            aria-hidden="true"
+            className="mt-2 h-px w-8 shrink-0 bg-[var(--brand-primary)]"
+          />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {cite && (
+              <Text as="span" size="sm" weight="semibold" tone="strong">
+                {cite}
+              </Text>
+            )}
+            {source && (
+              <Text as="span" size="sm" tone="secondary">
+                {source}
+              </Text>
+            )}
+          </div>
         </figcaption>
       )}
     </figure>
