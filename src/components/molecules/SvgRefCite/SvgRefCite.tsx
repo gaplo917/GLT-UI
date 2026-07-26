@@ -100,7 +100,15 @@ export function SvgRefCite({
   const widths = items.map((e) => approxMarkerWidth(e.n, fontSize));
   const total =
     widths.reduce((sum, w) => sum + w, 0) + gap * Math.max(0, items.length - 1);
-  let cursor = x - total / 2;
+  // Precompute centers (no reassignment during map — lint immutability rule).
+  const centers: number[] = [];
+  {
+    let cursor = x - total / 2;
+    for (const w of widths) {
+      centers.push(cursor + w / 2);
+      cursor += w + gap;
+    }
+  }
 
   const bubble =
     tip && typeof document !== "undefined"
@@ -140,8 +148,7 @@ export function SvgRefCite({
     <g className={className} data-svg-ref-cite="">
       {items.map((entry, i) => {
         const w = widths[i]!;
-        const cx = cursor + w / 2;
-        cursor += w + gap;
+        const cx = centers[i]!;
         // Invisible hit pad — bare <text> glyphs are hard to hover.
         const hitPad = 4;
         const hitH = fontSize + hitPad * 2;

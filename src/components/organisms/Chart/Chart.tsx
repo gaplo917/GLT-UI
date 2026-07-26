@@ -473,7 +473,7 @@ function resolveLabelHaloFromChart(
   }
 }
 
-function resolveTheme(styles: CSSStyleDeclaration, _canvas?: HTMLElement | null): Theme {
+function resolveTheme(styles: CSSStyleDeclaration): Theme {
   // Prefer root tokens so chart rebuilds after data-theme flips stay consistent.
   const root =
     typeof document !== 'undefined' ? getComputedStyle(document.documentElement) : styles;
@@ -1934,7 +1934,7 @@ export function Chart({
     revealScheduledRef.current = false;
 
     const styles = getComputedStyle(canvas);
-    const theme = resolveTheme(styles, canvas);
+    const theme = resolveTheme(styles);
     const resolvedPalette = palette ?? DEFAULT_PALETTE;
     // series path resolves tokens; raw `data` escape hatch still gets surface adaptation
     // so hard-coded hex palettes stay readable in dark mode (labels + markers).

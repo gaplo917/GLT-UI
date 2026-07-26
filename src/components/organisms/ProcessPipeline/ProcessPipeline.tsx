@@ -47,6 +47,9 @@ export function ProcessPipeline({
   className,
   ...props
 }: ProcessPipelineProps) {
+  // Hooks must run before any early return.
+  const uid = React.useId().replace(/:/g, '');
+
   if (nodes.length < 2) {
     return null;
   }
@@ -129,8 +132,6 @@ export function ProcessPipeline({
       });
     }
   }
-
-  const uid = React.useId().replace(/:/g, '');
 
   return (
     <div

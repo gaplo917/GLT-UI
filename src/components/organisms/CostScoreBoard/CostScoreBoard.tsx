@@ -125,14 +125,19 @@ export function CostScoreBoard({
   const models = useMemo(() => uniqueModels(benchPoints), [benchPoints]);
   const allModelNames = useMemo(() => models.map((m) => m.model), [models]);
   const modelKey = useMemo(() => allModelNames.join("|"), [allModelNames]);
-  const [visible, setVisible] = useState<Set<string>>(
-    () => new Set(allModelNames),
+  // Keyed selection: when benchmark/model set changes, fall back to all models
+  // without a reset effect (avoids setState-in-effect).
+  const [selection, setSelection] = useState<{
+    key: string;
+    models: Set<string>;
+  } | null>(null);
+  const visible = useMemo(
+    () =>
+      selection?.key === modelKey
+        ? selection.models
+        : new Set(allModelNames),
+    [selection, modelKey, allModelNames],
   );
-
-  // When switching benchmark, show every model on that board
-  useEffect(() => {
-    setVisible(new Set(allModelNames));
-  }, [benchmark, modelKey, allModelNames]);
 
   const filtered = useMemo(
     () => benchPoints.filter((p) => visible.has(p.model)),
@@ -172,20 +177,22 @@ export function CostScoreBoard({
   }, [modelMenuOpen]);
 
   function toggle(model: string) {
-    setVisible((prev) => {
-      const next = new Set(prev);
+    setSelection((prev) => {
+      const base =
+        prev?.key === modelKey ? prev.models : new Set(allModelNames);
+      const next = new Set(base);
       if (next.has(model)) next.delete(model);
       else next.add(model);
-      return next;
+      return { key: modelKey, models: next };
     });
   }
 
   function selectAllModels() {
-    setVisible(new Set(allModelNames));
+    setSelection({ key: modelKey, models: new Set(allModelNames) });
   }
 
   function clearAllModels() {
-    setVisible(new Set());
+    setSelection({ key: modelKey, models: new Set() });
   }
 
   const xAxisLabel = `Total suite cost ($ · ${activeBench?.taskCount ?? "—"} tasks)`;

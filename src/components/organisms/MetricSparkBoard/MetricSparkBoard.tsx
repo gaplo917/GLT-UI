@@ -78,7 +78,7 @@ function hintLines(hint: string): string[] {
   const mid = Math.floor(hint.length / 2);
   const left = hint.lastIndexOf(" ", mid);
   const right = hint.indexOf(" ", mid);
-  let at = left > 8 ? left : right > 0 ? right : -1;
+  const at = left > 8 ? left : right > 0 ? right : -1;
   if (at < 0) return [hint];
   return [hint.slice(0, at).trim(), hint.slice(at + 1).trim()];
 }

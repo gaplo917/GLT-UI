@@ -252,7 +252,7 @@ export function PresentationStrip({
       `[data-testid="presentation-slide-thumb-${current.id}"]`,
     );
     el?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-  }, [current?.id]);
+  }, [current]);
 
   if (total < 1 || !current) {
     return null;
