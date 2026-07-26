@@ -2,8 +2,6 @@ import * as React from 'react';
 import { cn } from '@/lib/cn.js';
 import { Text, type TextTone, type TextSize } from '@/components/atoms/Text/Text.js';
 import { Code } from '@/components/atoms/Code/Code.js';
-import { Em } from '@/components/atoms/Em/Em.js';
-import { Strong } from '@/components/atoms/Strong/Strong.js';
 import { List, ListItem } from '@/components/atoms/List/List.js';
 
 export interface MarkdownProps {
@@ -27,9 +25,17 @@ function renderInline(text: string): React.ReactNode[] {
     if (tok.startsWith('`')) {
       nodes.push(<Code key={key++}>{tok.slice(1, -1)}</Code>);
     } else if (tok.startsWith('**')) {
-      nodes.push(<Strong key={key++}>{tok.slice(2, -2)}</Strong>);
+      nodes.push(
+        <Text key={key++} as="strong" size="inherit" weight="semibold" tone="strong">
+          {tok.slice(2, -2)}
+        </Text>,
+      );
     } else if (tok.startsWith('*') || tok.startsWith('_')) {
-      nodes.push(<Em key={key++}>{tok.slice(1, -1)}</Em>);
+      nodes.push(
+        <Text key={key++} as="em" size="inherit" tone="inherit" className="italic">
+          {tok.slice(1, -1)}
+        </Text>,
+      );
     } else {
       const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
       if (link) {

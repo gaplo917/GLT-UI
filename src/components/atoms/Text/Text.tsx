@@ -8,9 +8,24 @@ export type TextTone = 'default' | 'secondary' | 'strong' | 'brand' | 'danger' |
 export type TextWeight = 'normal' | 'medium' | 'semibold' | 'bold';
 export type TextAlign = 'left' | 'center' | 'right';
 
+/** Semantic / layout elements Text can render as. */
+export type TextAs =
+  | 'p'
+  | 'span'
+  | 'div'
+  | 'label'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'strong'
+  | 'em';
+
 export interface TextProps extends React.HTMLAttributes<HTMLElement> {
   /** Rendered element. Defaults to <p>. */
-  as?: 'p' | 'span' | 'div' | 'label';
+  as?: TextAs;
   size?: TextSizeProp;
   tone?: TextTone;
   weight?: TextWeight;
