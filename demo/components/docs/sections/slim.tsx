@@ -1226,8 +1226,8 @@ export const slimSection: DocSection = {
         },
         {
           title: 'Size override',
-          code: `<H2 size={4}>Smaller section label</H2>`,
-          render: <H2 size={4}>Smaller section label</H2>,
+          code: `<H2 size="2xl">Smaller section label</H2>`,
+          render: <H2 size="2xl">Smaller section label</H2>,
         },
       ],
     },

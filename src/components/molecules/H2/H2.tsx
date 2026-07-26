@@ -1,31 +1,32 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
-import { Title, type TitleProps } from '@/components/atoms/Title/Title.js';
+import { Text, type TextProps } from '@/components/atoms/Text/Text.js';
 
-export interface H2Props extends Omit<TitleProps, 'as' | 'size'> {
-  children: React.ReactNode;
-  /** Title size ladder (default `3` for research section heads). */
-  size?: TitleProps['size'];
-}
+export type H2Props = Omit<TextProps, 'as'>;
 
 /**
- * Research essay section heading (`h2`). Authoring shorthand over `Title`.
+ * Research essay section heading — `Text as="h2"` with section defaults.
+ * Default: `size="3xl"` / `weight="semibold"` / `tone="strong"`.
  */
 export function H2({
   children,
   className,
-  size = 3,
+  size = '3xl',
+  weight = 'semibold',
+  tone = 'strong',
   ...props
 }: H2Props) {
   return (
-    <Title
+    <Text
       as="h2"
       size={size}
-      className={cn('pt-4 tracking-tight', className)}
+      weight={weight}
+      tone={tone}
+      className={cn('pt-4 leading-tight tracking-tight', className)}
       {...props}
     >
       {children}
-    </Title>
+    </Text>
   );
 }
 
