@@ -94,6 +94,9 @@ export function CostScoreBoard({
   compact = false,
   chartHeight,
   dataTableLabel = "Data table and sources",
+  dataTableHint,
+  showLabel,
+  hideLabel,
 }: {
   points: readonly CostScoreFigureRow[];
   /** Bibliography markers keyed by board id (serializable for RSC → client). */
@@ -104,6 +107,10 @@ export function CostScoreBoard({
   chartHeight?: number;
   /** Collapsible table toggle label (locale-driven from the host). */
   dataTableLabel?: string;
+  /** Optional helper under the summary when open. */
+  dataTableHint?: string;
+  showLabel?: string;
+  hideLabel?: string;
 }) {
   const benchmarks = useMemo(() => uniqueBenchmarks(points), [points]);
   const defaultBench = benchmarks[0]?.id ?? "default";
@@ -427,7 +434,12 @@ export function CostScoreBoard({
       </div>
 
       {compact ? null : (
-      <FigureDataTableToggle label={dataTableLabel}>
+      <FigureDataTableToggle
+        label={dataTableLabel}
+        hint={dataTableHint}
+        showLabel={showLabel}
+        hideLabel={hideLabel}
+      >
         {/* Phone: compact cards — full metrics without clipping headers */}
         <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:hidden">
           {filtered.length === 0 ? (

@@ -15,6 +15,25 @@ export type PresentationThumb = {
   label: string;
 };
 
+/**
+ * Locale-driven chrome for strip + present mode.
+ * Templates may use {n}, {total}, {num}, {label}, {current}.
+ */
+export type PresentationStripChrome = {
+  prev?: string;
+  next?: string;
+  openFullScreen?: string;
+  /** e.g. "Slide {n} of {total}" */
+  slideOf?: string;
+  footerHint?: string;
+  slidesAria?: string;
+  prevAria?: string;
+  nextAria?: string;
+  /** e.g. "Slide {num}: {label}. Double-click to present." */
+  thumbAria?: string;
+  close?: string;
+};
+
 export type PresentationStripProps = {
   slides: readonly PresentationThumb[];
   /** Render full slide body for index (host supplies content). */
@@ -31,8 +50,19 @@ export type PresentationStripProps = {
   slideNaturalW?: number;
   /** Natural slide height. Default 540. */
   slideNaturalH?: number;
+  /** Locale-driven Prev/Next/fullscreen/aria strings. */
+  chrome?: PresentationStripChrome;
   className?: string;
 };
+
+function fillTemplate(
+  template: string,
+  vars: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) =>
+    vars[key] != null ? String(vars[key]) : `{${key}}`,
+  );
+}
 
 function ThumbnailCard({
   slide,
@@ -43,6 +73,7 @@ function ThumbnailCard({
   renderSlide,
   naturalW,
   naturalH,
+  thumbAriaTemplate,
 }: {
   slide: PresentationThumb;
   index: number;
@@ -52,8 +83,14 @@ function ThumbnailCard({
   renderSlide: (index: number, slide: PresentationThumb) => React.ReactNode;
   naturalW: number;
   naturalH: number;
+  thumbAriaTemplate: string;
 }) {
   const thumbH = (THUMB_W * naturalH) / naturalW;
+  const ariaLabel = fillTemplate(thumbAriaTemplate, {
+    num: slide.num,
+    n: slide.num,
+    label: slide.label,
+  });
 
   return (
     // div (not button): slide previews may contain interactive controls.
@@ -71,7 +108,7 @@ function ThumbnailCard({
         }
       }}
       aria-current={selected ? 'true' : undefined}
-      aria-label={`Slide ${slide.num}: ${slide.label}. Double-click to present.`}
+      aria-label={ariaLabel}
       className={cn(
         'group relative shrink-0 cursor-pointer snap-start overflow-hidden rounded-lg border text-left outline-none transition',
         'focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-color)]',
@@ -121,6 +158,7 @@ export function PresentationStrip({
   dialogTitle,
   slideNaturalW = 960,
   slideNaturalH = 540,
+  chrome,
   className,
 }: PresentationStripProps) {
   const titleId = React.useId();
@@ -130,6 +168,20 @@ export function PresentationStrip({
   const [index, setIndex] = React.useState(0);
   const total = slides.length;
   const current = slides[index] ?? slides[0];
+
+  const prevLabel = chrome?.prev ?? '← Prev';
+  const nextLabel = chrome?.next ?? 'Next →';
+  const openFullScreen = chrome?.openFullScreen ?? 'Open full screen';
+  const slideOfTemplate = chrome?.slideOf ?? 'Slide {n} of {total}';
+  const footerHint =
+    chrome?.footerHint ??
+    'Double-click a thumbnail or use Open full screen to present. Arrow keys work in full screen.';
+  const slidesAria = chrome?.slidesAria ?? 'Presentation slides';
+  const prevAria = chrome?.prevAria ?? 'Previous slide';
+  const nextAria = chrome?.nextAria ?? 'Next slide';
+  const thumbAria =
+    chrome?.thumbAria ?? 'Slide {num}: {label}. Double-click to present.';
+  const closeLabel = chrome?.close ?? 'Close';
 
   const go = React.useCallback(
     (next: number) => {
@@ -208,6 +260,13 @@ export function PresentationStrip({
 
   const calloutLabel = typeof label === 'string' ? label : undefined;
   const dialogHeading = dialogTitle ?? title ?? 'Presentation';
+  const slideOfText = fillTemplate(slideOfTemplate, {
+    n: current.num,
+    current: current.num,
+    total,
+    num: current.num,
+    label: current.label,
+  });
 
   return (
     <Callout
@@ -235,8 +294,7 @@ export function PresentationStrip({
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="m-0 text-xs font-medium tabular-nums text-[var(--secondary-text-color)]">
-            Slide{' '}
-            <span className="text-[var(--strong-text-color)]">{current.num}</span> of {total}
+            {slideOfText}
             <span className="mx-1.5 text-[var(--border-color)]">·</span>
             <span className="text-[var(--strong-text-color)]">{current.label}</span>
           </p>
@@ -246,18 +304,18 @@ export function PresentationStrip({
               data-testid="presentation-prev"
               onClick={prev}
               className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-xs font-medium text-[var(--text-color)] hover:border-[var(--brand-primary)]/50"
-              aria-label="Previous slide"
+              aria-label={prevAria}
             >
-              ← Prev
+              {prevLabel}
             </button>
             <button
               type="button"
               data-testid="presentation-next"
               onClick={next}
               className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-xs font-medium text-[var(--text-color)] hover:border-[var(--brand-primary)]/50"
-              aria-label="Next slide"
+              aria-label={nextAria}
             >
-              Next →
+              {nextLabel}
             </button>
             <button
               type="button"
@@ -265,7 +323,7 @@ export function PresentationStrip({
               onClick={open}
               className="rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-[var(--brand-primary-foreground,#111)] shadow-sm"
             >
-              Open full screen
+              {openFullScreen}
             </button>
           </div>
         </div>
@@ -279,7 +337,7 @@ export function PresentationStrip({
             '[scrollbar-width:thin]',
           )}
           role="listbox"
-          aria-label="Presentation slides"
+          aria-label={slidesAria}
         >
           {slides.map((slide, i) => (
             <ThumbnailCard
@@ -292,13 +350,13 @@ export function PresentationStrip({
               renderSlide={renderSlide}
               naturalW={slideNaturalW}
               naturalH={slideNaturalH}
+              thumbAriaTemplate={thumbAria}
             />
           ))}
         </div>
 
         <p className="m-0 text-center text-[11px] text-[var(--secondary-text-color)]">
-          Double-click a thumbnail or use Open full screen to present. Arrow keys work in
-          full screen.
+          {footerHint}
         </p>
       </div>
 
@@ -336,7 +394,7 @@ export function PresentationStrip({
               data-testid="presentation-dialog-prev"
               onClick={prev}
               className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-              aria-label="Previous slide"
+              aria-label={prevAria}
             >
               ←
             </button>
@@ -345,7 +403,7 @@ export function PresentationStrip({
               data-testid="presentation-dialog-next"
               onClick={next}
               className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-              aria-label="Next slide"
+              aria-label={nextAria}
             >
               →
             </button>
@@ -355,7 +413,7 @@ export function PresentationStrip({
               onClick={close}
               className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium text-[var(--text-color)]"
             >
-              Close
+              {closeLabel}
             </button>
           </div>
         </div>
@@ -379,13 +437,13 @@ export function PresentationStrip({
           */}
           <button
             type="button"
-            aria-label="Previous slide"
+            aria-label={prevAria}
             onClick={prev}
             className="absolute bottom-0 left-0 top-16 z-0 w-[10%] cursor-w-resize bg-transparent sm:top-20"
           />
           <button
             type="button"
-            aria-label="Next slide"
+            aria-label={nextAria}
             onClick={next}
             className="absolute bottom-0 right-0 top-16 z-0 w-[10%] cursor-e-resize bg-transparent sm:top-20"
           />

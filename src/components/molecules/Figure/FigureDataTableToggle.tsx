@@ -9,6 +9,10 @@ export interface FigureDataTableToggleProps {
   label?: string;
   /** Optional helper under the summary when open. */
   hint?: string;
+  /** Collapsed control label. Default "Show". */
+  showLabel?: string;
+  /** Expanded control label. Default "Hide". */
+  hideLabel?: string;
   children: React.ReactNode;
   className?: string;
 }
@@ -19,6 +23,8 @@ export interface FigureDataTableToggleProps {
 export function FigureDataTableToggle({
   label = 'Data table and sources',
   hint = 'Full row metrics and source notes for the figure above.',
+  showLabel = 'Show',
+  hideLabel = 'Hide',
   children,
   className,
 }: FigureDataTableToggleProps) {
@@ -49,8 +55,8 @@ export function FigureDataTableToggle({
           )}
           aria-hidden
         >
-          <span className="group-open:hidden">Show</span>
-          <span className="hidden group-open:inline">Hide</span>
+          <span className="group-open:hidden">{showLabel}</span>
+          <span className="hidden group-open:inline">{hideLabel}</span>
         </span>
       </summary>
       <div className="border-t border-[var(--border-color)] px-3 py-3 sm:px-4 sm:py-4">
