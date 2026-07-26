@@ -41,6 +41,7 @@ export * from './molecules/AttentionFigureBody/index.js';
 export * from './molecules/ResolveRateFigureBody/index.js';
 export * from './molecules/SectionIntro/SectionIntro.js';
 export * from './molecules/SvgRefCite/index.js';
+export * from './molecules/TopicHeader/index.js';
 
 // organisms
 export * from './organisms/AgentHarnessDiagram/AgentHarnessDiagram.js';
