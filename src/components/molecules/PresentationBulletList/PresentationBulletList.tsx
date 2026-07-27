@@ -8,8 +8,9 @@ export interface PresentationBulletListProps
 }
 
 /**
- * Compact presentation-deck bullet list: brand-dot markers, aligned columns.
- * Content-agnostic — host supplies every item.
+ * Compact presentation-deck bullet list.
+ * Uses native list markers so the bullet is vertically centered on the first
+ * line of multi-line items (browser list layout).
  */
 export function PresentationBulletList({
   items,
@@ -18,19 +19,15 @@ export function PresentationBulletList({
 }: PresentationBulletListProps) {
   return (
     <ul
-      className={cn('m-0 flex list-none flex-col gap-1.5 p-0', className)}
+      className={cn(
+        'm-0 list-outside list-disc space-y-1 py-0 pl-3.5 text-[7px] leading-[1.4] text-[var(--text-color)] marker:text-[var(--brand-primary)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]',
+        className,
+      )}
       {...props}
     >
       {items.map((b, i) => (
-        <li
-          key={i}
-          className="grid grid-cols-[10px_minmax(0,1fr)] items-start gap-x-2 text-[11.5px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]"
-        >
-          <span
-            className="mt-[0.45em] h-1.5 w-1.5 shrink-0 justify-self-center rounded-full bg-[var(--brand-primary)]"
-            aria-hidden
-          />
-          <span className="min-w-0">{b}</span>
+        <li key={i} className="min-w-0 pl-0.5">
+          {b}
         </li>
       ))}
     </ul>

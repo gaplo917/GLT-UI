@@ -45,7 +45,7 @@ export function PresentationFigureKeypoints({
         {...props}
       >
         {/* Fixed cap keeps figure-wide boards readable: prose needs room for 3 bullets + 3 callout rows. */}
-        <div className="flex h-[140px] max-h-[140px] min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
+        <div className="flex h-[120px] max-h-[120px] min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
           {caption ? (
             <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
               {caption}
