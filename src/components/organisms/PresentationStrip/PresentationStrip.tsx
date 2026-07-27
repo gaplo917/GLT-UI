@@ -166,6 +166,8 @@ export function PresentationStrip({
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
+  /** Which fullscreen edge nav is hovered / keyboard-focused. */
+  const [edgeNav, setEdgeNav] = React.useState<'prev' | 'next' | null>(null);
   const total = slides.length;
   const current = slides[index] ?? slides[0];
 
@@ -432,21 +434,87 @@ export function PresentationStrip({
           </FitContain>
 
           {/*
-            Edge click zones for deck navigation — keep clear of the top band so
-            in-slide controls stay clickable.
+            Edge hover zones: translucent prev/next appear when the pointer is
+            near the left or right edge (full-height hit target, center slide
+            stays free for in-board controls). Inline width/opacity so the
+            portal Tailwind scan cannot drop package-only utilities.
           */}
           <button
             type="button"
+            data-testid="presentation-edge-prev"
             aria-label={prevAria}
             onClick={prev}
-            className="absolute bottom-0 left-0 top-16 z-0 w-[10%] cursor-w-resize bg-transparent sm:top-20"
-          />
+            onMouseEnter={() => setEdgeNav('prev')}
+            onMouseLeave={() =>
+              setEdgeNav((cur) => (cur === 'prev' ? null : cur))
+            }
+            onFocus={() => setEdgeNav('prev')}
+            onBlur={() => setEdgeNav((cur) => (cur === 'prev' ? null : cur))}
+            className="absolute inset-y-0 left-0 z-10 flex cursor-w-resize items-center justify-start border-0 bg-transparent p-0 pl-3 outline-none focus-visible:outline-none"
+            style={{ width: 'min(7.5rem, 14%)' }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                opacity: edgeNav === 'prev' ? 1 : 0,
+                transition: 'opacity 180ms ease',
+                background:
+                  'linear-gradient(to right, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
+              }}
+            />
+            <span
+              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
+              style={{
+                opacity: edgeNav === 'prev' ? 1 : 0,
+                transition: 'opacity 180ms ease',
+                backgroundColor:
+                  'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+              }}
+            >
+              ←
+            </span>
+          </button>
           <button
             type="button"
+            data-testid="presentation-edge-next"
             aria-label={nextAria}
             onClick={next}
-            className="absolute bottom-0 right-0 top-16 z-0 w-[10%] cursor-e-resize bg-transparent sm:top-20"
-          />
+            onMouseEnter={() => setEdgeNav('next')}
+            onMouseLeave={() =>
+              setEdgeNav((cur) => (cur === 'next' ? null : cur))
+            }
+            onFocus={() => setEdgeNav('next')}
+            onBlur={() => setEdgeNav((cur) => (cur === 'next' ? null : cur))}
+            className="absolute inset-y-0 right-0 z-10 flex cursor-e-resize items-center justify-end border-0 bg-transparent p-0 pr-3 outline-none focus-visible:outline-none"
+            style={{ width: 'min(7.5rem, 14%)' }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                opacity: edgeNav === 'next' ? 1 : 0,
+                transition: 'opacity 180ms ease',
+                background:
+                  'linear-gradient(to left, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
+              }}
+            />
+            <span
+              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
+              style={{
+                opacity: edgeNav === 'next' ? 1 : 0,
+                transition: 'opacity 180ms ease',
+                backgroundColor:
+                  'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+              }}
+            >
+              →
+            </span>
+          </button>
         </div>
 
         {/* Thumbnail rail in present mode */}
