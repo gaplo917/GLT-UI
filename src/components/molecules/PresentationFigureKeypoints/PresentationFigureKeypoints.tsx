@@ -44,7 +44,8 @@ export function PresentationFigureKeypoints({
         className={cn('flex min-h-0 min-w-0 flex-1 flex-col gap-2', className)}
         {...props}
       >
-        <div className="flex min-h-0 min-w-0 max-h-[42%] flex-[0.8] flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-2">
+        {/* Fixed cap keeps figure-wide boards readable: prose needs room for 3 bullets + 3 callout rows. */}
+        <div className="flex h-[140px] max-h-[140px] min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
           {caption ? (
             <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
               {caption}
@@ -57,7 +58,7 @@ export function PresentationFigureKeypoints({
           </div>
         </div>
         <PresentationProseColumns
-          className="min-h-0 min-w-0 flex-1 overflow-hidden"
+          className="min-h-0 min-w-0 flex-1"
           bullets={bullets}
           callout={callout}
         />
