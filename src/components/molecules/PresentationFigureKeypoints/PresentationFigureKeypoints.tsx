@@ -11,7 +11,7 @@ export interface PresentationFigureKeypointsProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * When true, stack figure above keypoints (wide / landscape figures).
-   * When false, side-by-side figure + keypoints columns.
+   * When false, side-by-side: left image, right text.
    */
   wide: boolean;
   /** Chart / diagram node (host-supplied). */
@@ -26,8 +26,8 @@ export interface PresentationFigureKeypointsProps
 
 /**
  * Figure + keypoints layout for presentation decks.
- * Wide: figure on top, two-column prose under (bullets | impact rows).
- * Side: figure left, stacked prose right (column already short for reading).
+ * Wide: figure on top, two-column prose under.
+ * Side: left image, right stacked text (bullets then Impact / Takeaways / Next actions).
  */
 export function PresentationFigureKeypoints({
   wide,
@@ -44,7 +44,6 @@ export function PresentationFigureKeypoints({
         className={cn('flex min-h-0 min-w-0 flex-1 flex-col gap-2', className)}
         {...props}
       >
-        {/* Fixed cap keeps figure-wide boards readable: prose needs room for 3 bullets + 3 callout rows. */}
         <div className="flex h-[120px] max-h-[120px] min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
           {caption ? (
             <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
@@ -66,23 +65,23 @@ export function PresentationFigureKeypoints({
     );
   }
 
-  // Figure left; prose as bullets | callout on the right for short reading lines.
+  // Left image · right text (stacked bullets + callout). Inline grid template
+  // avoids relying on Tailwind scanning arbitrary fr classes from the package.
   return (
     <div
-      className={cn(
-        'grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-3',
-        className,
-      )}
+      className={cn('grid min-h-0 min-w-0 flex-1 gap-3', className)}
+      style={{ gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)' }}
       {...props}
     >
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-2">
-        <div className="relative flex h-full min-h-0 min-w-0 w-full flex-1 items-center justify-center [&_.pdl]:h-full [&_.pdl]:w-full [&_.ecf]:h-full [&_.ecf]:w-full [&_svg]:mx-auto [&_svg]:h-full [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full">
+        <div className="relative flex h-full min-h-0 min-w-0 w-full flex-1 items-center justify-center [&_.pdl]:h-full [&_.pdl]:w-full [&_.ecf]:h-full [&_.ecf]:w-full [&_.csd]:h-full [&_.csd]:w-full [&_.ahd]:h-full [&_.ahd]:w-full [&_svg]:mx-auto [&_svg]:h-full [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full">
           {figure}
         </div>
       </div>
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
         <PresentationProseColumns
-          className="min-h-0 flex-1"
+          stack
+          className="min-h-0 flex-1 overflow-y-auto"
           bullets={bullets}
           callout={callout}
         />
