@@ -26,6 +26,7 @@ export type PresentationSlideBoardLayout =
   | 'bullets'
   | 'figure-wide'
   | 'figure-side'
+  | 'cards'
   | 'close';
 
 export interface PresentationSlideBoardProps {
@@ -57,7 +58,7 @@ export interface PresentationSlideBoardProps {
   calloutLabels?: PresentationCalloutLabels;
   figure?: React.ReactNode;
   figureCaption?: string;
-  /** Close layout myth / watch cards. */
+  /** Cards layout / close layout myth / watch cards. */
   cards?: readonly { title: string; body: string }[];
   className?: string;
 }
@@ -146,6 +147,24 @@ export function PresentationSlideBoard({
           bullets={bullets}
           callout={labeledCallout}
         />
+      ) : null}
+
+      {layout === 'cards' ? (
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2.5">
+          {cards && cards.length > 0 ? (
+            <PresentationMythGrid
+              className="min-h-0 flex-1 content-start"
+              cards={cards}
+            />
+          ) : null}
+          {labeledCallout ? (
+            <PresentationProseColumns
+              stack
+              className="shrink-0"
+              callout={labeledCallout}
+            />
+          ) : null}
+        </div>
       ) : null}
 
       {layout === 'close' ? (
