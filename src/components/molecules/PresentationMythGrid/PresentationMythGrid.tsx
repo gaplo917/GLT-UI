@@ -28,10 +28,10 @@ export function PresentationMythGrid({
           key={c.title}
           className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/50 px-3 py-2"
         >
-          <p className="m-0 text-[11px] font-bold uppercase tracking-wide text-[var(--brand-primary)]">
+          <p className="m-0 text-[10px] font-bold uppercase tracking-wide text-[var(--brand-primary)]">
             {c.title}
           </p>
-          <p className="m-0 mt-0.5 text-[12px] leading-snug text-[var(--text-color)]">
+          <p className="m-0 mt-0.5 text-[10.5px] leading-[1.4] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)]">
             {c.body}
           </p>
         </div>

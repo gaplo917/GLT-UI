@@ -42,8 +42,8 @@ function KeypointsBlock({
     <div
       className={
         compact
-          ? 'grid min-h-0 shrink-0 grid-cols-[1.1fr_0.9fr] gap-3'
-          : 'flex min-h-0 flex-col gap-2'
+          ? 'grid min-h-0 shrink-0 grid-cols-[1.05fr_0.95fr] gap-2.5'
+          : 'flex min-h-0 flex-col gap-1.5'
       }
     >
       {bullets ? <PresentationBulletList items={bullets} /> : null}
