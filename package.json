@@ -54,10 +54,10 @@
     "demo"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node scripts/assert-dist-no-at-alias.mjs",
     "assert:slim": "node scripts/assert-slim-surface.mjs",
     "test:slim": "npm run build && npm run assert:slim",
-    "build:watch": "concurrently -k -n tsc,alias -c blue,yellow \"tsc -p tsconfig.build.json -w --preserveWatchOutput\" \"tsc-alias -p tsconfig.build.json -w\"",
+    "build:watch": "node scripts/watch-build.mjs",
     "prepublishOnly": "npm run build",
     "predev": "npm run build",
     "dev": "npm run dev -w demo",
