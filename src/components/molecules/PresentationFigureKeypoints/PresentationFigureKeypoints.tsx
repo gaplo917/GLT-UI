@@ -44,7 +44,10 @@ export function PresentationFigureKeypoints({
         className={cn('flex min-h-0 min-w-0 flex-1 flex-col gap-2', className)}
         {...props}
       >
-        <div className="flex h-[120px] max-h-[120px] min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
+        <div
+          className="flex min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5"
+          style={{ height: 400, maxHeight: 400 }}
+        >
           {caption ? (
             <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
               {caption}
