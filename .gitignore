@@ -21,6 +21,8 @@ out/
 # Production / build artifacts
 /build
 /dist/
+.dist-staging/
+.dist-prev/
 *.tsbuildinfo
 next-env.d.ts
 demo/next-env.d.ts

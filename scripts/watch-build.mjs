@@ -1,12 +1,11 @@
 /**
- * Sequential tsc → tsc-alias on each change.
- * Concurrent `tsc -w` + `tsc-alias -w` races: tsc re-emits `@/*` into dist before
- * tsc-alias rewrites, and Next (transpilePackages) fails on unresolved `@/…`.
+ * Watch packages/glt-ui/src and rebuild via atomic staging publish (build-once.mjs).
+ * Avoids Next seeing half-written dist with unresolved `@/*` aliases.
  */
-import { spawn } from "node:child_process";
 import { watch } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildOnce } from "./build-once.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const srcDir = path.join(root, "src");
@@ -14,21 +13,6 @@ const srcDir = path.join(root, "src");
 let timer = null;
 let building = false;
 let pending = false;
-
-function run(cmd, args) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, {
-      cwd: root,
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    });
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`${cmd} ${args.join(" ")} exited ${code}`));
-    });
-  });
-}
 
 async function build() {
   if (building) {
@@ -39,8 +23,7 @@ async function build() {
   try {
     const stamp = new Date().toLocaleTimeString();
     console.log(`[glt-ui watch] ${stamp} building…`);
-    await run("npx", ["tsc", "-p", "tsconfig.build.json"]);
-    await run("npx", ["tsc-alias", "-p", "tsconfig.build.json"]);
+    await buildOnce();
     console.log(`[glt-ui watch] ${stamp} done`);
   } catch (err) {
     console.error("[glt-ui watch] build failed:", err?.message ?? err);
