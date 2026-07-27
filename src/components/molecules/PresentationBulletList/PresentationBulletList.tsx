@@ -8,7 +8,7 @@ export interface PresentationBulletListProps
 }
 
 /**
- * Compact presentation-deck bullet list: brand-dot markers, snug type.
+ * Compact presentation-deck bullet list: brand-dot markers, aligned columns.
  * Content-agnostic — host supplies every item.
  */
 export function PresentationBulletList({
@@ -24,10 +24,10 @@ export function PresentationBulletList({
       {items.map((b, i) => (
         <li
           key={i}
-          className="flex gap-1.5 text-[11px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]"
+          className="grid grid-cols-[10px_minmax(0,1fr)] items-start gap-x-2 text-[11.5px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]"
         >
           <span
-            className="mt-[0.4em] h-1 w-1 shrink-0 rounded-full bg-[var(--brand-primary)]"
+            className="mt-[0.45em] h-1.5 w-1.5 shrink-0 justify-self-center rounded-full bg-[var(--brand-primary)]"
             aria-hidden
           />
           <span className="min-w-0">{b}</span>

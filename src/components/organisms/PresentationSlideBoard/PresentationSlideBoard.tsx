@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { PresentationSlideFrame } from '@/components/organisms/PresentationStrip/PresentationSlideFrame.js';
 import { PresentationTitlePage } from '@/components/molecules/PresentationTitlePage/PresentationTitlePage.js';
-import { PresentationBulletList } from '@/components/molecules/PresentationBulletList/PresentationBulletList.js';
-import { PresentationDecisionCallout } from '@/components/molecules/PresentationDecisionCallout/PresentationDecisionCallout.js';
+import { PresentationProseColumns } from '@/components/molecules/PresentationProseColumns/PresentationProseColumns.js';
 import { PresentationFigureKeypoints } from '@/components/molecules/PresentationFigureKeypoints/PresentationFigureKeypoints.js';
 import { PresentationMythGrid } from '@/components/molecules/PresentationMythGrid/PresentationMythGrid.js';
 
@@ -66,6 +65,7 @@ export interface PresentationSlideBoardProps {
 /**
  * Content-agnostic presentation slide board. Host supplies all copy, figures,
  * and cards. Layout chrome via PresentationSlideFrame; body by `layout`.
+ * Prose uses left-right columns (bullets | impact) for board-length reading.
  */
 export function PresentationSlideBoard({
   layout,
@@ -122,19 +122,10 @@ export function PresentationSlideBoard({
       ) : null}
 
       {layout === 'bullets' ? (
-        <>
-          {bullets ? <PresentationBulletList items={bullets} /> : null}
-          {labeledCallout ? (
-            <PresentationDecisionCallout
-              impact={labeledCallout.impact}
-              takeaways={labeledCallout.takeaways}
-              nextActions={labeledCallout.nextActions}
-              impactLabel={labeledCallout.impactLabel}
-              takeawaysLabel={labeledCallout.takeawaysLabel}
-              nextActionsLabel={labeledCallout.nextActionsLabel}
-            />
-          ) : null}
-        </>
+        <PresentationProseColumns
+          bullets={bullets}
+          callout={labeledCallout}
+        />
       ) : null}
 
       {layout === 'figure-wide' && figure != null ? (
@@ -158,22 +149,15 @@ export function PresentationSlideBoard({
       ) : null}
 
       {layout === 'close' ? (
-        <>
-          {bullets ? <PresentationBulletList items={bullets} /> : null}
-          {cards && cards.length > 0 ? (
-            <PresentationMythGrid cards={cards} />
-          ) : null}
-          {labeledCallout ? (
-            <PresentationDecisionCallout
-              impact={labeledCallout.impact}
-              takeaways={labeledCallout.takeaways}
-              nextActions={labeledCallout.nextActions}
-              impactLabel={labeledCallout.impactLabel}
-              takeawaysLabel={labeledCallout.takeawaysLabel}
-              nextActionsLabel={labeledCallout.nextActionsLabel}
-            />
-          ) : null}
-        </>
+        <PresentationProseColumns
+          bullets={bullets}
+          callout={labeledCallout}
+          leftExtra={
+            cards && cards.length > 0 ? (
+              <PresentationMythGrid cards={cards} />
+            ) : null
+          }
+        />
       ) : null}
     </PresentationSlideFrame>
   );

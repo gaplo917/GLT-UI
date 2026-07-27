@@ -31,6 +31,7 @@ export * from './molecules/PresentationBulletList/index.js';
 export * from './molecules/PresentationDecisionCallout/index.js';
 export * from './molecules/PresentationFigureKeypoints/index.js';
 export * from './molecules/PresentationMythGrid/index.js';
+export * from './molecules/PresentationProseColumns/index.js';
 export * from './molecules/PresentationTitlePage/index.js';
 export * from './molecules/Prose/Prose.js';
 export * from './molecules/Quote/Quote.js';
