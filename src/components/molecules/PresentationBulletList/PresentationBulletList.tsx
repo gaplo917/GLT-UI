@@ -20,7 +20,7 @@ export function PresentationBulletList({
   return (
     <ul
       className={cn(
-        'm-0 list-outside list-disc space-y-1 py-0 pl-3.5 text-[7px] leading-[1.4] text-[var(--text-color)] marker:text-[var(--brand-primary)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]',
+        'm-0 list-outside list-disc space-y-1.5 py-0 pl-4 text-[11px] leading-[1.45] text-[var(--text-color)] marker:text-[var(--brand-primary)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]',
         className,
       )}
       {...props}

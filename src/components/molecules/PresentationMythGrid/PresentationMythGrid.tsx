@@ -34,10 +34,10 @@ export function PresentationMythGrid({
           key={c.title}
           className="flex min-h-0 flex-col rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/50 px-3 py-2.5"
         >
-          <p className="m-0 text-[6.5px] font-semibold uppercase tracking-[0.1em] text-[var(--brand-primary)]">
+          <p className="m-0 text-[8px] font-semibold uppercase tracking-[0.1em] text-[var(--brand-primary)]">
             {c.title}
           </p>
-          <p className="m-0 mt-1 text-[7.5px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)]">
+          <p className="m-0 mt-1 text-[11px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)]">
             {c.body}
           </p>
         </div>

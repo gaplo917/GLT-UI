@@ -19,7 +19,7 @@ export interface PresentationDecisionCalloutProps
 
 /**
  * Impact · takeaways · next actions for presentation decks.
- * Labels stay small; body is ~40% smaller than the prior 11.5px scale (~7px).
+ * Labels stay small; body matches deck body type at 11px.
  */
 export function PresentationDecisionCallout({
   impact,
@@ -39,13 +39,13 @@ export function PresentationDecisionCallout({
 
   return (
     <div className={cn('min-w-0 py-0.5', className)} {...props}>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {rows.map((row) => (
           <div key={row.key} className="min-w-0">
-            <p className="m-0 text-[6px] font-semibold uppercase tracking-[0.1em] text-[var(--brand-primary)]">
+            <p className="m-0 text-[8px] font-semibold uppercase tracking-[0.1em] text-[var(--brand-primary)]">
               {row.key}
             </p>
-            <p className="m-0 mt-0.5 text-[7px] leading-[1.4] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]">
+            <p className="m-0 mt-0.5 text-[11px] leading-[1.45] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]">
               {row.body}
             </p>
           </div>

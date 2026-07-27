@@ -46,7 +46,7 @@ export function PresentationFigureKeypoints({
       >
         <div
           className="flex min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5"
-          style={{ height: 400, maxHeight: 400 }}
+          style={{ height: 280, maxHeight: 280 }}
         >
           {caption ? (
             <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
