@@ -7,6 +7,7 @@
 
 /** Labels for fixed architecture chrome (host supplies product language). */
 export type AgentHarnessLabels = {
+  ariaLabel?: string;
   diagramTitle?: string;
   human?: string;
   humanSteering?: string;
@@ -50,6 +51,7 @@ const DEFAULT_LABELS: Required<
   initialGenLines: readonly string[];
   selfCorrectingLines: readonly string[];
 } = {
+  ariaLabel: "Agent harness diagram",
   diagramTitle: "Agent = Model + Harness",
   human: "Human",
   humanSteering: "Steering",
@@ -174,20 +176,15 @@ export function AgentHarnessDiagram({
   const ratchetLabelY = durableMidY - 12;
 
   return (
-    <div
-      className="ahd w-full min-w-0"
-      data-figure="agent-harness-diagram"
-    >
+    <div className="ahd w-full min-w-0" data-figure="agent-harness-diagram">
       <style>{css}</style>
       <svg
         viewBox={`0 0 ${vbW} ${vbH}`}
         preserveAspectRatio="xMidYMid meet"
         className="mx-auto block h-auto w-full max-w-5xl"
         role="img"
-        aria-labelledby={
-          title || description ? "ahd-title ahd-desc" : undefined
-        }
-        aria-label={!title && !description ? "Agent harness diagram" : undefined}
+        aria-labelledby={title || description ? "ahd-title ahd-desc" : undefined}
+        aria-label={!title && !description ? L.ariaLabel : undefined}
       >
         <title id="ahd-title">{title}</title>
         <desc id="ahd-desc">{description}</desc>
@@ -370,12 +367,7 @@ export function AgentHarnessDiagram({
         >
           {L.agent}
         </text>
-        <text
-          x={agentCx}
-          y={agent.y + 52}
-          textAnchor="middle"
-          className="ahd-box-sub"
-        >
+        <text x={agentCx} y={agent.y + 52} textAnchor="middle" className="ahd-box-sub">
           {L.agentSub}
         </text>
 
@@ -471,20 +463,10 @@ export function AgentHarnessDiagram({
           rx={R}
           className="ahd-box ahd-wrap"
         />
-        <text
-          x={repoCx}
-          y={repo.y + 24}
-          textAnchor="middle"
-          className="ahd-box-title"
-        >
+        <text x={repoCx} y={repo.y + 24} textAnchor="middle" className="ahd-box-title">
           {L.durableState}
         </text>
-        <text
-          x={repoCx}
-          y={repo.y + 44}
-          textAnchor="middle"
-          className="ahd-box-sub"
-        >
+        <text x={repoCx} y={repo.y + 44} textAnchor="middle" className="ahd-box-sub">
           {L.durableStateSub}
         </text>
 

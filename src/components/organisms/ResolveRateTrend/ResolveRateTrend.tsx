@@ -9,6 +9,18 @@ export type ResolveRateTrendPoint = {
   resolveRate: number;
 };
 
+export type ResolveRateTrendLabels = {
+  frontier?: string;
+  timeAxis?: string;
+  rateAxis?: string;
+};
+
+const DEFAULT_LABELS: Required<ResolveRateTrendLabels> = {
+  frontier: "Frontier (max per quarter)",
+  timeAxis: "Time (quarter)",
+  rateAxis: "Resolve rate (%)",
+};
+
 /** "2024 Q1" → 2024.0 ; "2026 Q3" → 2026.5 (linear quarter axis). */
 function periodToTime(period: string): number {
   const m = period.trim().match(/^(\d{4})\s*Q([1-4])$/i);
@@ -32,7 +44,10 @@ function formatRate(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
-function pointLabel(p: ResolveRateTrendPoint, labelMap?: Readonly<Record<string, string>>): string {
+function pointLabel(
+  p: ResolveRateTrendPoint,
+  labelMap?: Readonly<Record<string, string>>,
+): string {
   return `${shortModelName(p.model, labelMap)}\n${formatRate(p.resolveRate)}%`;
 }
 
@@ -60,6 +75,7 @@ export function ResolveRateTrend({
   compact = false,
   fill = false,
   labelMap,
+  labels: labelsProp,
 }: {
   points: readonly ResolveRateTrendPoint[];
   /** Override chart height (e.g. presentation slides). */
@@ -73,7 +89,10 @@ export function ResolveRateTrend({
   fill?: boolean;
   /** Optional short labels for models (leader lines). */
   labelMap?: Readonly<Record<string, string>>;
+  /** Locale-specific chart labels. */
+  labels?: ResolveRateTrendLabels;
 }) {
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const [narrow, setNarrow] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
   const [fillHeight, setFillHeight] = useState<number | null>(null);
@@ -140,7 +159,7 @@ export function ResolveRateTrend({
     const datasets = [
       {
         type: "line" as const,
-        label: "Frontier (max per quarter)",
+        label: labels.frontier,
         data: frontier.map((f) => ({ x: f.t, y: f.resolveRate })),
         borderColor: stroke,
         backgroundColor: fillWash,
@@ -176,7 +195,7 @@ export function ResolveRateTrend({
     ];
 
     return { datasets, tMin, tMax, frontier };
-  }, [points, narrow, labelMap]);
+  }, [points, narrow, labelMap, labels.frontier]);
 
   if (!layout) return null;
   const { datasets, tMin, tMax } = layout;
@@ -206,9 +225,10 @@ export function ResolveRateTrend({
       data={{ datasets }}
       options={{
         layout: {
-          padding: narrow || compact || fill
-            ? { top: 36, right: 40, bottom: 24, left: 28 }
-            : { top: 56, right: 76, bottom: 28, left: 36 },
+          padding:
+            narrow || compact || fill
+              ? { top: 36, right: 40, bottom: 24, left: 28 }
+              : { top: 56, right: 76, bottom: 28, left: 36 },
         },
         scales: {
           x: {
@@ -218,7 +238,7 @@ export function ResolveRateTrend({
             offset: false,
             title: {
               display: true,
-              text: "Time (quarter)",
+              text: labels.timeAxis,
             },
             ticks: {
               // One tick per calendar quarter on a fixed linear axis
@@ -261,7 +281,7 @@ export function ResolveRateTrend({
             },
             title: {
               display: true,
-              text: "Resolve rate (%)",
+              text: labels.rateAxis,
             },
           },
         },

@@ -39,6 +39,72 @@ export type CostScoreFigureRow = {
   priceSource: string;
 };
 
+export type CostScoreBoardLabels = {
+  filter?: string;
+  allModels?: string;
+  noModels?: string;
+  selectedModels?: string;
+  filterModelsAria?: string;
+  showModels?: string;
+  all?: string;
+  none?: string;
+  benchmarkType?: string;
+  benchmarkTypeAria?: string;
+  tasks?: string;
+  totalSuiteCost?: string;
+  scoreAxis?: string;
+  noModelsSelected?: string;
+  noRows?: string;
+  score?: string;
+  costPerTask?: string;
+  suiteCost?: string;
+  suiteTotal?: string;
+  listPrice?: string;
+  listPriceInOut?: string;
+  listPriceDetail?: string;
+  model?: string;
+  effort?: string;
+  harness?: string;
+};
+
+const DEFAULT_LABELS: Required<CostScoreBoardLabels> = {
+  filter: "Filter:",
+  allModels: "All models",
+  noModels: "No models",
+  selectedModels: "{selected} of {total} models",
+  filterModelsAria: "Filter models on figure",
+  showModels: "Show models",
+  all: "All",
+  none: "None",
+  benchmarkType: "Benchmark Type:",
+  benchmarkTypeAria: "Select benchmark type",
+  tasks: "{count} tasks",
+  totalSuiteCost: "Total suite cost ($ · {count} tasks)",
+  scoreAxis: "Score (%)",
+  noModelsSelected: "No models selected.",
+  noRows: "No rows. Select at least one model above.",
+  score: "Score",
+  costPerTask: "$/task",
+  suiteCost: "Suite $",
+  suiteTotal: "Suite total ($ · {count})",
+  listPrice: "List",
+  listPriceInOut: "List price in/out",
+  listPriceDetail: "in/out per MTok",
+  model: "Model",
+  effort: "Effort",
+  harness: "Harness",
+};
+
+function labelTemplate(
+  template: string,
+  values: Readonly<Record<string, string | number>>,
+): string {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
+
 type ModelOption = {
   model: string;
   color: string;
@@ -67,9 +133,7 @@ function uniqueModels(points: readonly CostScoreFigureRow[]): ModelOption[] {
   );
 }
 
-function uniqueBenchmarks(
-  points: readonly CostScoreFigureRow[],
-): BenchmarkOption[] {
+function uniqueBenchmarks(points: readonly CostScoreFigureRow[]): BenchmarkOption[] {
   const map = new Map<CostScoreBenchmarkId, BenchmarkOption>();
   for (const p of points) {
     if (!map.has(p.benchmark)) {
@@ -97,6 +161,7 @@ export function CostScoreBoard({
   dataTableHint,
   showLabel,
   hideLabel,
+  labels: labelsProp,
 }: {
   points: readonly CostScoreFigureRow[];
   /** Bibliography markers keyed by board id (serializable for RSC → client). */
@@ -111,11 +176,13 @@ export function CostScoreBoard({
   dataTableHint?: string;
   showLabel?: string;
   hideLabel?: string;
+  /** Locale-specific labels for filters, axes, empty states, and tables. */
+  labels?: CostScoreBoardLabels;
 }) {
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const benchmarks = useMemo(() => uniqueBenchmarks(points), [points]);
   const defaultBench = benchmarks[0]?.id ?? "default";
-  const [benchmark, setBenchmark] =
-    useState<CostScoreBenchmarkId>(defaultBench);
+  const [benchmark, setBenchmark] = useState<CostScoreBenchmarkId>(defaultBench);
 
   const benchPoints = useMemo(
     () => points.filter((p) => p.benchmark === benchmark),
@@ -132,10 +199,7 @@ export function CostScoreBoard({
     models: Set<string>;
   } | null>(null);
   const visible = useMemo(
-    () =>
-      selection?.key === modelKey
-        ? selection.models
-        : new Set(allModelNames),
+    () => (selection?.key === modelKey ? selection.models : new Set(allModelNames)),
     [selection, modelKey, allModelNames],
   );
 
@@ -155,10 +219,7 @@ export function CostScoreBoard({
   useEffect(() => {
     if (!modelMenuOpen) return;
     const onPointerDown = (e: MouseEvent) => {
-      if (
-        modelMenuRef.current &&
-        !modelMenuRef.current.contains(e.target as Node)
-      ) {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(e.target as Node)) {
         setModelMenuOpen(false);
       }
     };
@@ -178,8 +239,7 @@ export function CostScoreBoard({
 
   function toggle(model: string) {
     setSelection((prev) => {
-      const base =
-        prev?.key === modelKey ? prev.models : new Set(allModelNames);
+      const base = prev?.key === modelKey ? prev.models : new Set(allModelNames);
       const next = new Set(base);
       if (next.has(model)) next.delete(model);
       else next.add(model);
@@ -195,10 +255,10 @@ export function CostScoreBoard({
     setSelection({ key: modelKey, models: new Set() });
   }
 
-  const xAxisLabel = `Total suite cost ($ · ${activeBench?.taskCount ?? "—"} tasks)`;
-  const yAxisLabel = activeBench
-    ? `${activeBench.label} (%)`
-    : "Score (%)";
+  const xAxisLabel = labelTemplate(labels.totalSuiteCost, {
+    count: activeBench?.taskCount ?? "—",
+  });
+  const yAxisLabel = activeBench ? `${activeBench.label} (%)` : labels.scoreAxis;
 
   // Fixed rem sizes only — never % / vw / vh (presentation slides are CSS-scaled).
   const modelFilter = (
@@ -211,7 +271,7 @@ export function CostScoreBoard({
         weight="semibold"
         className="inline-flex h-8 shrink-0 items-center tracking-tight"
       >
-        Filter:
+        {labels.filter}
       </Text>
       <div className="relative w-max max-w-[14rem] shrink-0">
         <button
@@ -234,10 +294,13 @@ export function CostScoreBoard({
         >
           <span className="whitespace-nowrap font-medium">
             {selectedModelCount === models.length
-              ? "All models"
+              ? labels.allModels
               : selectedModelCount === 0
-                ? "No models"
-                : `${selectedModelCount} of ${models.length} models`}
+                ? labels.noModels
+                : labelTemplate(labels.selectedModels, {
+                    selected: selectedModelCount,
+                    total: models.length,
+                  })}
           </span>
           <svg
             aria-hidden
@@ -265,7 +328,7 @@ export function CostScoreBoard({
             id={modelListId}
             role="listbox"
             aria-multiselectable="true"
-            aria-label="Filter models on figure"
+            aria-label={labels.filterModelsAria}
             className={[
               "absolute left-0 top-full z-30 mt-1 flex w-52 flex-col overflow-hidden",
               "rounded-md border border-[var(--border-color)] bg-[var(--card-bg-color)] shadow-lg",
@@ -275,7 +338,7 @@ export function CostScoreBoard({
           >
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--border-color)] px-2.5 py-1.5">
               <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--secondary-text-color)]">
-                Show models
+                {labels.showModels}
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -283,7 +346,7 @@ export function CostScoreBoard({
                   onClick={selectAllModels}
                   className="text-[10px] font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
                 >
-                  All
+                  {labels.all}
                 </button>
                 <span className="text-[var(--border-color)]" aria-hidden>
                   ·
@@ -293,7 +356,7 @@ export function CostScoreBoard({
                   onClick={clearAllModels}
                   className="text-[10px] font-medium text-[var(--secondary-text-color)] underline-offset-2 hover:underline"
                 >
-                  None
+                  {labels.none}
                 </button>
               </div>
             </div>
@@ -361,12 +424,12 @@ export function CostScoreBoard({
             weight="semibold"
             className="inline-flex h-8 shrink-0 items-center tracking-tight"
           >
-            Benchmark Type:
+            {labels.benchmarkType}
           </Text>
           <div
             className="flex min-w-0 flex-wrap items-center gap-1.5"
             role="group"
-            aria-label="Select benchmark type"
+            aria-label={labels.benchmarkTypeAria}
           >
             {benchmarks.map((b) => {
               const on = benchmark === b.id;
@@ -385,7 +448,7 @@ export function CostScoreBoard({
                 >
                   <span className="font-medium leading-none">{b.label}</span>
                   <span className="text-[10px] opacity-70 sm:text-xs">
-                    {b.taskCount} tasks
+                    {labelTemplate(labels.tasks, { count: b.taskCount })}
                   </span>
                 </button>
               );
@@ -415,10 +478,7 @@ export function CostScoreBoard({
         {toolbar}
 
         <div
-          className={[
-            "relative min-w-0",
-            compact ? "min-h-0 flex-1" : "",
-          ].join(" ")}
+          className={["relative min-w-0", compact ? "min-h-0 flex-1" : ""].join(" ")}
         >
           {filtered.length > 0 ? (
             <div className={compact ? "h-full min-h-0 min-w-0" : undefined}>
@@ -433,7 +493,7 @@ export function CostScoreBoard({
           ) : (
             <div className="flex h-[280px] items-center justify-center rounded-[var(--radius-card)] border border-dashed border-[var(--border-color)]">
               <Text size="sm" tone="secondary">
-                No models selected.
+                {labels.noModelsSelected}
               </Text>
             </div>
           )}
@@ -441,192 +501,190 @@ export function CostScoreBoard({
       </div>
 
       {compact ? null : (
-      <FigureDataTableToggle
-        label={dataTableLabel}
-        hint={dataTableHint}
-        showLabel={showLabel}
-        hideLabel={hideLabel}
-      >
-        {/* Phone: compact cards — full metrics without clipping headers */}
-        <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:hidden">
-          {filtered.length === 0 ? (
-            <li className="rounded-[var(--radius-card)] border border-dashed border-[var(--border-color)] px-3 py-4 text-center">
-              <Text size="sm" tone="secondary">
-                No rows. Select at least one model above.
-              </Text>
-            </li>
-          ) : (
-            filtered.map((row) => (
-              <li
-                key={rowKey(row)}
-                className="rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--bg-color)]/40 px-3 py-2.5"
-              >
-                <span className="font-medium">
-                  <a
-                    href={row.scoreSource}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline underline-offset-2 text-[var(--brand-primary)]"
-                  >
-                    {row.chartLabel}
-                  </a>
-                  {suiteCites?.[row.benchmark] ? (
-                    <RefCite items={suiteCites[row.benchmark]!} />
-                  ) : null}
-                </span>
-                <Text as="div" size="sm" tone="secondary" className="mt-0.5">
-                  <code>{row.effort}</code>
-                  {" · "}
-                  {row.harness}
-                  {" · "}
-                  {row.benchmarkLabel}
+        <FigureDataTableToggle
+          label={dataTableLabel}
+          hint={dataTableHint}
+          showLabel={showLabel}
+          hideLabel={hideLabel}
+        >
+          {/* Phone: compact cards — full metrics without clipping headers */}
+          <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:hidden">
+            {filtered.length === 0 ? (
+              <li className="rounded-[var(--radius-card)] border border-dashed border-[var(--border-color)] px-3 py-4 text-center">
+                <Text size="sm" tone="secondary">
+                  {labels.noRows}
                 </Text>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <Text
-                      as="div"
-                      size="xs"
-                      tone="secondary"
-                      className="font-mono uppercase tracking-wide"
-                    >
-                      Score
-                    </Text>
-                    <Text as="div" weight="semibold" className="mt-0.5">
-                      {row.resolveRate}%
-                    </Text>
-                  </div>
-                  <div>
-                    <Text
-                      as="div"
-                      size="xs"
-                      tone="secondary"
-                      className="font-mono uppercase tracking-wide"
-                    >
-                      $/task
-                    </Text>
-                    <Text as="div" weight="semibold" className="mt-0.5">
-                      {row.costPerTest != null
-                        ? `$${row.costPerTest.toFixed(2)}`
-                        : "—"}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text
-                      as="div"
-                      size="xs"
-                      tone="secondary"
-                      className="font-mono uppercase tracking-wide"
-                    >
-                      Suite $
-                    </Text>
-                    <Text as="div" weight="semibold" className="mt-0.5">
-                      {row.totalCost != null
-                        ? `$${row.totalCost.toFixed(0)}`
-                        : "—"}
-                    </Text>
-                  </div>
-                </div>
-                {row.inputPerM != null && row.outputPerM != null ? (
-                  <Text as="div" size="sm" tone="secondary" className="mt-2">
-                    List{" "}
+              </li>
+            ) : (
+              filtered.map((row) => (
+                <li
+                  key={rowKey(row)}
+                  className="rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--bg-color)]/40 px-3 py-2.5"
+                >
+                  <span className="font-medium">
                     <a
-                      href={row.priceSource}
+                      href={row.scoreSource}
                       target="_blank"
                       rel="noreferrer"
                       className="underline underline-offset-2 text-[var(--brand-primary)]"
                     >
-                      ${row.inputPerM}/${row.outputPerM}
-                    </a>{" "}
-                    in/out per MTok
+                      {row.chartLabel}
+                    </a>
+                    {suiteCites?.[row.benchmark] ? (
+                      <RefCite items={suiteCites[row.benchmark]!} />
+                    ) : null}
+                  </span>
+                  <Text as="div" size="sm" tone="secondary" className="mt-0.5">
+                    <code>{row.effort}</code>
+                    {" · "}
+                    {row.harness}
+                    {" · "}
+                    {row.benchmarkLabel}
                   </Text>
-                ) : null}
-              </li>
-            ))
-          )}
-        </ul>
-
-        <div className="hidden overflow-x-auto md:block">
-          <Table striped compact hoverable className="min-w-[48rem]">
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Model</TableHeaderCell>
-                <TableHeaderCell>Effort</TableHeaderCell>
-                <TableHeaderCell>Harness</TableHeaderCell>
-                <TableHeaderCell align="right">Score %</TableHeaderCell>
-                <TableHeaderCell align="right">$/task</TableHeaderCell>
-                <TableHeaderCell align="right">
-                  Suite total ($ · {activeBench?.taskCount ?? "—"})
-                </TableHeaderCell>
-                <TableHeaderCell align="right">
-                  List price in/out
-                </TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7}>
-                    <Text size="sm" tone="secondary">
-                      No rows. Select at least one model above.
-                    </Text>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((row) => (
-                  <TableRow key={rowKey(row)}>
-                    <TableCell>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <Text
+                        as="div"
+                        size="xs"
+                        tone="secondary"
+                        className="font-mono uppercase tracking-wide"
+                      >
+                        {labels.score}
+                      </Text>
+                      <Text as="div" weight="semibold" className="mt-0.5">
+                        {row.resolveRate}%
+                      </Text>
+                    </div>
+                    <div>
+                      <Text
+                        as="div"
+                        size="xs"
+                        tone="secondary"
+                        className="font-mono uppercase tracking-wide"
+                      >
+                        {labels.costPerTask}
+                      </Text>
+                      <Text as="div" weight="semibold" className="mt-0.5">
+                        {row.costPerTest != null
+                          ? `$${row.costPerTest.toFixed(2)}`
+                          : "—"}
+                      </Text>
+                    </div>
+                    <div>
+                      <Text
+                        as="div"
+                        size="xs"
+                        tone="secondary"
+                        className="font-mono uppercase tracking-wide"
+                      >
+                        {labels.suiteCost}
+                      </Text>
+                      <Text as="div" weight="semibold" className="mt-0.5">
+                        {row.totalCost != null ? `$${row.totalCost.toFixed(0)}` : "—"}
+                      </Text>
+                    </div>
+                  </div>
+                  {row.inputPerM != null && row.outputPerM != null ? (
+                    <Text as="div" size="sm" tone="secondary" className="mt-2">
+                      {labels.listPrice}{" "}
                       <a
-                        href={row.scoreSource}
+                        href={row.priceSource}
                         target="_blank"
                         rel="noreferrer"
                         className="underline underline-offset-2 text-[var(--brand-primary)]"
                       >
-                        {row.chartLabel}
-                      </a>
-                      {suiteCites?.[row.benchmark] ? (
-                        <RefCite items={suiteCites[row.benchmark]!} />
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <code>{row.effort}</code>
-                    </TableCell>
-                    <TableCell>
+                        ${row.inputPerM}/${row.outputPerM}
+                      </a>{" "}
+                      {labels.listPriceDetail}
+                    </Text>
+                  ) : null}
+                </li>
+              ))
+            )}
+          </ul>
+
+          <div className="hidden overflow-x-auto md:block">
+            <Table striped compact hoverable className="min-w-[48rem]">
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>{labels.model}</TableHeaderCell>
+                  <TableHeaderCell>{labels.effort}</TableHeaderCell>
+                  <TableHeaderCell>{labels.harness}</TableHeaderCell>
+                  <TableHeaderCell align="right">{labels.score}</TableHeaderCell>
+                  <TableHeaderCell align="right">{labels.costPerTask}</TableHeaderCell>
+                  <TableHeaderCell align="right">
+                    {labelTemplate(labels.suiteTotal, {
+                      count: activeBench?.taskCount ?? "—",
+                    })}
+                  </TableHeaderCell>
+                  <TableHeaderCell align="right">
+                    {labels.listPriceInOut}
+                  </TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7}>
                       <Text size="sm" tone="secondary">
-                        {row.harness}
+                        {labels.noRows}
                       </Text>
                     </TableCell>
-                    <TableCell align="right">{row.resolveRate}%</TableCell>
-                    <TableCell align="right">
-                      {row.costPerTest != null
-                        ? `$${row.costPerTest.toFixed(2)}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell align="right">
-                      {row.totalCost != null
-                        ? `$${row.totalCost.toFixed(0)}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell align="right">
-                      {row.inputPerM != null && row.outputPerM != null ? (
+                  </TableRow>
+                ) : (
+                  filtered.map((row) => (
+                    <TableRow key={rowKey(row)}>
+                      <TableCell>
                         <a
-                          href={row.priceSource}
+                          href={row.scoreSource}
                           target="_blank"
                           rel="noreferrer"
                           className="underline underline-offset-2 text-[var(--brand-primary)]"
                         >
-                          ${row.inputPerM}/${row.outputPerM}
+                          {row.chartLabel}
                         </a>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </FigureDataTableToggle>
+                        {suiteCites?.[row.benchmark] ? (
+                          <RefCite items={suiteCites[row.benchmark]!} />
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <code>{row.effort}</code>
+                      </TableCell>
+                      <TableCell>
+                        <Text size="sm" tone="secondary">
+                          {row.harness}
+                        </Text>
+                      </TableCell>
+                      <TableCell align="right">{row.resolveRate}%</TableCell>
+                      <TableCell align="right">
+                        {row.costPerTest != null
+                          ? `$${row.costPerTest.toFixed(2)}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row.totalCost != null ? `$${row.totalCost.toFixed(0)}` : "—"}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row.inputPerM != null && row.outputPerM != null ? (
+                          <a
+                            href={row.priceSource}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="underline underline-offset-2 text-[var(--brand-primary)]"
+                          >
+                            ${row.inputPerM}/${row.outputPerM}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </FigureDataTableToggle>
       )}
     </div>
   );

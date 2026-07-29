@@ -39,11 +39,9 @@ const barValueLabelsPlugin: Plugin<ChartType> = {
   afterDatasetsDraw(chart) {
     const { ctx } = chart;
     const styles = getComputedStyle(chart.canvas);
-    const textColor =
-      styles.getPropertyValue("--text-color").trim() || "#1a1a1a";
+    const textColor = styles.getPropertyValue("--text-color").trim() || "#1a1a1a";
     const fontFamily =
-      styles.getPropertyValue("--font-family").trim() ||
-      "system-ui, sans-serif";
+      styles.getPropertyValue("--font-family").trim() || "system-ui, sans-serif";
 
     ctx.save();
     ctx.font = `600 12px ${fontFamily}`;
@@ -69,8 +67,7 @@ const barValueLabelsPlugin: Plugin<ChartType> = {
 
         const chartRight = chart.chartArea?.right ?? x + 40;
         const outsideX = barEnd + 8;
-        const fitsOutside =
-          outsideX + ctx.measureText(label).width < chartRight - 4;
+        const fitsOutside = outsideX + ctx.measureText(label).width < chartRight - 4;
 
         if (fitsOutside) {
           ctx.textAlign = "left";
@@ -95,12 +92,14 @@ function AttentionBarChart({
   slices,
   height = 400,
   compact = false,
+  shareLabel,
 }: {
   title: string;
   values: "before" | "after";
   slices: readonly AttentionSlice[];
   height?: number;
   compact?: boolean;
+  shareLabel: string;
 }) {
   const colors = slices.map(barColor);
 
@@ -131,7 +130,7 @@ function AttentionBarChart({
           labels: slices.map((c) => c.label),
           datasets: [
             {
-              label: "Share %",
+              label: shareLabel,
               data: slices.map((c) => c[values]),
               backgroundColor: colors,
               hoverBackgroundColor: colors,
@@ -186,12 +185,15 @@ export function AttentionShiftBars({
   compact = false,
   beforeTitle = "Before",
   afterTitle = "After",
+  shareLabel = "Share %",
 }: {
   slices: readonly AttentionSlice[];
   /** Dense layout for presentation slides (always 2-up, shorter bars). */
   compact?: boolean;
   beforeTitle?: string;
   afterTitle?: string;
+  /** Dataset / tooltip label for the percentage share. */
+  shareLabel?: string;
 }) {
   const height = compact ? 210 : 400;
   return (
@@ -208,6 +210,7 @@ export function AttentionShiftBars({
         slices={slices}
         height={height}
         compact={compact}
+        shareLabel={shareLabel}
       />
       <AttentionBarChart
         title={afterTitle}
@@ -215,6 +218,7 @@ export function AttentionShiftBars({
         slices={slices}
         height={height}
         compact={compact}
+        shareLabel={shareLabel}
       />
     </div>
   );

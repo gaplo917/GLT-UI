@@ -28,6 +28,10 @@ export type MetricSparkBoardProps = {
   title?: string;
   /** Accessible description (SVG `<desc>`). Empty by default. */
   description?: string;
+  /** Fallback accessible label when title and description are omitted. */
+  ariaLabel?: string;
+  /** Locale-specific visible label and hint overrides, keyed by metric id. */
+  metricLabels?: Readonly<Record<string, { label?: string; hint?: string }>>;
   className?: string;
 };
 
@@ -49,8 +53,7 @@ function sparklinePath(
   const span = max - min || 1;
   return series
     .map((v, i) => {
-      const px =
-        x + (series.length === 1 ? w / 2 : (i / (series.length - 1)) * w);
+      const px = x + (series.length === 1 ? w / 2 : (i / (series.length - 1)) * w);
       const py = y + h - ((v - min) / span) * h;
       return `${i === 0 ? "M" : "L"} ${px.toFixed(1)} ${py.toFixed(1)}`;
     })
@@ -92,6 +95,8 @@ export function MetricSparkBoard({
   cites,
   title = "",
   description = "",
+  ariaLabel = "Metric board",
+  metricLabels,
   className,
 }: MetricSparkBoardProps) {
   const showCites = Boolean(cites);
@@ -110,41 +115,31 @@ export function MetricSparkBoard({
         preserveAspectRatio="xMidYMid meet"
         className="mx-auto block h-auto w-full max-w-full"
         role="img"
-        aria-labelledby={
-          title || description ? "msb-title msb-desc" : undefined
-        }
-        aria-label={!title && !description ? "Metric board" : undefined}
+        aria-labelledby={title || description ? "msb-title msb-desc" : undefined}
+        aria-label={!title && !description ? ariaLabel : undefined}
       >
         <title id="msb-title">{title}</title>
         <desc id="msb-desc">{description}</desc>
 
         {metrics.map((m, i) => {
+          const localized = metricLabels?.[m.id];
+          const metricLabel = localized?.label ?? m.label;
+          const metricHint = localized?.hint ?? m.hint;
           const x = PAD + i * (cellW + GAP);
           const y = PAD;
           const sparkW = cellW - 44;
           const sparkH = 28;
           const strokeClass =
             m.trendIntent === "success" ? "msb-spark-success" : "msb-spark-brand";
-          const lines = hintLines(m.hint);
+          const lines = hintLines(metricHint);
           const hintBaseY = showCites ? cellH - 40 : cellH - 36;
           const tileCites = m.citeKey ? cites?.[m.citeKey] : undefined;
 
           return (
             <g key={m.id} transform={`translate(${x} ${y})`}>
-              <rect
-                width={cellW}
-                height={cellH}
-                rx={14}
-                ry={14}
-                className="msb-card"
-              />
-              <text
-                x={cellW / 2}
-                y={28}
-                textAnchor="middle"
-                className="msb-label"
-              >
-                {labelLines(m.label).map((line, li) => (
+              <rect width={cellW} height={cellH} rx={14} ry={14} className="msb-card" />
+              <text x={cellW / 2} y={28} textAnchor="middle" className="msb-label">
+                {labelLines(metricLabel).map((line, li) => (
                   <tspan key={line} x={cellW / 2} dy={li === 0 ? 0 : 15}>
                     {line}
                   </tspan>
@@ -174,11 +169,7 @@ export function MetricSparkBoard({
                 className="msb-hint"
               >
                 {lines.map((line, li) => (
-                  <tspan
-                    key={`${line}-${li}`}
-                    x={cellW / 2}
-                    dy={li === 0 ? 0 : 13}
-                  >
+                  <tspan key={`${line}-${li}`} x={cellW / 2} dy={li === 0 ? 0 : 13}>
                     {line}
                   </tspan>
                 ))}

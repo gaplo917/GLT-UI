@@ -2699,6 +2699,7 @@ export const slimSection: DocSection = {
             <AttentionShiftBars
               beforeTitle="Before automation"
               afterTitle="After automation"
+              shareLabel="Share %"
               slices={[
                 {
                   key: 'build',
@@ -3004,6 +3005,11 @@ export const slimSection: DocSection = {
           render: (
             <CostScoreBoard
               chartHeight={260}
+              dataTableLabel="Data table and sources"
+              dataTableHint="Full row metrics and sources."
+              showLabel="Show"
+              hideLabel="Hide"
+              labels={{ filter: 'Filter:' }}
               suiteCites={{
                 'suite-a': DEMO_REF_ITEMS.slice(0, 1),
                 'suite-b': DEMO_REF_ITEMS.slice(1, 2),
@@ -3177,6 +3183,11 @@ export const slimSection: DocSection = {
               <ResolveRateTrend
                 fill
                 compact
+                labels={{
+                  frontier: 'Frontier',
+                  timeAxis: 'Time',
+                  rateAxis: 'Resolve rate (%)',
+                }}
                 points={[
                   { period: '2025 Q1', model: 'Alpha-1', resolveRate: 42 },
                   { period: '2025 Q2', model: 'Alpha-2', resolveRate: 55 },
@@ -3294,6 +3305,10 @@ export const slimSection: DocSection = {
             <MetricSparkBoard
               title="Sample fleet metrics"
               description="Fictional cycle time and NPS tiles for the design-system demo."
+              ariaLabel="Sample fleet metrics board"
+              metricLabels={{
+                cycle: { label: 'Cycle time', hint: 'Demo operations · Q2' },
+              }}
               cites={{
                 cycle: DEMO_REF_ITEMS.slice(0, 1),
                 nps: DEMO_REF_ITEMS.slice(1, 2),
