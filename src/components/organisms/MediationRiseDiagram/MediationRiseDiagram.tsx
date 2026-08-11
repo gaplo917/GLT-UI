@@ -42,9 +42,10 @@ export type MediationRiseDiagramProps = {
 const VB_W = 960;
 const VB_H = 340;
 const PAD_L = 72;
-const PAD_R = 36;
+/** Wide enough for end-anchored period labels (e.g. “Cloud Next 2026”). */
+const PAD_R = 88;
 const PAD_T = 36;
-const PAD_B = 56;
+const PAD_B = 64;
 
 function yForShare(share: number, maxShare: number): number {
   const plotH = VB_H - PAD_T - PAD_B;
@@ -184,8 +185,18 @@ export function MediationRiseDiagram({
         </text>
 
         {/* Milestones */}
-        {pts.map((p) => {
+        {pts.map((p, i) => {
           const tileCites = p.citeKey ? cites?.[p.citeKey] : undefined;
+          const edge =
+            i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle";
+          const periodX =
+            edge === "start" ? p.x - 2 : edge === "end" ? p.x + 2 : p.x;
+          const citeX =
+            edge === "start"
+              ? p.x + 14
+              : edge === "end"
+                ? p.x - 14
+                : p.x;
           return (
             <g key={p.id} data-mrd-level={p.id}>
               <line
@@ -200,11 +211,16 @@ export function MediationRiseDiagram({
               <text x={p.x} y={p.y - 22} textAnchor="middle" className="mrd-value">
                 {p.value}
               </text>
-              <text x={p.x} y={VB_H - PAD_B + 16} textAnchor="middle" className="mrd-period">
+              <text
+                x={periodX}
+                y={VB_H - PAD_B + 16}
+                textAnchor={edge}
+                className="mrd-period"
+              >
                 {p.period}
               </text>
               {showCites && tileCites && tileCites.length > 0 ? (
-                <SvgRefCite items={tileCites} x={p.x} y={VB_H - PAD_B + 30} fontSize={10} />
+                <SvgRefCite items={tileCites} x={citeX} y={VB_H - PAD_B + 32} fontSize={10} />
               ) : null}
             </g>
           );
