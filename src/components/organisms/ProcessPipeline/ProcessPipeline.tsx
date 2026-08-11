@@ -31,6 +31,51 @@ export interface ProcessPipelineProps extends React.HTMLAttributes<HTMLDivElemen
   animated?: boolean;
 }
 
+/** Rough SVG text width (viewBox units) for label sizing. */
+function approxTextWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * 0.58;
+}
+
+/** Wrap a sublabel to at most maxLines lines within maxWidth viewBox units. */
+function wrapLabel(
+  text: string,
+  maxWidth: number,
+  fontSize: number,
+  maxLines = 2,
+): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const lines: string[] = [];
+  let current = words[0]!;
+  for (let i = 1; i < words.length; i++) {
+    const next = `${current} ${words[i]}`;
+    if (approxTextWidth(next, fontSize) <= maxWidth) {
+      current = next;
+    } else {
+      lines.push(current);
+      current = words[i]!;
+      if (lines.length >= maxLines - 1) {
+        const rest = [current, ...words.slice(i + 1)].join(' ');
+        lines.push(rest);
+        return lines.slice(0, maxLines).map((line, li) => {
+          if (li < maxLines - 1) return line;
+          if (approxTextWidth(line, fontSize) <= maxWidth) return line;
+          let trimmed = line;
+          while (
+            trimmed.length > 4 &&
+            approxTextWidth(`${trimmed}…`, fontSize) > maxWidth
+          ) {
+            trimmed = trimmed.slice(0, -1).trimEnd();
+          }
+          return `${trimmed}…`;
+        });
+      }
+    }
+  }
+  lines.push(current);
+  return lines;
+}
+
 /**
  * Horizontal process pipeline with an optional dual-direction quality loop.
  *
@@ -38,7 +83,8 @@ export interface ProcessPipelineProps extends React.HTMLAttributes<HTMLDivElemen
  * - Caption pill: top margin + internal padding so text never clips the pill edge
  * - Gap between caption and loop band
  * - Node labels entirely below the loop band with clear clearance
- * - viewBox height derived from the last sublabel
+ * - viewBox height derived from wrapped sublabel lines
+ * - Horizontal pad expands so first/last labels stay inside the rounded frame
  */
 export function ProcessPipeline({
   nodes,
@@ -58,7 +104,6 @@ export function ProcessPipeline({
   const caption = {
     topMargin: 16,
     height: 30,
-    // Wide enough for mono ~10.5px "QUALITY LOOP · raise the bar" + padX*2
     width: 228,
     padX: 18,
     gapBelow: 14,
@@ -70,11 +115,35 @@ export function ProcessPipeline({
   const captionCy = captionTop + caption.height / 2;
 
   // —— Horizontal layout ——
-  const width = 640;
-  const padX = 52;
+  const labelFont = 13;
+  const subFont = 10.5;
+  // Conservative mono factor (UI mono is wider than 0.58em).
+  const monoFactor = 0.62;
+  const firstLabelW = approxTextWidth(nodes[0]!.label, labelFont);
+  const lastLabelW = approxTextWidth(nodes[nodes.length - 1]!.label, labelFont);
+  const firstSubW = nodes[0]!.sublabel
+    ? nodes[0]!.sublabel!.length * subFont * monoFactor
+    : 0;
+  const lastSubW = nodes[nodes.length - 1]!.sublabel
+    ? nodes[nodes.length - 1]!.sublabel!.length * subFont * monoFactor
+    : 0;
+  const edgeHalf = Math.max(firstLabelW, lastLabelW, firstSubW, lastSubW) / 2;
+  const padX = Math.max(80, Math.ceil(edgeHalf + 28));
+  const baseWidth = nodes.length >= 5 ? 820 : 720;
+  const width = Math.max(baseWidth, padX * 2 + (nodes.length - 1) * 130);
   const usable = width - padX * 2;
   const step = nodes.length > 1 ? usable / (nodes.length - 1) : 0;
   const xs = nodes.map((_, i) => padX + i * step);
+  // Keep sublabels inside neighbor midpoints; also clamp to available edge pad.
+  const subMaxW = Math.max(64, Math.min(step * 0.82, padX * 1.6));
+
+  const wrappedSubs = nodes.map((n) =>
+    n.sublabel ? wrapLabel(n.sublabel, subMaxW, subFont, 2) : [],
+  );
+  const maxSubLines = Math.max(
+    1,
+    ...wrappedSubs.map((lines) => (lines.length > 0 ? lines.length : 0)),
+  );
 
   const fromIdx = loop ? nodes.findIndex((n) => n.id === loop.from) : -1;
   const toIdx = loop ? nodes.findIndex((n) => n.id === loop.to) : -1;
@@ -87,17 +156,16 @@ export function ProcessPipeline({
   const loopRy = 38;
   const bandPad = 10;
 
-  // Loop band top clears caption + gap
   const bandTop = hasLoop
     ? captionBottom + (showCaption ? caption.gapBelow : 8)
     : 48;
   const cy = hasLoop ? bandTop + loopRy + bandPad : 72;
   const bandBottom = hasLoop ? cy + loopRy + bandPad : cy + 24;
 
-  // Labels always below band (or below nodes when no loop)
   const labelY = bandBottom + 18;
-  const subY = labelY + 16;
-  const viewH = subY + 20;
+  const subY = labelY + 15;
+  const subLineGap = 13;
+  const viewH = subY + Math.max(0, maxSubLines - 1) * subLineGap + 24;
 
   const qualityLoopPath = hasLoop
     ? `M ${gx} ${cy} A ${loopRx} ${loopRy} 0 0 1 ${rx} ${cy} A ${loopRx} ${loopRy} 0 0 1 ${gx} ${cy}`
@@ -109,7 +177,6 @@ export function ProcessPipeline({
     ? `M ${rx} ${cy} A ${loopRx} ${loopRy} 0 0 1 ${gx} ${cy}`
     : '';
 
-  // Spine edges excluding the looped segment (fromIdx → toIdx)
   const spinePaths: { d: string; key: string }[] = [];
   if (hasLoop) {
     if (fromIdx > 0) {
@@ -136,9 +203,9 @@ export function ProcessPipeline({
   return (
     <div
       className={cn(
-        'glt-process-pipeline w-full overflow-x-auto overflow-y-visible rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--card-bg-color)]/40 px-2 py-5 sm:px-4 sm:py-6',
+        'glt-process-pipeline w-full overflow-visible rounded-[var(--radius-card)] border border-[var(--border-color)] bg-[var(--card-bg-color)]/40 px-2 py-5 sm:px-4 sm:py-6',
         animated && 'glt-process-pipeline--animated',
-        className
+        className,
       )}
       data-process-pipeline
       data-process-pipeline-loop={hasLoop ? 'true' : undefined}
@@ -147,7 +214,7 @@ export function ProcessPipeline({
       <style>{PIPELINE_CSS}</style>
       <svg
         viewBox={`0 0 ${width} ${viewH}`}
-        className="mx-auto block h-auto w-full max-w-full"
+        className="mx-auto block h-auto w-full max-w-full overflow-visible"
         role="img"
         overflow="visible"
       >
@@ -268,7 +335,6 @@ export function ProcessPipeline({
                   stroke="color-mix(in srgb, var(--brand-primary) 40%, var(--border-color))"
                   strokeWidth="1"
                 />
-                {/* Invisible hit/pad box documents internal padding */}
                 <rect
                   x={mid - caption.width / 2 + caption.padX}
                   y={captionTop + 6}
@@ -368,12 +434,13 @@ export function ProcessPipeline({
                 path={s.d}
               />
             </circle>
-          ) : null
+          ) : null,
         )}
 
         {nodes.map((node, i) => {
           const inLoop = hasLoop && (i === fromIdx || i === toIdx);
           const x = xs[i]!;
+          const subLines = wrappedSubs[i] ?? [];
           return (
             <g key={node.id} data-process-pipeline-node={node.id}>
               {inLoop ? (
@@ -407,22 +474,30 @@ export function ProcessPipeline({
                 y={labelY}
                 textAnchor="middle"
                 fill="var(--strong-text-color)"
-                fontSize="13"
+                fontSize={labelFont}
                 fontWeight="600"
                 fontFamily="var(--font-family), system-ui, sans-serif"
               >
                 {node.label}
               </text>
-              {node.sublabel ? (
+              {subLines.length > 0 ? (
                 <text
                   x={x}
                   y={subY}
                   textAnchor="middle"
                   fill="var(--secondary-text-color)"
-                  fontSize="11"
+                  fontSize={subFont}
                   fontFamily="var(--font-mono, ui-monospace, monospace)"
                 >
-                  {node.sublabel}
+                  {subLines.map((line, li) => (
+                    <tspan
+                      key={`${node.id}-sub-${li}`}
+                      x={x}
+                      dy={li === 0 ? 0 : subLineGap}
+                    >
+                      {line}
+                    </tspan>
+                  ))}
                 </text>
               ) : null}
             </g>
