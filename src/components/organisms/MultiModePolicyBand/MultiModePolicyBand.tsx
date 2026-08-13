@@ -6,6 +6,10 @@
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
 import { SvgRefCite } from "@/components/molecules/SvgRefCite/SvgRefCite.js";
+import {
+  OPERATING_DETAIL_MAX_CHARS,
+  wrapLines,
+} from "./wrapLines.js";
 
 export type MultiModeStage = {
   id: string;
@@ -39,7 +43,7 @@ export type MultiModePolicyBandProps = {
 };
 
 const VB_W = 960;
-const VB_H = 430;
+const VB_H = 444;
 
 export function MultiModePolicyBand({
   modes,
@@ -62,9 +66,9 @@ export function MultiModePolicyBand({
   const gap = 14;
   const usable = VB_W - padX * 2;
   const ops = operatingItems ?? [];
-  const opH = ops.length > 0 ? 58 : 0;
+  const opH = ops.length > 0 ? 74 : 0;
   const colW = (usable - gap * (modes.length - 1)) / modes.length;
-  const modeY = ops.length > 0 ? 108 : 52;
+  const modeY = ops.length > 0 ? 124 : 52;
   const modeH = 136;
   const cols = modes.map((m, i) => ({
     ...m,
@@ -103,11 +107,21 @@ export function MultiModePolicyBand({
               return (
                 <g key={item.id}>
                   <rect x={x} y={30} width={tw} height={opH - 8} rx={10} className="mmp-op-chip" />
-                  <text x={x + 12} y={48} className="mmp-op-label">
+                  <text x={x + 12} y={46} className="mmp-op-label">
                     {item.label}
                   </text>
-                  <text x={x + 12} y={66} className="mmp-op-detail">
-                    {item.detail}
+                  <text x={x + 12} y={62} className="mmp-op-detail">
+                    {wrapLines(item.detail, OPERATING_DETAIL_MAX_CHARS).map(
+                      (line, li) => (
+                        <tspan
+                          key={`${item.id}-d-${li}`}
+                          x={x + 12}
+                          dy={li === 0 ? 0 : 13}
+                        >
+                          {line}
+                        </tspan>
+                      ),
+                    )}
                   </text>
                 </g>
               );
@@ -190,23 +204,6 @@ export function MultiModePolicyBand({
       </svg>
     </div>
   );
-}
-
-function wrapLines(text: string, maxChars: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    const next = cur ? `${cur} ${w}` : w;
-    if (next.length > maxChars && cur) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = next;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 3);
 }
 
 const css = `
