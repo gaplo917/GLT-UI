@@ -1,7 +1,7 @@
 /**
- * Fluency collaboration loop: Delegation → Description → Discernment → Diligence
- * as a closed human skill loop, with Index framing (human behaviors vs model polish).
- * One fluid animated SVG for every viewport.
+ * 4D fluency as a closed oval loop. Cards sit outside the track; Diligence
+ * returns ownership before the next engagement. Index chip frames measurement
+ * as human behaviors, not model polish. One fluid animated SVG.
  */
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
@@ -12,18 +12,14 @@ export type FluencyLoopDimension = {
   n: string;
   label: string;
   detail: string;
-  /** Brand highlight (typically Diligence). */
   tone?: "brand" | "neutral";
 };
 
 export type FluencyCollaborationLoopProps = {
   dimensions: readonly FluencyLoopDimension[];
-  /** Center claim. */
   centerTitle?: string;
   centerSub?: string;
-  /** Outer Index chip. */
   indexLabel?: string;
-  /** Distinction strip under loop. */
   distinctionLabel?: string;
   returnLabel?: string;
   cites?: readonly RefCiteItem[];
@@ -33,18 +29,21 @@ export type FluencyCollaborationLoopProps = {
 };
 
 const VB_W = 960;
-const VB_H = 360;
+const VB_H = 444;
+const CX = 480;
+const CY = 214;
+const RX = 248;
+const RY = 92;
+const BOX_W = 176;
+const BOX_H = 62;
 
-/**
- * Closed 4D fluency loop with Index human-behavior framing.
- */
 export function FluencyCollaborationLoop({
   dimensions,
   centerTitle = "Human skill",
   centerSub = "not model polish alone",
   indexLabel = "Index · 24 behaviors · 11 chat-observable",
   distinctionLabel = "Measure what people do with models",
-  returnLabel = "↻ next collaboration turn",
+  returnLabel = "Diligence returns ownership · next turn",
   cites,
   title = "",
   description = "",
@@ -52,36 +51,31 @@ export function FluencyCollaborationLoop({
 }: FluencyCollaborationLoopProps) {
   if (dimensions.length < 3) return null;
 
-  // Place dimensions around a diamond: top-left, top-right, bottom-right, bottom-left
   const order = dimensions.slice(0, 4);
-  const cx = VB_W / 2;
-  const cy = 168;
-  const rx = 280;
-  const ry = 96;
-  // angles for 4 nodes: NW, NE, SE, SW (start top-left going clockwise from Delegation)
-  const angles = [-150, -30, 30, 150].map((d) => (d * Math.PI) / 180);
+  // N, E, S, W — cards sit outside the oval
+  const slots = [
+    { x: CX, y: CY - RY - 46, anchor: "middle" as const },
+    { x: CX + RX + 8, y: CY, anchor: "start" as const },
+    { x: CX, y: CY + RY + 54, anchor: "middle" as const },
+    { x: CX - RX - 8, y: CY, anchor: "end" as const },
+  ];
   const nodes = order.map((dim, i) => {
-    const a = angles[i] ?? 0;
+    const slot = slots[i] ?? slots[0]!;
+    const left =
+      slot.anchor === "middle"
+        ? slot.x - BOX_W / 2
+        : slot.anchor === "start"
+          ? slot.x
+          : slot.x - BOX_W;
     return {
       ...dim,
-      x: cx + rx * Math.cos(a),
-      y: cy + ry * Math.sin(a),
+      left,
+      top: slot.y - BOX_H / 2,
       tone: dim.tone ?? (i === order.length - 1 ? "brand" : "neutral"),
     };
   });
 
-  const boxW = 168;
-  const boxH = 64;
-  const loopPath = (() => {
-    const pts = nodes.map((n) => ({ x: n.x, y: n.y }));
-    if (pts.length < 2) return "";
-    const parts = [`M ${pts[0]!.x} ${pts[0]!.y}`];
-    for (let i = 1; i < pts.length; i++) {
-      parts.push(`L ${pts[i]!.x} ${pts[i]!.y}`);
-    }
-    parts.push(`L ${pts[0]!.x} ${pts[0]!.y}`);
-    return parts.join(" ");
-  })();
+  const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
 
   return (
     <div
@@ -100,62 +94,96 @@ export function FluencyCollaborationLoop({
         <title id="fcl-title">{title}</title>
         <desc id="fcl-desc">{description}</desc>
 
-        {/* Outer index chip */}
         <rect
-          x={cx - 200}
-          y={12}
-          width={400}
+          x={CX - 210}
+          y={10}
+          width={420}
           height={26}
           rx={13}
           className="fcl-index-chip"
         />
-        <text x={cx} y={26} textAnchor="middle" dominantBaseline="middle" className="fcl-index-text">
+        <text
+          x={CX}
+          y={24}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fcl-index-text"
+        >
           {indexLabel}
         </text>
 
-        {/* Loop track */}
-        <path d={loopPath} className="fcl-track" fill="none" />
-        <path d={loopPath} className="fcl-flow" fill="none" pathLength={100} />
+        <ellipse
+          cx={CX}
+          cy={CY}
+          rx={RX}
+          ry={RY}
+          className="fcl-track"
+          fill="none"
+        />
+        <path d={oval} className="fcl-flow" fill="none" pathLength={100} />
 
-        {/* Center */}
-        <circle cx={cx} cy={cy} r={58} className="fcl-center" />
-        <text x={cx} y={cy - 8} textAnchor="middle" className="fcl-center-title">
+        {/* Elbow ticks from oval to cards */}
+        <path
+          d={`M ${CX} ${CY - RY} V ${CY - RY - 14}`}
+          className="fcl-elbow"
+        />
+        <path
+          d={`M ${CX + RX} ${CY} H ${CX + RX + 8}`}
+          className="fcl-elbow"
+        />
+        <path
+          d={`M ${CX} ${CY + RY} V ${CY + RY + 14}`}
+          className="fcl-elbow"
+        />
+        <path
+          d={`M ${CX - RX} ${CY} H ${CX - RX - 8}`}
+          className="fcl-elbow"
+        />
+
+        <circle cx={CX} cy={CY} r={56} className="fcl-center" />
+        <text x={CX} y={CY - 8} textAnchor="middle" className="fcl-center-title">
           {centerTitle}
         </text>
-        <text x={cx} y={cy + 14} textAnchor="middle" className="fcl-center-sub">
+        <text x={CX} y={CY + 12} textAnchor="middle" className="fcl-center-sub">
           {centerSub}
         </text>
 
-        {/* Dimension cards */}
         {nodes.map((n) => (
-          <g key={n.id} data-fcl-dim={n.id} transform={`translate(${n.x - boxW / 2} ${n.y - boxH / 2})`}>
+          <g
+            key={n.id}
+            data-fcl-dim={n.id}
+            transform={`translate(${n.left} ${n.top})`}
+          >
             <rect
-              width={boxW}
-              height={boxH}
+              width={BOX_W}
+              height={BOX_H}
               rx={12}
               className={n.tone === "brand" ? "fcl-card fcl-card--brand" : "fcl-card"}
             />
             <text x={14} y={22} className="fcl-n">
               {n.n}
             </text>
-            <text x={42} y={22} className={n.tone === "brand" ? "fcl-label fcl-label--brand" : "fcl-label"}>
+            <text
+              x={40}
+              y={22}
+              className={n.tone === "brand" ? "fcl-label fcl-label--brand" : "fcl-label"}
+            >
               {n.label}
             </text>
-            <text x={14} y={46} className="fcl-detail">
+            <text x={14} y={44} className="fcl-detail">
               {n.detail}
             </text>
           </g>
         ))}
 
-        {/* Return / distinction */}
-        <text x={cx} y={VB_H - 42} textAnchor="middle" className="fcl-return">
+        <text x={CX} y={VB_H - 28} textAnchor="middle" className="fcl-return">
           {returnLabel}
         </text>
-        <text x={cx} y={VB_H - 20} textAnchor="middle" className="fcl-distinction">
+        <text x={CX} y={VB_H - 12} textAnchor="middle" className="fcl-distinction">
           {distinctionLabel}
         </text>
         {cites && cites.length > 0 ? (
-          <SvgRefCite items={cites} x={cx} y={VB_H - 6} fontSize={10} />
+          <SvgRefCite items={cites} x={CX} y={VB_H - 2} fontSize={10} />
         ) : null}
       </svg>
     </div>
@@ -178,16 +206,19 @@ const css = `
 .fcl-track {
   stroke: var(--border-color);
   stroke-width: 3;
-  stroke-linejoin: round;
-  stroke-linecap: round;
 }
 .fcl-flow {
   stroke: var(--brand-primary);
   stroke-width: 3;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-dasharray: 18 82;
-  animation: fcl-flow 3s linear infinite;
+  stroke-dasharray: 16 84;
+  animation: fcl-flow 3.2s linear infinite;
+}
+.fcl-elbow {
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  stroke-linecap: square;
 }
 .fcl-center {
   fill: color-mix(in srgb, var(--card-bg-color) 90%, var(--bg-color));

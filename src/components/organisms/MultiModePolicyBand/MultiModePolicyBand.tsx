@@ -16,30 +16,42 @@ export type MultiModeStage = {
   measures: string;
 };
 
+export type MultiModeOperatingItem = {
+  id: string;
+  label: string;
+  detail: string;
+};
+
 export type MultiModePolicyBandProps = {
   modes: readonly MultiModeStage[];
+  operatingLabel?: string;
+  operatingItems?: readonly MultiModeOperatingItem[];
   preferredLabel?: string;
   publishedLabel?: string;
   publishedStatus?: string;
   claim?: string;
   preferredCites?: readonly RefCiteItem[];
   publishedCites?: readonly RefCiteItem[];
+  operatingCites?: readonly RefCiteItem[];
   title?: string;
   description?: string;
   className?: string;
 };
 
 const VB_W = 960;
-const VB_H = 340;
+const VB_H = 430;
 
 export function MultiModePolicyBand({
   modes,
+  operatingLabel = "Operating baseline",
+  operatingItems,
   preferredLabel = "Preferred practice · Head of Engineering",
   publishedLabel = "Published how-we-hire text",
   publishedStatus = "Eng guide + Careers FAQ · multi-mode band not documented",
   claim = "Preferred practice is evidence. Policy text is a separate artifact.",
   preferredCites,
   publishedCites,
+  operatingCites,
   title = "",
   description = "",
   className,
@@ -49,14 +61,16 @@ export function MultiModePolicyBand({
   const padX = 36;
   const gap = 14;
   const usable = VB_W - padX * 2;
+  const ops = operatingItems ?? [];
+  const opH = ops.length > 0 ? 58 : 0;
   const colW = (usable - gap * (modes.length - 1)) / modes.length;
-  const modeY = 52;
-  const modeH = 150;
+  const modeY = ops.length > 0 ? 108 : 52;
+  const modeH = 136;
   const cols = modes.map((m, i) => ({
     ...m,
     x: padX + i * (colW + gap),
   }));
-  const policyY = modeY + modeH + 36;
+  const policyY = modeY + modeH + 34;
 
   return (
     <div
@@ -75,11 +89,37 @@ export function MultiModePolicyBand({
         <title id="mmp-title">{title}</title>
         <desc id="mmp-desc">{description}</desc>
 
-        <text x={padX} y={28} className="mmp-layer-title">
+        {ops.length > 0 ? (
+          <g data-mmp-operating="true">
+            <text x={padX} y={22} className="mmp-layer-title">
+              {operatingLabel}
+            </text>
+            {operatingCites && operatingCites.length > 0 ? (
+              <SvgRefCite items={operatingCites} x={padX + 200} y={20} fontSize={10} />
+            ) : null}
+            {ops.map((item, i) => {
+              const tw = (usable - gap * (ops.length - 1)) / ops.length;
+              const x = padX + i * (tw + gap);
+              return (
+                <g key={item.id}>
+                  <rect x={x} y={30} width={tw} height={opH - 8} rx={10} className="mmp-op-chip" />
+                  <text x={x + 12} y={48} className="mmp-op-label">
+                    {item.label}
+                  </text>
+                  <text x={x + 12} y={66} className="mmp-op-detail">
+                    {item.detail}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        ) : null}
+
+        <text x={padX} y={modeY - 10} className="mmp-layer-title">
           {preferredLabel}
         </text>
         {preferredCites && preferredCites.length > 0 ? (
-          <SvgRefCite items={preferredCites} x={padX + 280} y={26} fontSize={10} />
+          <SvgRefCite items={preferredCites} x={padX + 280} y={modeY - 12} fontSize={10} />
         ) : null}
 
         {cols.map((c, i) => (
@@ -179,6 +219,22 @@ const css = `
 .mmp-layer-title--muted {
   fill: var(--secondary-text-color);
   font-weight: 600;
+}
+.mmp-op-chip {
+  fill: color-mix(in srgb, var(--card-bg-color) 80%, var(--bg-color));
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+.mmp-op-label {
+  fill: var(--strong-text-color);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mmp-op-detail {
+  fill: var(--secondary-text-color);
+  font-size: 11px;
+  font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-mode-card {
   fill: var(--bg-color);

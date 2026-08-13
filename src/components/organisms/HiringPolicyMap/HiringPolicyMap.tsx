@@ -23,8 +23,17 @@ export type HiringPolicyOperator = {
   citeKey?: string;
 };
 
+export type HiringPolicyProductionToken = {
+  id: string;
+  label: string;
+  value: string;
+  citeKey?: string;
+};
+
 export type HiringPolicyMapProps = {
   operators: readonly HiringPolicyOperator[];
+  /** First-party mediation tokens on the shared production rail. */
+  productionTokens?: readonly HiringPolicyProductionToken[];
   productionLabel?: string;
   interviewLabel?: string;
   restrictPole?: string;
@@ -37,10 +46,11 @@ export type HiringPolicyMapProps = {
 };
 
 const VB_W = 960;
-const VB_H = 400;
+const VB_H = 430;
 
 export function HiringPolicyMap({
   operators,
+  productionTokens,
   productionLabel = "Production · AI-mediated work (shared industry premise)",
   interviewLabel = "Interview AI policy (operators diverge)",
   restrictPole = "Restrict / stage-control",
@@ -55,8 +65,9 @@ export function HiringPolicyMap({
 
   const padX = 56;
   const railW = VB_W - padX * 2;
-  const prodY = 72;
-  const intY = 210;
+  const tokens = productionTokens ?? [];
+  const prodY = tokens.length > 0 ? 86 : 72;
+  const intY = tokens.length > 0 ? 236 : 210;
   const sorted = [...operators].sort((a, b) => a.stance - b.stance);
   const nodes = sorted.map((op, i) => {
     const t = sorted.length === 1 ? 0.5 : i / (sorted.length - 1);
@@ -89,15 +100,52 @@ export function HiringPolicyMap({
         <text x={padX} y={34} className="hpm-rail-title">
           {productionLabel}
         </text>
-        <rect x={padX} y={prodY - 14} width={railW} height={28} rx={14} className="hpm-prod-rail" />
+        <rect
+          x={padX}
+          y={tokens.length > 0 ? prodY - 28 : prodY - 14}
+          width={railW}
+          height={tokens.length > 0 ? 56 : 28}
+          rx={14}
+          className="hpm-prod-rail"
+        />
         <path
           d={`M ${padX + 16} ${prodY} H ${padX + railW - 16}`}
           className="hpm-prod-flow"
           pathLength={100}
         />
-        <text x={VB_W / 2} y={prodY + 1} textAnchor="middle" dominantBaseline="middle" className="hpm-prod-text">
-          Models draft · humans direct, review, own
-        </text>
+        {tokens.length === 0 ? (
+          <text
+            x={VB_W / 2}
+            y={prodY + 1}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="hpm-prod-text"
+          >
+            Models draft · humans direct, review, own
+          </text>
+        ) : (
+          tokens.map((tk, i) => {
+            const tw = 168;
+            const gap = 16;
+            const total = tokens.length * tw + (tokens.length - 1) * gap;
+            const x = padX + (railW - total) / 2 + i * (tw + gap);
+            const tileCites = tk.citeKey ? cites?.[tk.citeKey] : undefined;
+            return (
+              <g key={tk.id} data-hpm-token={tk.id}>
+                <rect x={x} y={prodY - 18} width={tw} height={36} rx={8} className="hpm-token" />
+                <text x={x + 10} y={prodY - 4} className="hpm-token-k">
+                  {tk.label}
+                </text>
+                <text x={x + 10} y={prodY + 12} className="hpm-token-v">
+                  {tk.value}
+                </text>
+                {showCites && tileCites && tileCites.length > 0 ? (
+                  <SvgRefCite items={tileCites} x={x + tw - 18} y={prodY + 12} fontSize={9} />
+                ) : null}
+              </g>
+            );
+          })
+        )}
 
         {/* Interview rail */}
         <text x={padX} y={intY - 48} className="hpm-rail-title">
@@ -206,6 +254,22 @@ const css = `
   fill: var(--brand-primary);
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.hpm-token {
+  fill: var(--bg-color);
+  stroke: color-mix(in srgb, var(--brand-primary) 45%, var(--border-color));
+  stroke-width: 1.25;
+}
+.hpm-token-k {
+  fill: var(--secondary-text-color);
+  font-size: 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.hpm-token-v {
+  fill: var(--strong-text-color);
+  font-size: 13px;
+  font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .hpm-pole {

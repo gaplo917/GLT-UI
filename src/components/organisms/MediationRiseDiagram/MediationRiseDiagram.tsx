@@ -1,8 +1,7 @@
 /**
- * Mediation rise diagram: eng-accepted AI code share climbs a ladder while a
- * human-accept gate stays in the loop. Encodes “AI-mediated production” as
- * rising share + permanent review, not raw model draft volume alone.
- * One fluid animated SVG for every viewport.
+ * Dual-ladder mediation architecture: first-party AI-code share climbs while a
+ * human accept gate stays in the loop. Optional workplace chip for a different
+ * unit (share of work). One fluid animated SVG for every viewport.
  */
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
@@ -10,28 +9,39 @@ import { SvgRefCite } from "@/components/molecules/SvgRefCite/SvgRefCite.js";
 
 export type MediationRiseLevel = {
   id: string;
-  /** Display value e.g. ">25%", "~50%", "75%". */
   value: string;
-  /** Short period label e.g. "Q3 2024". */
   period: string;
-  /** Numeric share 0–100 for vertical placement. */
   share: number;
+  /** 0–1 time placement on the shared axis. Falls back to series index. */
+  t?: number;
+  citeKey?: string;
+};
+
+export type MediationRiseSeries = {
+  id: string;
+  label: string;
+  levels: readonly MediationRiseLevel[];
+};
+
+export type MediationRiseChip = {
+  id: string;
+  label: string;
+  value: string;
   citeKey?: string;
 };
 
 export type MediationRiseDiagramProps = {
-  levels: readonly MediationRiseLevel[];
-  /** Per-level sources keyed by citeKey (article). Presentation omits. */
+  /** Single-series fallback (presentation decks). */
+  levels?: readonly MediationRiseLevel[];
+  /** Dual (or more) first-party ladders on one time axis. */
+  series?: readonly MediationRiseSeries[];
+  /** Side metrics in a different unit (not plotted as a line). */
+  chips?: readonly MediationRiseChip[];
   cites?: Partial<Record<string, readonly RefCiteItem[]>>;
-  /** Horizontal axis label. */
   timeLabel?: string;
-  /** Vertical axis label. */
   shareLabel?: string;
-  /** Gate chip under the rising path. */
   gateLabel?: string;
-  /** Threshold callout when share crosses majority. */
   thresholdLabel?: string;
-  /** Threshold share (default 50). */
   thresholdShare?: number;
   claim?: string;
   title?: string;
@@ -40,12 +50,11 @@ export type MediationRiseDiagramProps = {
 };
 
 const VB_W = 960;
-const VB_H = 340;
+const VB_H = 420;
 const PAD_L = 72;
-/** Wide enough for end-anchored period labels (e.g. “Cloud Next 2026”). */
 const PAD_R = 88;
-const PAD_T = 36;
-const PAD_B = 64;
+const PAD_T = 56;
+const PAD_B = 78;
 
 function yForShare(share: number, maxShare: number): number {
   const plotH = VB_H - PAD_T - PAD_B;
@@ -53,11 +62,21 @@ function yForShare(share: number, maxShare: number): number {
   return PAD_T + plotH * (1 - s / maxShare);
 }
 
-/**
- * Rising eng-accepted AI code share with human-accept gate and fluency threshold.
- */
+function resolveSeries(
+  series: readonly MediationRiseSeries[] | undefined,
+  levels: readonly MediationRiseLevel[] | undefined,
+): MediationRiseSeries[] {
+  if (series && series.length > 0) return [...series];
+  if (levels && levels.length >= 2) {
+    return [{ id: "primary", label: "Public series", levels }];
+  }
+  return [];
+}
+
 export function MediationRiseDiagram({
   levels,
+  series,
+  chips,
   cites,
   timeLabel = "Public milestones",
   shareLabel = "Eng-accepted AI share",
@@ -69,23 +88,33 @@ export function MediationRiseDiagram({
   description = "",
   className,
 }: MediationRiseDiagramProps) {
-  if (levels.length < 2) return null;
+  const resolved = resolveSeries(series, levels);
+  if (resolved.length === 0) return null;
 
-  const maxShare = Math.max(100, ...levels.map((l) => l.share), thresholdShare + 10);
-  const plotW = VB_W - PAD_L - PAD_R;
-  const xs = levels.map((_, i) =>
-    PAD_L + (levels.length === 1 ? plotW / 2 : (i / (levels.length - 1)) * plotW),
+  const allLevels = resolved.flatMap((s) => s.levels);
+  const maxShare = Math.max(
+    100,
+    ...allLevels.map((l) => l.share),
+    thresholdShare + 10,
   );
-  const pts = levels.map((l, i) => ({
-    ...l,
-    x: xs[i]!,
-    y: yForShare(l.share, maxShare),
-  }));
-  const pathD = pts
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-    .join(" ");
-  const thrY = yForShare(thresholdShare, maxShare);
+  const plotW = VB_W - PAD_L - PAD_R;
   const showCites = Boolean(cites);
+  const thrY = yForShare(thresholdShare, maxShare);
+
+  const plotted = resolved.map((s, si) => {
+    const n = s.levels.length;
+    const pts = s.levels.map((l, i) => {
+      const t = typeof l.t === "number" ? l.t : n === 1 ? 0.5 : i / (n - 1);
+      const x = PAD_L + Math.min(1, Math.max(0, t)) * plotW;
+      return { ...l, x, y: yForShare(l.share, maxShare), seriesIndex: si };
+    });
+    const pathD = pts
+      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+      .join(" ");
+    return { ...s, pts, pathD, seriesIndex: si };
+  });
+
+  const chipRow = chips ?? [];
 
   return (
     <div
@@ -104,7 +133,29 @@ export function MediationRiseDiagram({
         <title id="mrd-title">{title}</title>
         <desc id="mrd-desc">{description}</desc>
 
-        {/* Axes */}
+        <text x={PAD_L} y={22} className="mrd-claim">
+          {claim}
+        </text>
+
+        {chipRow.map((ch, i) => {
+          const x = VB_W - PAD_R - 168 - i * 180;
+          const tileCites = ch.citeKey ? cites?.[ch.citeKey] : undefined;
+          return (
+            <g key={ch.id} data-mrd-chip={ch.id}>
+              <rect x={x} y={8} width={168} height={28} rx={8} className="mrd-chip" />
+              <text x={x + 10} y={18} className="mrd-chip-k">
+                {ch.label}
+              </text>
+              <text x={x + 10} y={30} className="mrd-chip-v">
+                {ch.value}
+              </text>
+              {showCites && tileCites && tileCites.length > 0 ? (
+                <SvgRefCite items={tileCites} x={x + 148} y={22} fontSize={9} />
+              ) : null}
+            </g>
+          );
+        })}
+
         <line
           x1={PAD_L}
           y1={PAD_T}
@@ -130,14 +181,13 @@ export function MediationRiseDiagram({
         </text>
         <text
           x={(PAD_L + VB_W - PAD_R) / 2}
-          y={VB_H - 14}
+          y={VB_H - 12}
           textAnchor="middle"
           className="mrd-axis-label"
         >
           {timeLabel}
         </text>
 
-        {/* Threshold band */}
         <line
           x1={PAD_L}
           y1={thrY}
@@ -148,35 +198,26 @@ export function MediationRiseDiagram({
         <rect
           x={PAD_L + 8}
           y={thrY - 22}
-          width={Math.min(420, plotW - 16)}
+          width={Math.min(400, plotW - 16)}
           height={20}
           rx={6}
           className="mrd-threshold-chip"
         />
-        <text
-          x={PAD_L + 18}
-          y={thrY - 8}
-          className="mrd-threshold-text"
-        >
+        <text x={PAD_L + 18} y={thrY - 8} className="mrd-threshold-text">
           {thresholdLabel}
         </text>
 
-        {/* Rising path */}
-        <path d={pathD} className="mrd-path-track" fill="none" />
-        <path d={pathD} className="mrd-path-flow" fill="none" pathLength={100} />
-
-        {/* Human accept gate under path */}
         <rect
-          x={PAD_L + plotW / 2 - 90}
-          y={VB_H - PAD_B - 36}
-          width={180}
-          height={22}
-          rx={11}
+          x={PAD_L + plotW / 2 - 92}
+          y={VB_H - PAD_B - 34}
+          width={184}
+          height={20}
+          rx={10}
           className="mrd-gate"
         />
         <text
           x={PAD_L + plotW / 2}
-          y={VB_H - PAD_B - 21}
+          y={VB_H - PAD_B - 23}
           textAnchor="middle"
           dominantBaseline="middle"
           className="mrd-gate-text"
@@ -184,52 +225,95 @@ export function MediationRiseDiagram({
           {gateLabel}
         </text>
 
-        {/* Milestones */}
-        {pts.map((p, i) => {
-          const tileCites = p.citeKey ? cites?.[p.citeKey] : undefined;
-          const edge =
-            i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle";
-          const periodX =
-            edge === "start" ? p.x - 2 : edge === "end" ? p.x + 2 : p.x;
-          const citeX =
-            edge === "start"
-              ? p.x + 14
-              : edge === "end"
-                ? p.x - 14
-                : p.x;
-          return (
-            <g key={p.id} data-mrd-level={p.id}>
-              <line
-                x1={p.x}
-                y1={p.y}
-                x2={p.x}
-                y2={VB_H - PAD_B}
-                className="mrd-drop"
-              />
-              <circle cx={p.x} cy={p.y} r={11} className="mrd-node-ring" />
-              <circle cx={p.x} cy={p.y} r={5.5} className="mrd-node-core" />
-              <text x={p.x} y={p.y - 22} textAnchor="middle" className="mrd-value">
-                {p.value}
-              </text>
-              <text
-                x={periodX}
-                y={VB_H - PAD_B + 16}
-                textAnchor={edge}
-                className="mrd-period"
-              >
-                {p.period}
-              </text>
-              {showCites && tileCites && tileCites.length > 0 ? (
-                <SvgRefCite items={tileCites} x={citeX} y={VB_H - PAD_B + 32} fontSize={10} />
-              ) : null}
-            </g>
-          );
-        })}
+        {plotted.map((s) => (
+          <g key={s.id} data-mrd-series={s.id}>
+            <path
+              d={s.pathD}
+              className={s.seriesIndex === 0 ? "mrd-path-track" : "mrd-path-track mrd-path-track--b"}
+              fill="none"
+            />
+            <path
+              d={s.pathD}
+              className={s.seriesIndex === 0 ? "mrd-path-flow" : "mrd-path-flow mrd-path-flow--b"}
+              fill="none"
+              pathLength={100}
+            />
+            {s.pts.map((p, i) => {
+              const tileCites = p.citeKey ? cites?.[p.citeKey] : undefined;
+              const edge =
+                i === 0 ? "start" : i === s.pts.length - 1 ? "end" : "middle";
+              const periodY = VB_H - PAD_B + 16 + s.seriesIndex * 16;
+              const periodX =
+                edge === "start" ? p.x - 2 : edge === "end" ? p.x + 2 : p.x;
+              return (
+                <g key={`${s.id}-${p.id}`} data-mrd-level={p.id}>
+                  <line
+                    x1={p.x}
+                    y1={p.y}
+                    x2={p.x}
+                    y2={VB_H - PAD_B}
+                    className="mrd-drop"
+                  />
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={10}
+                    className={
+                      s.seriesIndex === 0 ? "mrd-node-ring" : "mrd-node-ring mrd-node-ring--b"
+                    }
+                  />
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={5}
+                    className={
+                      s.seriesIndex === 0 ? "mrd-node-core" : "mrd-node-core mrd-node-core--b"
+                    }
+                  />
+                  <text
+                    x={p.x}
+                    y={p.y - 16}
+                    textAnchor="middle"
+                    className={s.seriesIndex === 0 ? "mrd-value" : "mrd-value mrd-value--b"}
+                  >
+                    {p.value}
+                  </text>
+                  <text
+                    x={periodX}
+                    y={periodY}
+                    textAnchor={edge}
+                    className={s.seriesIndex === 0 ? "mrd-period" : "mrd-period mrd-period--b"}
+                  >
+                    {p.period}
+                  </text>
+                  {showCites && tileCites && tileCites.length > 0 ? (
+                    <SvgRefCite
+                      items={tileCites}
+                      x={p.x}
+                      y={periodY + 12}
+                      fontSize={9}
+                    />
+                  ) : null}
+                </g>
+              );
+            })}
+          </g>
+        ))}
 
-        {/* Claim */}
-        <text x={VB_W - PAD_R} y={PAD_T + 4} textAnchor="end" className="mrd-claim">
-          {claim}
-        </text>
+        {plotted.map((s, i) => (
+          <g key={`leg-${s.id}`}>
+            <line
+              x1={PAD_L + i * 280}
+              y1={PAD_T - 18}
+              x2={PAD_L + 22 + i * 280}
+              y2={PAD_T - 18}
+              className={i === 0 ? "mrd-path-flow" : "mrd-path-flow mrd-path-flow--b"}
+            />
+            <text x={PAD_L + 28 + i * 280} y={PAD_T - 14} className="mrd-legend">
+              {s.label}
+            </text>
+          </g>
+        ))}
       </svg>
     </div>
   );
@@ -242,6 +326,11 @@ const css = `
   font-size: 11px;
   font-family: var(--font-mono, ui-monospace, monospace);
   letter-spacing: 0.04em;
+}
+.mrd-legend {
+  fill: var(--secondary-text-color);
+  font-size: 11px;
+  font-family: var(--font-family), system-ui, sans-serif;
 }
 .mrd-threshold {
   stroke: color-mix(in srgb, var(--brand-primary) 55%, var(--border-color));
@@ -261,17 +350,24 @@ const css = `
 }
 .mrd-path-track {
   stroke: var(--border-color);
-  stroke-width: 3.5;
+  stroke-width: 3.25;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.mrd-path-track--b { stroke-width: 2.75; }
 .mrd-path-flow {
   stroke: var(--brand-primary);
-  stroke-width: 3.5;
+  stroke-width: 3.25;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 14 86;
   animation: mrd-flow 2.6s linear infinite;
+}
+.mrd-path-flow--b {
+  stroke: color-mix(in srgb, var(--brand-primary) 50%, var(--strong-text-color));
+  stroke-width: 2.75;
+  stroke-dasharray: 8 10;
+  animation-duration: 3.1s;
 }
 .mrd-drop {
   stroke: color-mix(in srgb, var(--border-color) 70%, transparent);
@@ -283,21 +379,29 @@ const css = `
   stroke: var(--brand-primary);
   stroke-width: 2.25;
 }
+.mrd-node-ring--b {
+  stroke: color-mix(in srgb, var(--brand-primary) 50%, var(--strong-text-color));
+}
 .mrd-node-core {
   fill: var(--brand-primary);
   animation: mrd-pulse 2.2s ease-in-out infinite;
 }
+.mrd-node-core--b {
+  fill: color-mix(in srgb, var(--brand-primary) 50%, var(--strong-text-color));
+}
 .mrd-value {
   fill: var(--strong-text-color);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
+.mrd-value--b { font-size: 13px; }
 .mrd-period {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: 10.5px;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
+.mrd-period--b { font-size: 10px; }
 .mrd-gate {
   fill: color-mix(in srgb, var(--card-bg-color) 80%, var(--bg-color));
   stroke: var(--border-color);
@@ -314,10 +418,26 @@ const css = `
   font-style: italic;
   font-family: var(--font-family), system-ui, sans-serif;
 }
+.mrd-chip {
+  fill: color-mix(in srgb, var(--card-bg-color) 85%, var(--bg-color));
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+.mrd-chip-k {
+  fill: var(--secondary-text-color);
+  font-size: 9.5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.mrd-chip-v {
+  fill: var(--strong-text-color);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
 @keyframes mrd-flow { to { stroke-dashoffset: -100; } }
 @keyframes mrd-pulse {
-  0%, 100% { opacity: 0.7; r: 5; }
-  50% { opacity: 1; r: 6.5; }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .mrd-path-flow, .mrd-node-core { animation: none !important; }
