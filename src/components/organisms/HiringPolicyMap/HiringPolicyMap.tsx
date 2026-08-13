@@ -37,7 +37,7 @@ export type HiringPolicyMapProps = {
 };
 
 const VB_W = 960;
-const VB_H = 360;
+const VB_H = 400;
 
 export function HiringPolicyMap({
   operators,
@@ -58,11 +58,12 @@ export function HiringPolicyMap({
   const prodY = 72;
   const intY = 210;
   const sorted = [...operators].sort((a, b) => a.stance - b.stance);
-  const nodes = sorted.map((op) => {
-    const t = Math.min(1, Math.max(0, op.stance));
+  const nodes = sorted.map((op, i) => {
+    const t = sorted.length === 1 ? 0.5 : i / (sorted.length - 1);
     return {
       ...op,
       x: padX + 40 + t * (railW - 80),
+      labelRow: i % 2,
     };
   });
   const showCites = Boolean(cites);
@@ -153,11 +154,21 @@ export function HiringPolicyMap({
               <text x={n.x} y={intY + 28} textAnchor="middle" className="hpm-label">
                 {n.label}
               </text>
-              <text x={n.x} y={intY + 44} textAnchor="middle" className="hpm-stance">
+              <text
+                x={n.x}
+                y={intY + 44 + n.labelRow * 16}
+                textAnchor="middle"
+                className="hpm-stance"
+              >
                 {n.interviewStance}
               </text>
               {showCites && tileCites && tileCites.length > 0 ? (
-                <SvgRefCite items={tileCites} x={n.x} y={intY + 58} fontSize={10} />
+                <SvgRefCite
+                  items={tileCites}
+                  x={n.x}
+                  y={intY + 60 + n.labelRow * 16}
+                  fontSize={10}
+                />
               ) : null}
             </g>
           );
