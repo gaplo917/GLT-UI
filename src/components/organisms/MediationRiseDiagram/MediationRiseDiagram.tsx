@@ -1,7 +1,8 @@
 /**
- * Dual-ladder mediation architecture: first-party AI-code share climbs while a
- * human accept gate stays in the loop. Optional workplace chip for a different
- * unit (share of work). One fluid animated SVG for every viewport.
+ * Mediation architecture: first-party AI-code share on a time axis while a
+ * human accept gate stays in the loop. Supports a single in-window snapshot or
+ * multiple ladders. Optional chips for a different unit (tokens, share of work).
+ * One fluid animated SVG for every viewport.
  */
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
@@ -241,7 +242,13 @@ export function MediationRiseDiagram({
             {s.pts.map((p, i) => {
               const tileCites = p.citeKey ? cites?.[p.citeKey] : undefined;
               const edge =
-                i === 0 ? "start" : i === s.pts.length - 1 ? "end" : "middle";
+                s.pts.length === 1
+                  ? "middle"
+                  : i === 0
+                    ? "start"
+                    : i === s.pts.length - 1
+                      ? "end"
+                      : "middle";
               const periodY = VB_H - PAD_B + 16 + s.seriesIndex * 16;
               const periodX =
                 edge === "start" ? p.x - 2 : edge === "end" ? p.x + 2 : p.x;
