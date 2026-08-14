@@ -1,7 +1,7 @@
 /**
- * 4D fluency as a closed oval loop. Cards sit outside the track; Diligence
- * returns ownership before the next engagement. Index chip frames measurement
- * as human behaviors, not model polish. One fluid animated SVG.
+ * 4D fluency as a closed oval loop. Cards sit outside the track with a
+ * visible gap from the Index chip, oval, and footer. Diligence returns
+ * ownership before the next engagement. One fluid animated SVG.
  */
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
@@ -29,13 +29,33 @@ export type FluencyCollaborationLoopProps = {
 };
 
 const VB_W = 960;
-const VB_H = 444;
+const VB_H = 540;
 const CX = 480;
-const CY = 214;
-const RX = 248;
-const RY = 92;
-const BOX_W = 176;
-const BOX_H = 62;
+const CY = 268;
+const RX = 228;
+const RY = 82;
+const BOX_W = 188;
+const BOX_H = 66;
+const CHIP_Y = 10;
+const CHIP_H = 28;
+const CARD_GAP = 58;
+
+function wrapDetail(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (next.length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = next;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 3);
+}
 
 export function FluencyCollaborationLoop({
   dimensions,
@@ -52,12 +72,11 @@ export function FluencyCollaborationLoop({
   if (dimensions.length < 3) return null;
 
   const order = dimensions.slice(0, 4);
-  // N, E, S, W — cards sit outside the oval
   const slots = [
-    { x: CX, y: CY - RY - 46, anchor: "middle" as const },
-    { x: CX + RX + 8, y: CY, anchor: "start" as const },
-    { x: CX, y: CY + RY + 54, anchor: "middle" as const },
-    { x: CX - RX - 8, y: CY, anchor: "end" as const },
+    { x: CX, y: CY - RY - CARD_GAP, anchor: "middle" as const },
+    { x: CX + RX + 18, y: CY, anchor: "start" as const },
+    { x: CX, y: CY + RY + CARD_GAP, anchor: "middle" as const },
+    { x: CX - RX - 18, y: CY, anchor: "end" as const },
   ];
   const nodes = order.map((dim, i) => {
     const slot = slots[i] ?? slots[0]!;
@@ -75,7 +94,13 @@ export function FluencyCollaborationLoop({
     };
   });
 
+  const north = nodes[0]!;
+  const east = nodes[1]!;
+  const south = nodes[2]!;
+  const west = nodes[3] ?? nodes[0]!;
+
   const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
+  const chipW = Math.min(520, Math.max(360, indexLabel.length * 8.2));
 
   return (
     <div
@@ -95,16 +120,17 @@ export function FluencyCollaborationLoop({
         <desc id="fcl-desc">{description}</desc>
 
         <rect
-          x={CX - 210}
-          y={10}
-          width={420}
-          height={26}
-          rx={13}
+          x={CX - chipW / 2}
+          y={CHIP_Y}
+          width={chipW}
+          height={CHIP_H}
+          rx={14}
           className="fcl-index-chip"
+          data-fcl-chip="index"
         />
         <text
           x={CX}
-          y={24}
+          y={CHIP_Y + CHIP_H / 2}
           textAnchor="middle"
           dominantBaseline="middle"
           className="fcl-index-text"
@@ -122,25 +148,24 @@ export function FluencyCollaborationLoop({
         />
         <path d={oval} className="fcl-flow" fill="none" pathLength={100} />
 
-        {/* Elbow ticks from oval to cards */}
         <path
-          d={`M ${CX} ${CY - RY} V ${CY - RY - 14}`}
+          d={`M ${CX} ${CY - RY} V ${north.top + BOX_H}`}
           className="fcl-elbow"
         />
         <path
-          d={`M ${CX + RX} ${CY} H ${CX + RX + 8}`}
+          d={`M ${CX + RX} ${CY} H ${east.left}`}
           className="fcl-elbow"
         />
         <path
-          d={`M ${CX} ${CY + RY} V ${CY + RY + 14}`}
+          d={`M ${CX} ${CY + RY} V ${south.top}`}
           className="fcl-elbow"
         />
         <path
-          d={`M ${CX - RX} ${CY} H ${CX - RX - 8}`}
+          d={`M ${CX - RX} ${CY} H ${west.left + BOX_W}`}
           className="fcl-elbow"
         />
 
-        <circle cx={CX} cy={CY} r={56} className="fcl-center" />
+        <circle cx={CX} cy={CY} r={54} className="fcl-center" />
         <text x={CX} y={CY - 8} textAnchor="middle" className="fcl-center-title">
           {centerTitle}
         </text>
@@ -170,20 +195,24 @@ export function FluencyCollaborationLoop({
             >
               {n.label}
             </text>
-            <text x={14} y={44} className="fcl-detail">
-              {n.detail}
+            <text x={14} y={42} className="fcl-detail">
+              {wrapDetail(n.detail, 26).map((line, li) => (
+                <tspan key={`${n.id}-d-${li}`} x={14} dy={li === 0 ? 0 : 14}>
+                  {line}
+                </tspan>
+              ))}
             </text>
           </g>
         ))}
 
-        <text x={CX} y={VB_H - 28} textAnchor="middle" className="fcl-return">
+        <text x={CX} y={VB_H - 36} textAnchor="middle" className="fcl-return">
           {returnLabel}
         </text>
-        <text x={CX} y={VB_H - 12} textAnchor="middle" className="fcl-distinction">
+        <text x={CX} y={VB_H - 20} textAnchor="middle" className="fcl-distinction">
           {distinctionLabel}
         </text>
         {cites && cites.length > 0 ? (
-          <SvgRefCite items={cites} x={CX} y={VB_H - 2} fontSize={10} />
+          <SvgRefCite items={cites} x={CX} y={VB_H - 6} fontSize={10} />
         ) : null}
       </svg>
     </div>

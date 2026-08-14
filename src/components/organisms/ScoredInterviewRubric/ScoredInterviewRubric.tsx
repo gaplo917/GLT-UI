@@ -15,8 +15,17 @@ export type ScoredRubricDimension = {
   scoreLabel?: string;
 };
 
+export type ScoredRubricPhase = {
+  id: string;
+  n?: string;
+  label: string;
+  detail: string;
+};
+
 export type ScoredInterviewRubricProps = {
   dimensions: readonly ScoredRubricDimension[];
+  /** Optional rebuild phases drawn above the scored bar. */
+  phases?: readonly ScoredRubricPhase[];
   barLabel?: string;
   pulse45Label?: string;
   pulse90Label?: string;
@@ -33,7 +42,7 @@ export type ScoredInterviewRubricProps = {
 };
 
 const VB_W = 960;
-const VB_H = 360;
+const VB_H = 430;
 
 function wrapDetail(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/);
@@ -54,6 +63,7 @@ function wrapDetail(text: string, maxChars: number): string[] {
 
 export function ScoredInterviewRubric({
   dimensions,
+  phases,
   barLabel = "Same fluency bar · junior and senior",
   pulse45Label = "45-day pulse",
   pulse90Label = "90-day pulse",
@@ -71,7 +81,9 @@ export function ScoredInterviewRubric({
   if (dimensions.length < 2) return null;
 
   const padX = 36;
-  const topY = 22;
+  const phaseRow = phases && phases.length > 0 ? phases : [];
+  const phaseH = phaseRow.length > 0 ? 56 : 0;
+  const topY = 14 + phaseH;
   const colGap = 14;
   const usable = VB_W - padX * 2;
   const colW = (usable - colGap * (dimensions.length - 1)) / dimensions.length;
@@ -83,6 +95,10 @@ export function ScoredInterviewRubric({
   }));
   const barY = topY + 6;
   const pulseY = topY + 34 + colH + 22;
+  const phaseW =
+    phaseRow.length > 0
+      ? (usable - 20 * (phaseRow.length - 1)) / phaseRow.length
+      : 0;
 
   return (
     <div
@@ -100,6 +116,30 @@ export function ScoredInterviewRubric({
       >
         <title id="sir-title">{title}</title>
         <desc id="sir-desc">{description}</desc>
+
+        {phaseRow.map((p, i) => {
+          const x = padX + i * (phaseW + 20);
+          return (
+            <g key={p.id} data-sir-phase={p.id}>
+              <rect x={x} y={10} width={phaseW} height={44} rx={10} className="sir-phase" />
+              <text x={x + 14} y={26} className="sir-phase-n">
+                {p.n ?? String(i + 1).padStart(2, "0")}
+              </text>
+              <text x={x + 40} y={26} className="sir-phase-label">
+                {p.label}
+              </text>
+              <text x={x + 14} y={42} className="sir-phase-detail">
+                {p.detail}
+              </text>
+              {i < phaseRow.length - 1 ? (
+                <path
+                  d={`M ${x + phaseW + 3} ${32} H ${x + phaseW + 17}`}
+                  className="sir-phase-arrow"
+                />
+              ) : null}
+            </g>
+          );
+        })}
 
         <rect x={padX} y={barY} width={usable} height={22} rx={11} className="sir-bar" />
         <text
@@ -253,6 +293,35 @@ const css = `
   font-size: 12px;
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
+}
+.sir-phase {
+  fill: var(--bg-color);
+  stroke: var(--border-color);
+  stroke-width: 1.25;
+}
+.sir-phase-n {
+  fill: var(--brand-primary);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.sir-phase-label {
+  fill: var(--strong-text-color);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.sir-phase-detail {
+  fill: var(--secondary-text-color);
+  font-size: 11px;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.sir-phase-arrow {
+  stroke: var(--brand-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 6 94;
+  animation: sir-flow 2.4s linear infinite;
 }
 .sir-card {
   fill: var(--bg-color);
