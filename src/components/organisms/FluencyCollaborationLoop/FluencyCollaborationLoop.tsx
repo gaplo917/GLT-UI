@@ -39,6 +39,36 @@ const BOX_H = 66;
 const CHIP_Y = 10;
 const CHIP_H = 28;
 const CARD_GAP = 58;
+const ARROW_LEN = 11;
+
+/** Clockwise ellipse point. θ=0 is east; SVG y increases downward. */
+function ovalPoint(theta: number): { x: number; y: number } {
+  return {
+    x: CX + RX * Math.cos(theta),
+    y: CY + RY * Math.sin(theta),
+  };
+}
+
+/** Clockwise unit tangent at θ. */
+function ovalTangent(theta: number): { x: number; y: number } {
+  const dx = -RX * Math.sin(theta);
+  const dy = RY * Math.cos(theta);
+  const len = Math.hypot(dx, dy) || 1;
+  return { x: dx / len, y: dy / len };
+}
+
+function arrowHead(theta: number): string {
+  const p = ovalPoint(theta);
+  const t = ovalTangent(theta);
+  const nx = -t.y;
+  const ny = t.x;
+  const tipX = p.x + t.x * ARROW_LEN;
+  const tipY = p.y + t.y * ARROW_LEN;
+  const baseX = p.x - t.x * ARROW_LEN * 0.35;
+  const baseY = p.y - t.y * ARROW_LEN * 0.35;
+  const half = ARROW_LEN * 0.55;
+  return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${(baseX + nx * half).toFixed(1)} ${(baseY + ny * half).toFixed(1)} L ${(baseX - nx * half).toFixed(1)} ${(baseY - ny * half).toFixed(1)} Z`;
+}
 
 function wrapDetail(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/);
@@ -99,6 +129,13 @@ export function FluencyCollaborationLoop({
   const south = nodes[2]!;
   const west = nodes[3] ?? nodes[0]!;
 
+  const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
+  const flowThetas = [
+    -Math.PI / 4,
+    Math.PI / 4,
+    (3 * Math.PI) / 4,
+    (5 * Math.PI) / 4,
+  ];
   const chipW = Math.min(520, Math.max(360, indexLabel.length * 8.2));
 
   return (
@@ -117,12 +154,6 @@ export function FluencyCollaborationLoop({
       >
         <title id="fcl-title">{title}</title>
         <desc id="fcl-desc">{description}</desc>
-        <defs>
-          <marker id="fcl-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
-            <path d="M 0 0 L 8 4 L 0 8 z" className="fcl-arrow" />
-          </marker>
-        </defs>
-
         <rect
           x={CX - chipW / 2}
           y={CHIP_Y}
@@ -150,10 +181,14 @@ export function FluencyCollaborationLoop({
           className="fcl-track"
           fill="none"
         />
-        <path d={`M ${CX} ${CY - RY} A ${RX} ${RY} 0 0 1 ${CX + RX} ${CY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
-        <path d={`M ${CX + RX} ${CY} A ${RX} ${RY} 0 0 1 ${CX} ${CY + RY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
-        <path d={`M ${CX} ${CY + RY} A ${RX} ${RY} 0 0 1 ${CX - RX} ${CY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
-        <path d={`M ${CX - RX} ${CY} A ${RX} ${RY} 0 0 1 ${CX} ${CY - RY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
+        <path d={oval} className="fcl-flow" fill="none" />
+        {flowThetas.map((theta) => (
+          <path
+            key={`arr-${theta}`}
+            d={arrowHead(theta)}
+            className="fcl-arrow"
+          />
+        ))}
 
         <path
           d={`M ${CX} ${CY - RY} V ${north.top + BOX_H}`}
