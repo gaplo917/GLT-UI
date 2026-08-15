@@ -70,7 +70,7 @@ export function HiringPolicyMap({
   const intY = tokens.length > 0 ? 236 : 210;
   const sorted = [...operators].sort((a, b) => a.stance - b.stance);
   const nodes = sorted.map((op, i) => {
-    const t = sorted.length === 1 ? 0.5 : i / (sorted.length - 1);
+    const t = Math.min(1, Math.max(0, op.stance));
     return {
       ...op,
       x: padX + 40 + t * (railW - 80),
@@ -170,6 +170,15 @@ export function HiringPolicyMap({
           pathLength={100}
         />
 
+        {nodes.some((node) => node.bind) ? (
+          <g data-hpm-gap-legend="true">
+            <line x1={padX} y1={intY - 74} x2={padX + 32} y2={intY - 74} className="hpm-bind" />
+            <text x={padX + 40} y={intY - 70} className="hpm-bind-label">
+              Production expectation / interview restriction gap
+            </text>
+          </g>
+        ) : null}
+
         {/* Operators */}
         {nodes.map((n) => {
           const tileCites = n.citeKey ? cites?.[n.citeKey] : undefined;
@@ -184,9 +193,6 @@ export function HiringPolicyMap({
                     y2={intY - 28}
                     className="hpm-bind"
                   />
-                  <text x={n.x + 8} y={(prodY + intY) / 2} className="hpm-bind-label">
-                    bind
-                  </text>
                 </>
               ) : (
                 <line

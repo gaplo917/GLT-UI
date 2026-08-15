@@ -99,7 +99,6 @@ export function FluencyCollaborationLoop({
   const south = nodes[2]!;
   const west = nodes[3] ?? nodes[0]!;
 
-  const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
   const chipW = Math.min(520, Math.max(360, indexLabel.length * 8.2));
 
   return (
@@ -118,6 +117,11 @@ export function FluencyCollaborationLoop({
       >
         <title id="fcl-title">{title}</title>
         <desc id="fcl-desc">{description}</desc>
+        <defs>
+          <marker id="fcl-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 8 4 L 0 8 z" className="fcl-arrow" />
+          </marker>
+        </defs>
 
         <rect
           x={CX - chipW / 2}
@@ -146,7 +150,10 @@ export function FluencyCollaborationLoop({
           className="fcl-track"
           fill="none"
         />
-        <path d={oval} className="fcl-flow" fill="none" pathLength={100} />
+        <path d={`M ${CX} ${CY - RY} A ${RX} ${RY} 0 0 1 ${CX + RX} ${CY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
+        <path d={`M ${CX + RX} ${CY} A ${RX} ${RY} 0 0 1 ${CX} ${CY + RY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
+        <path d={`M ${CX} ${CY + RY} A ${RX} ${RY} 0 0 1 ${CX - RX} ${CY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
+        <path d={`M ${CX - RX} ${CY} A ${RX} ${RY} 0 0 1 ${CX} ${CY - RY}`} className="fcl-flow" fill="none" markerEnd="url(#fcl-arrow)" />
 
         <path
           d={`M ${CX} ${CY - RY} V ${north.top + BOX_H}`}
@@ -165,7 +172,7 @@ export function FluencyCollaborationLoop({
           className="fcl-elbow"
         />
 
-        <circle cx={CX} cy={CY} r={54} className="fcl-center" />
+        <circle cx={CX} cy={CY} r={66} className="fcl-center" />
         <text x={CX} y={CY - 8} textAnchor="middle" className="fcl-center-title">
           {centerTitle}
         </text>
@@ -241,9 +248,10 @@ const css = `
   stroke-width: 3;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-dasharray: 16 84;
+  stroke-dasharray: 10 8;
   animation: fcl-flow 3.2s linear infinite;
 }
+.fcl-arrow { fill: var(--brand-primary); }
 .fcl-elbow {
   stroke: var(--brand-primary);
   stroke-width: 1.75;
