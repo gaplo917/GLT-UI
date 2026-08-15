@@ -61,6 +61,7 @@ export * from './organisms/MetricSparkBoard/MetricSparkBoard.js';
 export * from './organisms/MediationRiseDiagram/MediationRiseDiagram.js';
 export * from './organisms/FluencyCollaborationLoop/FluencyCollaborationLoop.js';
 export * from './organisms/ScoredInterviewRubric/ScoredInterviewRubric.js';
+export * from './organisms/InterviewStageShift/InterviewStageShift.js';
 export * from './organisms/HiringPolicyMap/HiringPolicyMap.js';
 export * from './organisms/MultiModePolicyBand/MultiModePolicyBand.js';
 export * from './organisms/PageHero/PageHero.js';

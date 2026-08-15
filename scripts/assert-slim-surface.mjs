@@ -56,6 +56,7 @@ const REQUIRED = [
   'MediationRiseDiagram',
   'FluencyCollaborationLoop',
   'ScoredInterviewRubric',
+  'InterviewStageShift',
   'HiringPolicyMap',
   'MultiModePolicyBand',
   'P',
