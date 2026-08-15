@@ -25,6 +25,46 @@ export interface PresentationFigureKeypointsProps
 }
 
 /**
+ * Contain-fit host figures (including nested organism wrappers) so any
+ * viewBox SVG scales into the slide slot instead of overflowing it.
+ */
+function PresentationFigureFit({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      data-presentation-figure=""
+      className={cn('pres-fig-fit min-h-0 min-w-0 flex-1 overflow-hidden', className)}
+    >
+      <style>{fitCss}</style>
+      {children}
+    </div>
+  );
+}
+
+const fitCss = `
+.pres-fig-fit,
+.pres-fig-fit > *,
+.pres-fig-fit > * > * {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+.pres-fig-fit svg {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+`;
+
+/**
  * Figure + keypoints layout for presentation decks.
  * Wide: figure on top, two-column prose under.
  * Side: left image, right stacked text (bullets then Impact / Takeaways / Next actions).
@@ -53,11 +93,7 @@ export function PresentationFigureKeypoints({
               {caption}
             </p>
           ) : null}
-          <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
-            <div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center [&_.fld]:h-full [&_.fld]:w-full [&_.msb]:h-full [&_.msb]:w-full [&_.csd]:h-full [&_.csd]:w-full [&_.slf]:h-full [&_.slf]:w-full [&_.ahd]:h-full [&_.ahd]:w-full [&_svg]:mx-auto [&_svg]:h-full [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full">
-              {figure}
-            </div>
-          </div>
+          <PresentationFigureFit>{figure}</PresentationFigureFit>
         </div>
         <PresentationProseColumns
           className="min-h-0 min-w-0 flex-1"
@@ -77,9 +113,9 @@ export function PresentationFigureKeypoints({
       {...props}
     >
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-2">
-        <div className="relative flex h-full min-h-0 min-w-0 w-full flex-1 items-center justify-center [&_.pdl]:h-full [&_.pdl]:w-full [&_.ecf]:h-full [&_.ecf]:w-full [&_.csd]:h-full [&_.csd]:w-full [&_.ahd]:h-full [&_.ahd]:w-full [&_svg]:mx-auto [&_svg]:h-full [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full">
+        <PresentationFigureFit className="relative">
           {figure}
-        </div>
+        </PresentationFigureFit>
       </div>
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
         <PresentationProseColumns
