@@ -39,7 +39,14 @@ const BOX_H = 66;
 const CHIP_Y = 10;
 const CHIP_H = 28;
 const CARD_GAP = 58;
-const ARROW_LEN = 11;
+const ARROW_LEN = 8;
+const ARROW_HALF = 3.1;
+/** Visual radians from +x; parametric 45° sits on the flat sides. */
+const ARROW_VISUAL = [deg(-60), deg(30), deg(120), deg(210)];
+
+function deg(d: number): number {
+  return (d * Math.PI) / 180;
+}
 
 /** Clockwise ellipse point. θ=0 is east; SVG y increases downward. */
 function ovalPoint(theta: number): { x: number; y: number } {
@@ -47,6 +54,11 @@ function ovalPoint(theta: number): { x: number; y: number } {
     x: CX + RX * Math.cos(theta),
     y: CY + RY * Math.sin(theta),
   };
+}
+
+/** Parametric θ for a visual angle φ from the +x axis. */
+function visualToParametric(phi: number): number {
+  return Math.atan2(RX * Math.sin(phi), RY * Math.cos(phi));
 }
 
 /** Clockwise unit tangent at θ. */
@@ -64,10 +76,9 @@ function arrowHead(theta: number): string {
   const ny = t.x;
   const tipX = p.x + t.x * ARROW_LEN;
   const tipY = p.y + t.y * ARROW_LEN;
-  const baseX = p.x - t.x * ARROW_LEN * 0.35;
-  const baseY = p.y - t.y * ARROW_LEN * 0.35;
-  const half = ARROW_LEN * 0.55;
-  return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${(baseX + nx * half).toFixed(1)} ${(baseY + ny * half).toFixed(1)} L ${(baseX - nx * half).toFixed(1)} ${(baseY - ny * half).toFixed(1)} Z`;
+  const baseX = p.x - t.x * ARROW_LEN * 0.28;
+  const baseY = p.y - t.y * ARROW_LEN * 0.28;
+  return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${(baseX + nx * ARROW_HALF).toFixed(1)} ${(baseY + ny * ARROW_HALF).toFixed(1)} L ${(baseX - nx * ARROW_HALF).toFixed(1)} ${(baseY - ny * ARROW_HALF).toFixed(1)} Z`;
 }
 
 function wrapDetail(text: string, maxChars: number): string[] {
@@ -130,12 +141,7 @@ export function FluencyCollaborationLoop({
   const west = nodes[3] ?? nodes[0]!;
 
   const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
-  const flowThetas = [
-    -Math.PI / 4,
-    Math.PI / 4,
-    (3 * Math.PI) / 4,
-    (5 * Math.PI) / 4,
-  ];
+  const flowThetas = ARROW_VISUAL.map(visualToParametric);
   const chipW = Math.min(520, Math.max(360, indexLabel.length * 8.2));
 
   return (
