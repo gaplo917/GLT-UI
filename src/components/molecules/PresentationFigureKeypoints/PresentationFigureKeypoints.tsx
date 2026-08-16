@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
 import {
@@ -24,8 +26,8 @@ export interface PresentationFigureKeypointsProps
 }
 
 /**
- * Contain-fit host figures (including nested organism wrappers) so any
- * viewBox SVG scales into the slide slot instead of overflowing it.
+ * Scale the same article figure into the slot (object-fit: contain).
+ * Do not reflow or compact the graphic — measure natural size, then scale.
  */
 function PresentationFigureFit({
   children,
@@ -34,34 +36,70 @@ function PresentationFigureFit({
   children: React.ReactNode;
   className?: string;
 }) {
+  const stageRef = React.useRef<HTMLDivElement>(null);
+  const innerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+
+  const measure = React.useCallback(() => {
+    const stage = stageRef.current;
+    const inner = innerRef.current;
+    if (!stage || !inner) return;
+    const sw = stage.clientWidth;
+    const sh = stage.clientHeight;
+    if (sw < 8 || sh < 8) return;
+    inner.style.transform = 'none';
+    // Measure at article desktop width so HTML figures keep the same
+    // composition, then scale that box into the slot.
+    const naturalW = 960;
+    inner.style.width = `${naturalW}px`;
+    const ih = Math.max(inner.scrollHeight, inner.offsetHeight, 1);
+    const next = Math.min(sw / naturalW, sh / ih, 1);
+    const scaleTo = Number.isFinite(next) && next > 0 ? next : 1;
+    inner.style.transform = `scale(${scaleTo})`;
+    setScale(scaleTo);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    measure();
+  }, [measure]);
+
+  React.useEffect(() => {
+    const stage = stageRef.current;
+    const inner = innerRef.current;
+    if (!stage || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(stage);
+    if (inner) ro.observe(inner);
+    const t1 = window.setTimeout(measure, 50);
+    const t2 = window.setTimeout(measure, 300);
+    const t3 = window.setTimeout(measure, 900);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+    };
+  }, [measure]);
+
   return (
     <div
+      ref={stageRef}
       data-presentation-figure=""
-      className={cn('pres-fig-fit min-h-0 min-w-0 flex-1 overflow-hidden', className)}
+      className={cn('relative min-h-0 min-w-0 flex-1 overflow-hidden', className)}
     >
-      <style>{fitCss}</style>
-      {children}
+      <div
+        ref={innerRef}
+        className="pres-fig-scale"
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'top center',
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
-
-const fitCss = `
-.pres-fig-fit,
-.pres-fig-fit > *,
-.pres-fig-fit > * > * {
-  height: 100%;
-  width: 100%;
-  min-height: 0;
-  min-width: 0;
-}
-.pres-fig-fit svg {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-}
-`;
 
 /**
  * Figure + keypoints layout for presentation decks.
