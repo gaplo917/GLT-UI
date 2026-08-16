@@ -101,8 +101,8 @@ export function MediationRiseDiagram({
   series,
   chips,
   cites,
-  timeLabel = "First-party public milestones",
-  shareLabel = "Engineer-accepted AI share",
+  timeLabel = "",
+  shareLabel = "Accepted AI-generated code ratio",
   gateLabel = "Human accept / review gate",
   thresholdLabel = "Majority threshold",
   thresholdShare = 50,
@@ -247,7 +247,15 @@ export function MediationRiseDiagram({
           transform={`rotate(-90 22 ${(PLOT_T + PLOT_B) / 2})`}
           className="mrd-axis-title"
         >
-          {shareLabel}
+          {wrapLines(shareLabel, 22, 3).map((line, li, lines) => (
+            <tspan
+              key={`share-${li}`}
+              x={22}
+              dy={li === 0 ? -((lines.length - 1) * 8) : 16}
+            >
+              {line}
+            </tspan>
+          ))}
         </text>
 
         {TICKS.map((tick) => {
@@ -383,9 +391,16 @@ export function MediationRiseDiagram({
           );
         })}
 
-        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 36} textAnchor="middle" className="mrd-time-label">
-          {timeLabel}
-        </text>
+        {timeLabel ? (
+          <text
+            x={(PLOT_L + plotR) / 2}
+            y={PLOT_B + 36}
+            textAnchor="middle"
+            className="mrd-time-label"
+          >
+            {timeLabel}
+          </text>
+        ) : null}
         <g className="mrd-legend">
           <circle cx={PLOT_L + 16} cy={PLOT_T + 16} r={5} className="mrd-point" />
           <text x={PLOT_L + 28} y={PLOT_T + 20} className="mrd-series-label">
