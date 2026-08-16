@@ -198,7 +198,6 @@ export function FluencyCollaborationLoop({
           className="fcl-elbow"
         />
 
-        <circle cx={CX} cy={CY} r={78} className="fcl-center" />
         <text x={CX} y={CY - 8} textAnchor="middle" className="fcl-center-title">
           {centerTitle}
         </text>
@@ -282,11 +281,6 @@ const css = `
   stroke: var(--brand-primary);
   stroke-width: 1.75;
   stroke-linecap: square;
-}
-.fcl-center {
-  fill: color-mix(in srgb, var(--card-bg-color) 90%, var(--bg-color));
-  stroke: var(--border-color);
-  stroke-width: 1.5;
 }
 .fcl-center-title {
   fill: var(--strong-text-color);
