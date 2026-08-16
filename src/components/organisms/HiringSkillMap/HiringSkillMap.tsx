@@ -38,12 +38,32 @@ const PAD_Y = 8;
 const GAP = 12;
 const INSET_X = 16;
 const INSET_Y = 18;
-const HEAD_H = 84;
 const CARD_H = 244;
 const LINE = 16;
 const SKILL_MAX = 22;
 const METHOD_MAX = 24;
 const METHOD_LINES = 8;
+const HEAD_PAD_TOP = 24;
+const HEAD_PAD_BOTTOM = 18;
+const TITLE_LINE = 18;
+const DETAIL_LINE = 14;
+
+function measureHead(cluster: HiringSkillCluster, w: number) {
+  const labelBudget = Math.max(16, Math.floor((w - INSET_X - 28 - INSET_X) / 8));
+  const detailBudget = Math.max(22, Math.floor((w - INSET_X * 2) / 7.2));
+  const labelLines = wrapLines(cluster.label, labelBudget, 2);
+  const detailLines = wrapLines(cluster.detail, detailBudget, 2);
+  const detailY = HEAD_PAD_TOP + labelLines.length * TITLE_LINE + 10;
+  const last = detailY + Math.max(0, detailLines.length - 1) * DETAIL_LINE;
+  return {
+    labelBudget,
+    detailBudget,
+    labelLines,
+    detailLines,
+    detailY,
+    h: last + HEAD_PAD_BOTTOM,
+  };
+}
 
 function cardTone(tone: HiringSkillOperator["tone"]): string {
   if (tone === "brand") return "hsm-card hsm-card--brand";
@@ -107,35 +127,42 @@ function ClusterHead({
   x,
   y,
   w,
+  h,
 }: {
   cluster: HiringSkillCluster;
   index: number;
   x: number;
   y: number;
   w: number;
+  h: number;
 }) {
   const textX = x + INSET_X;
   const labelX = textX + 28;
-  const labelBudget = Math.max(16, Math.floor((w - INSET_X - 28 - INSET_X) / 8));
-  const detailBudget = Math.max(22, Math.floor((w - INSET_X * 2) / 7.2));
-  const labelLines = wrapLines(cluster.label, labelBudget, 2);
-  const detailY = y + 24 + labelLines.length * 18 + 8;
+  const m = measureHead(cluster, w);
   return (
     <g>
-      <rect x={x} y={y} width={w} height={HEAD_H} rx={12} className="hsm-head" />
-      <text x={textX} y={y + 24} className="hsm-n">
+      <rect x={x} y={y} width={w} height={h} rx={12} className="hsm-head" />
+      <text x={textX} y={y + HEAD_PAD_TOP} className="hsm-n">
         {cluster.n ?? String(index + 1).padStart(2, "0")}
       </text>
-      <text x={labelX} y={y + 24} className="hsm-cluster-label">
-        {labelLines.map((line, li) => (
-          <tspan key={`${cluster.id}-l-${li}`} x={labelX} dy={li === 0 ? 0 : 18}>
+      <text x={labelX} y={y + HEAD_PAD_TOP} className="hsm-cluster-label">
+        {m.labelLines.map((line, li) => (
+          <tspan
+            key={`${cluster.id}-l-${li}`}
+            x={labelX}
+            dy={li === 0 ? 0 : TITLE_LINE}
+          >
             {line}
           </tspan>
         ))}
       </text>
-      <text x={textX} y={detailY} className="hsm-cluster-detail">
-        {wrapLines(cluster.detail, detailBudget, 2).map((line, li) => (
-          <tspan key={`${cluster.id}-d-${li}`} x={textX} dy={li === 0 ? 0 : 14}>
+      <text x={textX} y={y + m.detailY} className="hsm-cluster-detail">
+        {m.detailLines.map((line, li) => (
+          <tspan
+            key={`${cluster.id}-d-${li}`}
+            x={textX}
+            dy={li === 0 ? 0 : DETAIL_LINE}
+          >
             {line}
           </tspan>
         ))}
@@ -162,11 +189,6 @@ export function HiringSkillMap({
   ];
 
   const usable = VB_W - PAD_X * 2;
-  const topCardY = PAD_Y + HEAD_H + 8;
-  const topCardW = (usable - GAP * 3) / 4;
-  const bottomHeadY = topCardY + CARD_H + 10;
-  const bottomCardY = bottomHeadY + HEAD_H + 8;
-  const claimY = bottomCardY + CARD_H + 20;
   const bottomFr = [1.2, 2.6, 1.2];
   const bottomSum = bottomFr.reduce((a, b) => a + b, 0);
   const bottomUsable = usable - GAP * 2;
@@ -177,6 +199,16 @@ export function HiringSkillMap({
     PAD_X + bottomWs[0]! + GAP + bottomWs[1]! + GAP,
   ];
   const namedCardW = (bottomWs[1]! - GAP * 2) / 3;
+  const head01 = measureHead(independent, usable);
+  const head02 = measureHead(restricted, bottomWs[0]!);
+  const head03 = measureHead(named, bottomWs[1]!);
+  const head04 = measureHead(inLoop, bottomWs[2]!);
+  const bottomHeadH = Math.max(head02.h, head03.h, head04.h);
+  const topCardY = PAD_Y + head01.h + 8;
+  const topCardW = (usable - GAP * 3) / 4;
+  const bottomHeadY = topCardY + CARD_H + 10;
+  const bottomCardY = bottomHeadY + bottomHeadH + 8;
+  const claimY = bottomCardY + CARD_H + 20;
 
   return (
     <div
@@ -202,6 +234,7 @@ export function HiringSkillMap({
             x={PAD_X}
             y={PAD_Y}
             w={usable}
+            h={head01.h}
           />
           {independent.operators.map((op, i) => (
             <OperatorCard
@@ -228,6 +261,7 @@ export function HiringSkillMap({
             x={bottomXs[0]!}
             y={bottomHeadY}
             w={bottomWs[0]!}
+            h={bottomHeadH}
           />
           {restricted.operators.map((op) => (
             <OperatorCard
@@ -249,6 +283,7 @@ export function HiringSkillMap({
             x={bottomXs[1]!}
             y={bottomHeadY}
             w={bottomWs[1]!}
+            h={bottomHeadH}
           />
           {named.operators.map((op, i) => (
             <OperatorCard
@@ -270,6 +305,7 @@ export function HiringSkillMap({
             x={bottomXs[2]!}
             y={bottomHeadY}
             w={bottomWs[2]!}
+            h={bottomHeadH}
           />
           {inLoop.operators.map((op) => (
             <OperatorCard
