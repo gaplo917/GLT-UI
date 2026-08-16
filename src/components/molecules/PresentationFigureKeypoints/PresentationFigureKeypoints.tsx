@@ -4,17 +4,13 @@ import {
   PresentationProseColumns,
   type PresentationProseCallout,
 } from '@/components/molecules/PresentationProseColumns/PresentationProseColumns.js';
-import { shouldFillFigureSlot } from './figureSlot.js';
-
 export type PresentationFigureCallout = PresentationProseCallout;
-export { shouldFillFigureSlot };
 
 export interface PresentationFigureKeypointsProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * When true, stack figure above keypoints (wide / landscape figures).
    * When false, side-by-side: left image, right text.
-   * Ignored when the slot fills the board body (no bullets and no callout).
    */
   wide: boolean;
   /** Chart / diagram node (host-supplied). */
@@ -81,27 +77,6 @@ export function PresentationFigureKeypoints({
   className,
   ...props
 }: PresentationFigureKeypointsProps) {
-  const fill = shouldFillFigureSlot(bullets, callout);
-
-  if (fill) {
-    return (
-      <div
-        className={cn('flex min-h-0 min-w-0 flex-1 flex-col', className)}
-        data-presentation-figure-slot="fill"
-        {...props}
-      >
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/40 p-1.5">
-          {caption ? (
-            <p className="m-0 mb-1 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text-color)]">
-              {caption}
-            </p>
-          ) : null}
-          <PresentationFigureFit>{figure}</PresentationFigureFit>
-        </div>
-      </div>
-    );
-  }
-
   if (wide) {
     return (
       <div

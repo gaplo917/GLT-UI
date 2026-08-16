@@ -3976,7 +3976,7 @@ export const slimSection: DocSection = {
       id: 'presentation-slide-board',
       name: 'PresentationSlideBoard',
       description:
-        'Content-agnostic slide board: layout chrome via PresentationSlideFrame; body by layout (title, bullets, figure, figure-wide, figure-side, close).',
+        'Content-agnostic slide board: layout chrome via PresentationSlideFrame; body by layout (title, bullets, figure-wide, figure-side, close).',
       importLine: "import { PresentationSlideBoard } from 'glt-ui';",
       examples: [
         {

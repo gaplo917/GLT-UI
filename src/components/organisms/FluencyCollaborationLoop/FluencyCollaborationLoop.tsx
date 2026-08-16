@@ -6,6 +6,7 @@
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
 import { SvgRefCite } from "@/components/molecules/SvgRefCite/SvgRefCite.js";
+import { wrapLines } from "@/components/organisms/MultiModePolicyBand/wrapLines.js";
 
 export type FluencyLoopDimension = {
   id: string;
@@ -34,8 +35,9 @@ const CX = 480;
 const CY = 360;
 const RX = 210;
 const RY = 118;
-const BOX_W = 214;
-const BOX_H = 132;
+const BOX_W = 236;
+const BOX_H = 120;
+const DETAIL_MAX_CHARS = 28;
 const CHIP_Y = 16;
 const CHIP_H = 38;
 const CARD_GAP = 96;
@@ -79,23 +81,6 @@ function arrowHead(theta: number): string {
   const baseX = p.x - t.x * ARROW_LEN * 0.28;
   const baseY = p.y - t.y * ARROW_LEN * 0.28;
   return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${(baseX + nx * ARROW_HALF).toFixed(1)} ${(baseY + ny * ARROW_HALF).toFixed(1)} L ${(baseX - nx * ARROW_HALF).toFixed(1)} ${(baseY - ny * ARROW_HALF).toFixed(1)} Z`;
-}
-
-function wrapDetail(text: string, maxChars: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    const next = cur ? `${cur} ${w}` : w;
-    if (next.length > maxChars && cur) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = next;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 3);
 }
 
 export function FluencyCollaborationLoop({
@@ -142,7 +127,7 @@ export function FluencyCollaborationLoop({
 
   const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
   const flowThetas = ARROW_VISUAL.map(visualToParametric);
-  const chipW = Math.min(640, Math.max(400, indexLabel.length * 10.4));
+  const chipW = Math.min(760, Math.max(440, indexLabel.length * 12.4 + 56));
 
   return (
     <div
@@ -243,9 +228,9 @@ export function FluencyCollaborationLoop({
             >
               {n.label}
             </text>
-            <text x={16} y={62} className="fcl-detail">
-              {wrapDetail(n.detail, 20).map((line, li) => (
-                <tspan key={`${n.id}-d-${li}`} x={16} dy={li === 0 ? 0 : 22}>
+            <text x={16} y={58} className="fcl-detail">
+              {wrapLines(n.detail, DETAIL_MAX_CHARS).map((line, li) => (
+                <tspan key={`${n.id}-d-${li}`} x={16} dy={li === 0 ? 0 : 20}>
                   {line}
                 </tspan>
               ))}
