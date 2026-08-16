@@ -57,7 +57,7 @@ const REQUIRED = [
   'FluencyCollaborationLoop',
   'ScoredInterviewRubric',
   'InterviewStageShift',
-  'HiringPolicyMap',
+  'HiringSkillMap',
   'MultiModePolicyBand',
   'P',
   'PageHero',
