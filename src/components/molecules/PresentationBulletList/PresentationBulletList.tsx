@@ -9,7 +9,7 @@ export interface PresentationBulletListProps
 
 /**
  * Presentation-deck bullet list.
- * Gap between items is 1.5 line-heights; type is deck-readable at 13px.
+ * 20px type at 0.9 line-height; later items get top margin (first item does not).
  * Uses native list markers so the bullet is vertically centered on the first
  * line of multi-line items (browser list layout).
  */
@@ -21,13 +21,13 @@ export function PresentationBulletList({
   return (
     <ul
       className={cn(
-        'm-0 flex list-outside list-disc flex-col gap-[1.5lh] py-0 pl-4 text-[13px] leading-[1.5] text-[var(--text-color)] marker:text-[var(--brand-primary)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]',
+        'm-0 list-outside list-disc py-0 pl-5 text-[20px] leading-[0.9] text-[var(--text-color)] marker:text-[var(--brand-primary)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)] [&_em]:not-italic [&_em]:font-semibold [&_em]:text-[var(--brand-primary)]',
         className,
       )}
       {...props}
     >
       {items.map((b, i) => (
-        <li key={i} className="min-w-0 pl-0.5">
+        <li key={i} className="mt-[1.5lh] min-w-0 pl-0.5 first:mt-0">
           {b}
         </li>
       ))}
