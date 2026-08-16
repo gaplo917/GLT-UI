@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
-import {
-  PresentationProseColumns,
-  type PresentationProseCallout,
-} from '@/components/molecules/PresentationProseColumns/PresentationProseColumns.js';
-export type PresentationFigureCallout = PresentationProseCallout;
+import { PresentationProseColumns } from '@/components/molecules/PresentationProseColumns/PresentationProseColumns.js';
 
 export interface PresentationFigureKeypointsProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,8 +13,6 @@ export interface PresentationFigureKeypointsProps
   figure: React.ReactNode;
   /** Optional key bullets beside or below the figure. */
   bullets?: readonly React.ReactNode[];
-  /** Optional impact / takeaways / next-actions block. */
-  callout?: PresentationFigureCallout;
   /** Optional caption above the figure (wide layout only). */
   caption?: string;
 }
@@ -71,14 +65,13 @@ const fitCss = `
 
 /**
  * Figure + keypoints layout for presentation decks.
- * Wide: figure on top, two-column prose under.
- * Side: left image, right stacked text (bullets then Impact / Takeaways / Next actions).
+ * Wide: figure on top, bullets under.
+ * Side: left image, right bullets.
  */
 export function PresentationFigureKeypoints({
   wide,
   figure,
   bullets,
-  callout,
   caption,
   className,
   ...props
@@ -104,13 +97,12 @@ export function PresentationFigureKeypoints({
         <PresentationProseColumns
           className="min-h-0 min-w-0 flex-1"
           bullets={bullets}
-          callout={callout}
         />
       </div>
     );
   }
 
-  // Left image · right text (stacked bullets + callout). Inline grid template
+  // Left image · right text. Inline grid template
   // avoids relying on Tailwind scanning arbitrary fr classes from the package.
   return (
     <div
@@ -126,10 +118,8 @@ export function PresentationFigureKeypoints({
       </div>
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
         <PresentationProseColumns
-          stack
           className="min-h-0 flex-1 overflow-y-auto"
           bullets={bullets}
-          callout={callout}
         />
       </div>
     </div>

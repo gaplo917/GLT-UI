@@ -5,22 +5,6 @@ import { PresentationProseColumns } from '@/components/molecules/PresentationPro
 import { PresentationFigureKeypoints } from '@/components/molecules/PresentationFigureKeypoints/PresentationFigureKeypoints.js';
 import { PresentationMythGrid } from '@/components/molecules/PresentationMythGrid/PresentationMythGrid.js';
 
-export type PresentationSlideCallout = {
-  impact: React.ReactNode;
-  takeaways: React.ReactNode;
-  nextActions: React.ReactNode;
-  impactLabel?: string;
-  takeawaysLabel?: string;
-  nextActionsLabel?: string;
-};
-
-/** Row overlines for PresentationDecisionCallout (host-locale). */
-export type PresentationCalloutLabels = {
-  impactLabel: string;
-  takeawaysLabel: string;
-  nextActionsLabel: string;
-};
-
 export type PresentationSlideBoardLayout =
   | 'title'
   | 'bullets'
@@ -50,12 +34,6 @@ export interface PresentationSlideBoardProps {
   /** Title layout: secondary credit line. */
   creditDetail?: React.ReactNode;
   bullets?: readonly React.ReactNode[];
-  callout?: PresentationSlideCallout;
-  /**
-   * Locale row labels for the decision callout (Impact / Takeaways / Next actions).
-   * Applied whenever `callout` is set; host should always pass these for i18n.
-   */
-  calloutLabels?: PresentationCalloutLabels;
   figure?: React.ReactNode;
   figureCaption?: string;
   /** Cards layout / close layout myth / watch cards. */
@@ -81,26 +59,12 @@ export function PresentationSlideBoard({
   credit,
   creditDetail,
   bullets,
-  callout,
-  calloutLabels,
   figure,
   figureCaption,
   cards,
   className,
 }: PresentationSlideBoardProps) {
   const isTitle = layout === 'title';
-  const labeledCallout =
-    callout == null
-      ? undefined
-      : {
-          impact: callout.impact,
-          takeaways: callout.takeaways,
-          nextActions: callout.nextActions,
-          impactLabel: callout.impactLabel ?? calloutLabels?.impactLabel,
-          takeawaysLabel: callout.takeawaysLabel ?? calloutLabels?.takeawaysLabel,
-          nextActionsLabel:
-            callout.nextActionsLabel ?? calloutLabels?.nextActionsLabel,
-        };
 
   return (
     <PresentationSlideFrame
@@ -124,10 +88,7 @@ export function PresentationSlideBoard({
       ) : null}
 
       {layout === 'bullets' ? (
-        <PresentationProseColumns
-          bullets={bullets}
-          callout={labeledCallout}
-        />
+        <PresentationProseColumns bullets={bullets} />
       ) : null}
 
       {layout === 'figure-wide' && figure != null ? (
@@ -136,7 +97,6 @@ export function PresentationSlideBoard({
           caption={figureCaption}
           figure={figure}
           bullets={bullets}
-          callout={labeledCallout}
         />
       ) : null}
 
@@ -146,7 +106,6 @@ export function PresentationSlideBoard({
           caption={figureCaption}
           figure={figure}
           bullets={bullets}
-          callout={labeledCallout}
         />
       ) : null}
 
@@ -158,20 +117,12 @@ export function PresentationSlideBoard({
               cards={cards}
             />
           ) : null}
-          {labeledCallout ? (
-            <PresentationProseColumns
-              stack
-              className="shrink-0"
-              callout={labeledCallout}
-            />
-          ) : null}
         </div>
       ) : null}
 
       {layout === 'close' ? (
         <PresentationProseColumns
           bullets={bullets}
-          callout={labeledCallout}
           leftExtra={
             cards && cards.length > 0 ? (
               <PresentationMythGrid cards={cards} />

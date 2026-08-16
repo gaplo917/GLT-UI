@@ -3889,8 +3889,8 @@ export const slimSection: DocSection = {
       importLine: "import { PresentationFigureKeypoints } from 'glt-ui';",
       examples: [
         {
-          title: 'Wide + caption + callout labels',
-          description: 'wide figure, caption, bullets, and callout with custom labels.',
+          title: 'Wide + caption + bullets',
+          description: 'wide figure, caption, and titled bullets.',
           code: `<div className="min-h-[320px] rounded-xl border border-[var(--border-color)] bg-[var(--card-bg-color)] p-3">
   <PresentationFigureKeypoints
     wide
@@ -3901,17 +3901,9 @@ export const slimSection: DocSection = {
       </div>
     }
     bullets={[
-      'Envelope tightened after the Northstar gate.',
-      'Unit cost tracked the review queue, not model price.',
+      <><strong>Envelope</strong>{" - "}Tightened after the Northstar gate.</>,
+      <><strong>Unit cost</strong>{" - "}Tracked the review queue, not model price.</>,
     ]}
-    callout={{
-      impact: 'Lead time dropped once review owned a metric.',
-      takeaways: 'Instrument the gate before scaling agents.',
-      nextActions: 'Publish the queue dashboard this sprint.',
-      impactLabel: 'Signal',
-      takeawaysLabel: 'Read',
-      nextActionsLabel: 'Next',
-    }}
   />
 </div>`,
           render: (
@@ -3921,17 +3913,9 @@ export const slimSection: DocSection = {
                 caption="Fleet pulse · demo series"
                 figure={<DemoFigurePlaceholder label="Sample wide figure" />}
                 bullets={[
-                  'Envelope tightened after the Northstar gate.',
-                  'Unit cost tracked the review queue, not model price.',
+                  <><strong>Envelope</strong>{' - '}Tightened after the Northstar gate.</>,
+                  <><strong>Unit cost</strong>{' - '}Tracked the review queue, not model price.</>,
                 ]}
-                callout={{
-                  impact: 'Lead time dropped once review owned a metric.',
-                  takeaways: 'Instrument the gate before scaling agents.',
-                  nextActions: 'Publish the queue dashboard this sprint.',
-                  impactLabel: 'Signal',
-                  takeawaysLabel: 'Read',
-                  nextActionsLabel: 'Next',
-                }}
               />
             </div>
           ),
@@ -3947,12 +3931,10 @@ export const slimSection: DocSection = {
         Sample side figure
       </div>
     }
-    bullets={['Pin the eval suite.', 'Retire one low-signal meeting.']}
-    callout={{
-      impact: 'Review ownership cut rework.',
-      takeaways: 'Harness depth follows honest loops.',
-      nextActions: 'Name a single review owner.',
-    }}
+    bullets={[
+      <><strong>Eval suite</strong>{" - "}Pin the suite before scaling agents.</>,
+      <><strong>Meetings</strong>{" - "}Retire one low-signal status review.</>,
+    ]}
   />
 </div>`,
           render: (
@@ -3960,12 +3942,10 @@ export const slimSection: DocSection = {
               <PresentationFigureKeypoints
                 wide={false}
                 figure={<DemoFigurePlaceholder label="Sample side figure" />}
-                bullets={['Pin the eval suite.', 'Retire one low-signal meeting.']}
-                callout={{
-                  impact: 'Review ownership cut rework.',
-                  takeaways: 'Harness depth follows honest loops.',
-                  nextActions: 'Name a single review owner.',
-                }}
+                bullets={[
+                  <><strong>Eval suite</strong>{' - '}Pin the suite before scaling agents.</>,
+                  <><strong>Meetings</strong>{' - '}Retire one low-signal status review.</>,
+                ]}
               />
             </div>
           ),
@@ -4015,7 +3995,7 @@ export const slimSection: DocSection = {
         },
         {
           title: 'layout="bullets"',
-          description: 'Header band + bullets + decision callout + brandMeta.',
+          description: 'Header band + titled bullets + brandMeta.',
           code: `<div className="overflow-x-auto">
   <PresentationSlideBoard
     layout="bullets"
@@ -4033,15 +4013,10 @@ export const slimSection: DocSection = {
       </>
     }
     bullets={[
-      'Define the success metric before building.',
-      'Keep the harness thin until the loop is honest.',
-      'Review the high-risk path first.',
+      <><strong>Metric</strong>{" - "}Define success before building.</>,
+      <><strong>Harness</strong>{" - "}Keep it thin until the loop is honest.</>,
+      <><strong>Review</strong>{" - "}Start with the high-risk path.</>,
     ]}
-    callout={{
-      impact: 'A named metric keeps the slice honest.',
-      takeaways: 'Thin harness beats early ceremony.',
-      nextActions: 'Pick one metric the team already owns.',
-    }}
     className="shadow-sm max-w-full"
   />
 </div>`,
@@ -4063,15 +4038,10 @@ export const slimSection: DocSection = {
                   </>
                 }
                 bullets={[
-                  'Define the success metric before building.',
-                  'Keep the harness thin until the loop is honest.',
-                  'Review the high-risk path first.',
+                  <><strong>Metric</strong>{' - '}Define success before building.</>,
+                  <><strong>Harness</strong>{' - '}Keep it thin until the loop is honest.</>,
+                  <><strong>Review</strong>{' - '}Start with the high-risk path.</>,
                 ]}
-                callout={{
-                  impact: 'A named metric keeps the slice honest.',
-                  takeaways: 'Thin harness beats early ceremony.',
-                  nextActions: 'Pick one metric the team already owns.',
-                }}
                 className="shadow-sm max-w-full"
               />
             </div>
@@ -4079,7 +4049,7 @@ export const slimSection: DocSection = {
         },
         {
           title: 'layout="figure-wide"',
-          description: 'Wide figure stack with figureCaption, bullets, and callout.',
+          description: 'Wide figure stack with figureCaption and titled bullets.',
           code: `<div className="overflow-x-auto">
   <PresentationSlideBoard
     layout="figure-wide"
@@ -4102,12 +4072,10 @@ export const slimSection: DocSection = {
       </div>
     }
     figureCaption="Demo fleet · weekly"
-    bullets={['Envelope tightened after the gate.', 'Cost tracked the queue depth.']}
-    callout={{
-      impact: 'Lead time followed review ownership.',
-      takeaways: 'Instrument before scale.',
-      nextActions: 'Publish the queue board.',
-    }}
+    bullets={[
+      <><strong>Envelope</strong>{" - "}Tightened after the gate.</>,
+      <><strong>Cost</strong>{" - "}Tracked the queue depth.</>,
+    ]}
     className="shadow-sm max-w-full"
   />
 </div>`,
@@ -4130,12 +4098,10 @@ export const slimSection: DocSection = {
                 }
                 figure={<DemoFigurePlaceholder label="Sample wide figure" />}
                 figureCaption="Demo fleet · weekly"
-                bullets={['Envelope tightened after the gate.', 'Cost tracked the queue depth.']}
-                callout={{
-                  impact: 'Lead time followed review ownership.',
-                  takeaways: 'Instrument before scale.',
-                  nextActions: 'Publish the queue board.',
-                }}
+                bullets={[
+                  <><strong>Envelope</strong>{' - '}Tightened after the gate.</>,
+                  <><strong>Cost</strong>{' - '}Tracked the queue depth.</>,
+                ]}
                 className="shadow-sm max-w-full"
               />
             </div>
@@ -4165,12 +4131,10 @@ export const slimSection: DocSection = {
         Sample side figure
       </div>
     }
-    bullets={['Pin the eval suite.', 'Name one review owner.']}
-    callout={{
-      impact: 'Ownership cut rework.',
-      takeaways: 'Harness follows honest loops.',
-      nextActions: 'Retire one status meeting.',
-    }}
+    bullets={[
+      <><strong>Eval suite</strong>{" - "}Pin the suite before scaling.</>,
+      <><strong>Owner</strong>{" - "}Name one review owner.</>,
+    ]}
     className="shadow-sm max-w-full"
   />
 </div>`,
@@ -4192,12 +4156,10 @@ export const slimSection: DocSection = {
                   </>
                 }
                 figure={<DemoFigurePlaceholder label="Sample side figure" />}
-                bullets={['Pin the eval suite.', 'Name one review owner.']}
-                callout={{
-                  impact: 'Ownership cut rework.',
-                  takeaways: 'Harness follows honest loops.',
-                  nextActions: 'Retire one status meeting.',
-                }}
+                bullets={[
+                  <><strong>Eval suite</strong>{' - '}Pin the suite before scaling.</>,
+                  <><strong>Owner</strong>{' - '}Name one review owner.</>,
+                ]}
                 className="shadow-sm max-w-full"
               />
             </div>
@@ -4205,7 +4167,7 @@ export const slimSection: DocSection = {
         },
         {
           title: 'layout="close"',
-          description: 'Close slide with bullets, myth cards, and callout.',
+          description: 'Close slide with titled bullets and myth cards.',
           code: `<div className="overflow-x-auto">
   <PresentationSlideBoard
     layout="close"
@@ -4223,8 +4185,8 @@ export const slimSection: DocSection = {
       </>
     }
     bullets={[
-      'Pick one metric the team already owns.',
-      'Instrument the review loop this week.',
+      <><strong>Metric</strong>{" - "}Pick one the team already owns.</>,
+      <><strong>Review loop</strong>{" - "}Instrument it this week.</>,
     ]}
     cards={[
       {
@@ -4236,11 +4198,6 @@ export const slimSection: DocSection = {
         body: 'Unowned queues hide the real cycle cost.',
       },
     ]}
-    callout={{
-      impact: 'A single owned metric beats a busy calendar.',
-      takeaways: 'Close on habits, not more tooling.',
-      nextActions: 'Retire one low-signal status meeting.',
-    }}
     className="shadow-sm max-w-full"
   />
 </div>`,
@@ -4262,8 +4219,8 @@ export const slimSection: DocSection = {
                   </>
                 }
                 bullets={[
-                  'Pick one metric the team already owns.',
-                  'Instrument the review loop this week.',
+                  <><strong>Metric</strong>{' - '}Pick one the team already owns.</>,
+                  <><strong>Review loop</strong>{' - '}Instrument it this week.</>,
                 ]}
                 cards={[
                   {
@@ -4275,11 +4232,6 @@ export const slimSection: DocSection = {
                     body: 'Unowned queues hide the real cycle cost.',
                   },
                 ]}
-                callout={{
-                  impact: 'A single owned metric beats a busy calendar.',
-                  takeaways: 'Close on habits, not more tooling.',
-                  nextActions: 'Retire one low-signal status meeting.',
-                }}
                 className="shadow-sm max-w-full"
               />
             </div>
