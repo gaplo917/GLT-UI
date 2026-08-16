@@ -1,15 +1,12 @@
-'use client';
-
 /**
- * A quantitative time-series view of first-party AI mediation milestones.
- * The main measure stays on a chart axis; metrics with incompatible units are
- * separated into evidence cards rather than plotted on the same scale.
+ * Engineer-accepted AI code-share ladder on a 2024–now time axis.
+ * Incompatible units sit in a side marker, not on the plotted scale.
+ * One fluid animated SVG for every viewport.
  */
 
-import type { ChartOptions, Plugin } from 'chart.js';
-import { Chart } from '@/components/organisms/Chart/Chart.js';
-import { RefCite } from '@/components/molecules/RefCite/RefCite.js';
-import type { RefCiteItem } from '@/components/molecules/RefCite/refCiteTypes.js';
+import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
+import { SvgRefCite } from "@/components/molecules/SvgRefCite/SvgRefCite.js";
+import { wrapLines } from "@/components/organisms/MultiModePolicyBand/wrapLines.js";
 
 export type MediationRiseLevel = {
   id: string;
@@ -47,43 +44,35 @@ export type MediationRiseDiagramProps = {
   title?: string;
   description?: string;
   className?: string;
-  /** Condensed chart-only composition for constrained presentation boards. */
-  compact?: boolean;
 };
+
+const VB_W = 960;
+const VB_H = 480;
+const PLOT_L = 88;
+const PLOT_T = 76;
+const PLOT_B = 336;
+const TICKS = [0, 25, 50, 75, 100] as const;
 
 function resolveSeries(
   series: readonly MediationRiseSeries[] | undefined,
   levels: readonly MediationRiseLevel[] | undefined,
 ): MediationRiseSeries[] {
   if (series?.length) return [...series];
-  if (levels?.length) return [{ id: 'primary', label: 'Public series', levels }];
+  if (levels?.length) return [{ id: "primary", label: "Public series", levels }];
   return [];
 }
 
-function thresholdPlugin(threshold: number): Plugin<'line'> {
-  return {
-    id: `mediation-threshold-${threshold}`,
-    beforeDatasetsDraw(chart) {
-      const { ctx, chartArea, scales } = chart;
-      const y = scales.y?.getPixelForValue(threshold);
-      if (y == null || !Number.isFinite(y)) return;
-      const styles = getComputedStyle(chart.canvas);
-      const brand = styles.getPropertyValue('--brand-primary').trim() || styles.color;
-      ctx.save();
-      ctx.globalAlpha = 0.07;
-      ctx.fillStyle = brand;
-      ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, y - chartArea.top);
-      ctx.globalAlpha = 0.75;
-      ctx.setLineDash([6, 5]);
-      ctx.strokeStyle = brand;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(chartArea.left, y);
-      ctx.lineTo(chartArea.right, y);
-      ctx.stroke();
-      ctx.restore();
-    },
-  };
+function plotX(
+  t: number,
+  left: number,
+  right: number,
+): number {
+  return left + t * (right - left);
+}
+
+function plotY(share: number): number {
+  const clamped = Math.min(100, Math.max(0, share));
+  return PLOT_B - (clamped / 100) * (PLOT_B - PLOT_T);
 }
 
 export function MediationRiseDiagram({
@@ -91,142 +80,367 @@ export function MediationRiseDiagram({
   series,
   chips,
   cites,
-  timeLabel = 'First-party public milestones',
-  shareLabel = 'Engineer-accepted AI share',
-  gateLabel = 'Human accept / review gate',
-  thresholdLabel = 'Majority threshold',
+  timeLabel = "First-party public milestones",
+  shareLabel = "Engineer-accepted AI share",
+  gateLabel = "Human accept / review gate",
+  thresholdLabel = "Majority threshold",
   thresholdShare = 50,
-  claim = 'Mediation rises. Review stays human.',
-  title = '',
-  description = '',
+  claim = "Mediation rises. Review stays human.",
+  title = "",
+  description = "",
   className,
-  compact = false,
 }: MediationRiseDiagramProps) {
   const resolved = resolveSeries(series, levels);
   if (!resolved.length) return null;
 
-  const primary = resolved[0];
-  const labels = primary.levels.map((level) => level.period);
-  const options: ChartOptions<'line'> = {
-    layout: { padding: { top: 30, right: 20, bottom: 4, left: 4 } },
-    scales: {
-      x: {
-        title: { display: true, text: timeLabel },
-        grid: { display: false },
-      },
-      y: {
-        beginAtZero: true,
-        suggestedMax: 100,
-        max: 100,
-        title: { display: true, text: shareLabel },
-        ticks: { callback: (value) => `${value}%`, stepSize: 25 },
-      },
-    },
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: (context) => `${context.dataset.label}: ${primary.levels[context.dataIndex]?.value ?? context.formattedValue}`,
-        },
-      },
-    },
-  };
+  const primary = resolved[0]!;
+  const n = primary.levels.length;
+  if (n < 1) return null;
+
+  const sideChips = chips ?? [];
+  const plotR = sideChips.length > 0 ? 638 : 908;
+  const points = primary.levels.map((level, i) => {
+    const t =
+      level.t != null && Number.isFinite(level.t)
+        ? level.t
+        : n === 1
+          ? 0.5
+          : i / (n - 1);
+    return {
+      ...level,
+      x: plotX(t, PLOT_L + 18, plotR - 18),
+      y: plotY(level.share),
+    };
+  });
+
+  const lineD = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(" ");
+  const areaD =
+    points.length > 0
+      ? `${lineD} L ${points[points.length - 1]!.x.toFixed(1)} ${PLOT_B} L ${points[0]!.x.toFixed(1)} ${PLOT_B} Z`
+      : "";
+  const threshY = plotY(thresholdShare);
 
   return (
-    <section
-      className={['mrd-chart w-full min-w-0', compact ? 'mrd-chart--compact' : '', className ?? ''].filter(Boolean).join(' ')}
+    <div
+      className={["mrd w-full min-w-0", className ?? ""].filter(Boolean).join(" ")}
       data-figure="mediation-rise"
-      aria-label={title || description || 'Mediation rise chart'}
     >
       <style>{css}</style>
-      <div className="mrd-chart__message">
-        <div>
-          <p className="mrd-chart__eyebrow">Observed production mediation</p>
-          <p className="mrd-chart__claim">{claim}</p>
-        </div>
-        <div className="mrd-chart__threshold">
-          <span>{thresholdLabel}</span>
-          <strong>{thresholdShare}%</strong>
-        </div>
-      </div>
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="mx-auto block h-auto w-full max-w-full"
+        role="img"
+        aria-labelledby={title || description ? "mrd-title mrd-desc" : undefined}
+        aria-label={
+          !title && !description ? "Engineer-accepted AI code share over time" : undefined
+        }
+      >
+        <title id="mrd-title">{title}</title>
+        <desc id="mrd-desc">{description}</desc>
 
-      <Chart
-        type="line"
-        labels={labels}
-        series={resolved.map((item) => ({
-          label: item.label,
-          data: item.levels.map((level) => level.share),
-          color: 'brand',
-          fill: true,
-          dataset: {
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            borderWidth: 3,
-            tension: 0.12,
-          },
-        }))}
-        options={options}
-        plugins={[thresholdPlugin(thresholdShare)]}
-        legend={false}
-        showGrid
-        dataLabels
-        aspectRatio={2.15}
-        ariaLabel={description || title || 'Engineer-accepted AI code share over time'}
-      />
+        <text x={28} y={28} className="mrd-eyebrow">
+          Observed production mediation
+        </text>
+        <text x={28} y={52} className="mrd-claim">
+          {claim}
+        </text>
+        <rect
+          x={VB_W - 318}
+          y={12}
+          width={290}
+          height={52}
+          rx={12}
+          className="mrd-threshold-chip"
+        />
+        <text x={VB_W - 304} y={30} className="mrd-threshold-kicker">
+          {wrapLines(thresholdLabel, 28, 2).map((line, li) => (
+            <tspan key={`th-${li}`} x={VB_W - 304} dy={li === 0 ? 0 : 16}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+        <text x={VB_W - 64} y={40} textAnchor="end" className="mrd-threshold-value">
+          {thresholdShare}%
+        </text>
 
-      {!compact ? <div className="mrd-chart__evidence" aria-label="Milestone evidence">
-        {primary.levels.map((level) => (
-          <div className="mrd-chart__milestone" key={level.id}>
-            <span>{level.period}</span>
-            <strong>{level.value}</strong>
-            {level.citeKey && cites?.[level.citeKey]?.length ? (
-              <RefCite items={cites[level.citeKey] ?? []} />
-            ) : null}
-          </div>
-        ))}
-        {(chips ?? []).map((chip) => (
-          <div className="mrd-chart__milestone mrd-chart__milestone--different-unit" key={chip.id}>
-            <span>{chip.label} · different unit</span>
-            <strong>{chip.value}</strong>
-            {chip.citeKey && cites?.[chip.citeKey]?.length ? (
-              <RefCite items={cites[chip.citeKey] ?? []} />
-            ) : null}
-          </div>
-        ))}
-      </div> : null}
+        <text
+          x={22}
+          y={(PLOT_T + PLOT_B) / 2}
+          textAnchor="middle"
+          transform={`rotate(-90 22 ${(PLOT_T + PLOT_B) / 2})`}
+          className="mrd-axis-title"
+        >
+          {shareLabel}
+        </text>
 
-      {!compact ? <div className="mrd-chart__gate">
-        <span aria-hidden="true">✓</span>
-        <strong>{gateLabel}</strong>
-        <span>Every reported code milestone remains subject to engineer approval.</span>
-      </div> : null}
-    </section>
+        {TICKS.map((tick) => {
+          const y = plotY(tick);
+          return (
+            <g key={`tick-${tick}`}>
+              <path
+                d={`M ${PLOT_L} ${y} H ${plotR}`}
+                className={
+                  tick === thresholdShare ? "mrd-grid mrd-grid--major" : "mrd-grid"
+                }
+              />
+              <text x={PLOT_L - 10} y={y} textAnchor="end" dominantBaseline="middle" className="mrd-tick">
+                {tick}%
+              </text>
+            </g>
+          );
+        })}
+
+        <path
+          d={`M ${PLOT_L} ${threshY} H ${plotR}`}
+          className="mrd-threshold-line"
+        />
+
+        <path d={areaD} className="mrd-area" />
+        <path d={lineD} className="mrd-line" fill="none" />
+
+        {points.map((p) => {
+          const valueAbove = p.y > PLOT_T + 34;
+          const valueY = valueAbove ? p.y - 22 : p.y + 26;
+          const citeX = Math.min(plotR - 16, p.x + 28);
+          const citeItemsForPoint = p.citeKey ? cites?.[p.citeKey] : undefined;
+          return (
+            <g key={p.id} data-mrd-level={p.id}>
+              <circle cx={p.x} cy={p.y} r={11} className="mrd-point-ring" />
+              <circle cx={p.x} cy={p.y} r={5.5} className="mrd-point" />
+              <text
+                x={p.x}
+                y={valueY}
+                textAnchor="middle"
+                className="mrd-point-value"
+              >
+                {p.value}
+              </text>
+              <text
+                x={p.x}
+                y={PLOT_B + 22}
+                textAnchor="middle"
+                className="mrd-point-period"
+              >
+                {p.period}
+              </text>
+              {citeItemsForPoint && citeItemsForPoint.length > 0 ? (
+                <SvgRefCite items={citeItemsForPoint} x={citeX} y={p.y} fontSize={14} />
+              ) : null}
+            </g>
+          );
+        })}
+
+        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 46} textAnchor="middle" className="mrd-time-label">
+          {timeLabel}
+        </text>
+        <text x={PLOT_L + 8} y={PLOT_T + 16} className="mrd-series-label">
+          {primary.label}
+        </text>
+
+        {sideChips.map((chip, i) => {
+          const y = 92 + i * 168;
+          const chipCites = chip.citeKey ? cites?.[chip.citeKey] : undefined;
+          return (
+            <g key={chip.id} data-mrd-chip={chip.id}>
+              <path
+                d={`M ${plotR + 8} ${threshY} H ${plotR + 22} V ${y + 70} H ${plotR + 36}`}
+                className="mrd-chip-elbow"
+              />
+              <rect
+                x={plotR + 36}
+                y={y}
+                width={268}
+                height={148}
+                rx={14}
+                className="mrd-chip"
+              />
+              <text x={plotR + 54} y={y + 28} className="mrd-chip-kicker">
+                Different unit
+              </text>
+              <text x={plotR + 54} y={y + 54} className="mrd-chip-label">
+                {chip.label}
+              </text>
+              <text x={plotR + 54} y={y + 88} className="mrd-chip-value">
+                {chip.value}
+              </text>
+              {chipCites && chipCites.length > 0 ? (
+                <SvgRefCite items={chipCites} x={plotR + 170} y={y + 122} fontSize={14} />
+              ) : null}
+            </g>
+          );
+        })}
+
+        <rect x={28} y={412} width={904} height={50} rx={12} className="mrd-gate" />
+        <text x={52} y={432} className="mrd-gate-mark">
+          ✓
+        </text>
+        <text x={78} y={432} className="mrd-gate-label">
+          {gateLabel}
+        </text>
+        <text x={78} y={450} className="mrd-gate-note">
+          Every reported code milestone remains subject to engineer approval.
+        </text>
+      </svg>
+    </div>
   );
 }
 
 const css = `
-.mrd-chart { font-family: var(--font-family), system-ui, sans-serif; }
-.mrd-chart__message { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin:0 0 .75rem; }
-.mrd-chart__eyebrow { margin:0 0 .2rem; color:var(--brand-primary); font:700 .72rem/1.2 var(--font-mono, ui-monospace, monospace); letter-spacing:.06em; text-transform:uppercase; }
-.mrd-chart__claim { margin:0; color:var(--strong-text-color); font-size:1rem; font-weight:700; }
-.mrd-chart__threshold { flex:none; display:flex; align-items:baseline; gap:.5rem; padding:.45rem .65rem; border:1px solid color-mix(in srgb, var(--brand-primary) 42%, var(--border-color)); border-radius:.65rem; background:color-mix(in srgb, var(--brand-primary) 8%, var(--card-bg-color)); color:var(--secondary-text-color); font-size:.75rem; }
-.mrd-chart__threshold strong { color:var(--brand-primary); font-size:1rem; }
-.mrd-chart__evidence { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.5rem; margin-top:.65rem; }
-.mrd-chart__milestone { min-width:0; padding:.55rem .65rem; border:1px solid var(--border-color); border-radius:.65rem; background:var(--card-bg-color); }
-.mrd-chart__milestone span { display:block; overflow:hidden; color:var(--secondary-text-color); font-size:.7rem; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
-.mrd-chart__milestone strong { display:inline-block; margin-top:.18rem; color:var(--strong-text-color); font-size:.95rem; }
-.mrd-chart__milestone--different-unit { border-style:dashed; }
-.mrd-chart__milestone--different-unit strong { color:var(--brand-primary); }
-.mrd-chart__gate { display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:.45rem; margin-top:.6rem; padding:.55rem .7rem; border-radius:.65rem; background:color-mix(in srgb, var(--brand-primary) 8%, transparent); color:var(--secondary-text-color); font-size:.76rem; }
-.mrd-chart__gate > span:first-child, .mrd-chart__gate strong { color:var(--brand-primary); }
-.mrd-chart--compact .mrd-chart__message { margin-bottom:.25rem; }
-.mrd-chart--compact .mrd-chart__eyebrow { font-size:.64rem; }
-.mrd-chart--compact .mrd-chart__claim { font-size:.86rem; }
-.mrd-chart--compact .mrd-chart__threshold { padding:.3rem .5rem; }
-@media (max-width:640px) {
-  .mrd-chart__message { align-items:flex-start; flex-direction:column; }
-  .mrd-chart__evidence { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .mrd-chart__gate { grid-template-columns:auto 1fr; }
-  .mrd-chart__gate > span:last-child { grid-column:1 / -1; }
+.mrd-eyebrow {
+  fill: var(--brand-primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mrd-claim {
+  fill: var(--strong-text-color);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-threshold-chip {
+  fill: color-mix(in srgb, var(--brand-primary) 8%, var(--card-bg-color));
+  stroke: color-mix(in srgb, var(--brand-primary) 42%, var(--border-color));
+  stroke-width: 1.25;
+}
+.mrd-threshold-kicker {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-threshold-value {
+  fill: var(--brand-primary);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-axis-title,
+.mrd-time-label,
+.mrd-series-label {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-series-label { font-weight: 600; }
+.mrd-tick {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.mrd-grid {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+.mrd-grid--major {
+  stroke: color-mix(in srgb, var(--brand-primary) 28%, var(--border-color));
+}
+.mrd-threshold-line {
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  stroke-dasharray: 7 6;
+}
+.mrd-area {
+  fill: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+.mrd-line {
+  stroke: var(--brand-primary);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 12 10;
+  animation: mrd-flow 3s linear infinite;
+}
+.mrd-point-ring {
+  fill: color-mix(in srgb, var(--brand-primary) 16%, var(--bg-color));
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  animation: mrd-pulse 2.4s ease-in-out infinite;
+}
+.mrd-point { fill: var(--brand-primary); }
+.mrd-point-value {
+  fill: var(--strong-text-color);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-point-period {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-chip {
+  fill: var(--card-bg-color);
+  stroke: var(--brand-primary);
+  stroke-width: 1.5;
+  stroke-dasharray: 7 5;
+}
+.mrd-chip-kicker {
+  fill: var(--brand-primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.mrd-chip-label {
+  fill: var(--strong-text-color);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-chip-value {
+  fill: var(--brand-primary);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-chip-elbow {
+  fill: none;
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  stroke-linecap: square;
+  stroke-dasharray: 8 90;
+  animation: mrd-flow 2.6s linear infinite;
+}
+.mrd-gate {
+  fill: color-mix(in srgb, var(--brand-primary) 8%, var(--card-bg-color));
+  stroke: color-mix(in srgb, var(--brand-primary) 30%, var(--border-color));
+  stroke-width: 1;
+}
+.mrd-gate-mark,
+.mrd-gate-label {
+  fill: var(--brand-primary);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-gate-note {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd .svg-ref-cite-text {
+  fill: var(--brand-primary);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+@keyframes mrd-flow { to { stroke-dashoffset: -100; } }
+@keyframes mrd-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mrd-line,
+  .mrd-chip-elbow,
+  .mrd-point-ring {
+    animation: none !important;
+  }
+  .mrd-line { stroke-dasharray: none; }
+  .mrd-chip-elbow { stroke-dasharray: none; }
 }
 `;
 

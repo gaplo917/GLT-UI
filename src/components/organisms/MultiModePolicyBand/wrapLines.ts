@@ -2,7 +2,11 @@
 export const OPERATING_DETAIL_MAX_CHARS = 22;
 
 /** Word-wrap used by MultiModePolicyBand SVG labels. */
-export function wrapLines(text: string, maxChars: number): string[] {
+export function wrapLines(
+  text: string,
+  maxChars: number,
+  maxLines = 3,
+): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let cur = "";
@@ -16,5 +20,5 @@ export function wrapLines(text: string, maxChars: number): string[] {
     }
   }
   if (cur) lines.push(cur);
-  return lines.slice(0, 3);
+  return lines.slice(0, maxLines);
 }

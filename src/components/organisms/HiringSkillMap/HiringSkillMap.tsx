@@ -1,8 +1,10 @@
 /**
  * Hiring selection map. Employers cluster by the characteristic they
- * try to observe, with the published method on each card. HTML grid so
- * skill lines stay readable on phone; same clusters on every viewport.
+ * try to observe, with the published method on each card. One fluid
+ * animated SVG for every viewport.
  */
+
+import { wrapLines } from "@/components/organisms/MultiModePolicyBand/wrapLines.js";
 
 export type HiringSkillOperator = {
   id: string;
@@ -25,227 +27,250 @@ export type HiringSkillMapProps = {
   looksForLabel?: string;
   methodLabel?: string;
   claim?: string;
-  /** Compact hides method copy for slide slots. */
-  density?: "full" | "compact";
   title?: string;
   description?: string;
   className?: string;
 };
+
+const VB_W = 960;
+const VB_H = 800;
+const PAD_X = 20;
+const PAD_Y = 16;
+const COL_GAP = 12;
+const HEADER_H = 74;
+const CARD_GAP = 7;
+const CLAIM_Y = VB_H - 20;
+const SKILL_MAX = 22;
+const METHOD_MAX = 24;
+const METHOD_LINES = 6;
 
 export function HiringSkillMap({
   clusters,
   looksForLabel = "Looks for",
   methodLabel = "Surfaces it by",
   claim = "Each policy observes a skill. The skill is the hiring object.",
-  density = "full",
   title = "",
   description = "",
   className,
 }: HiringSkillMapProps) {
   if (clusters.length < 2) return null;
 
+  const cols = clusters.slice(0, 4);
+  const usable = VB_W - PAD_X * 2;
+  const colW = (usable - COL_GAP * (cols.length - 1)) / cols.length;
+  const cardTop = PAD_Y + HEADER_H + 8;
+  const cardAreaH = CLAIM_Y - 22 - cardTop;
+
   return (
     <div
       className={["hsm w-full min-w-0", className ?? ""].filter(Boolean).join(" ")}
       data-figure="hiring-skill-map"
-      data-density={density}
     >
       <style>{css}</style>
-      <div
-        className="hsm-frame"
-        role="region"
-        aria-label={title || description || "Hiring selection signals"}
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="mx-auto block h-auto w-full max-w-full"
+        role="img"
+        aria-labelledby={title || description ? "hsm-title hsm-desc" : undefined}
+        aria-label={!title && !description ? "Hiring selection signals" : undefined}
       >
-        <p className="sr-only">{description || title}</p>
-        <div className="hsm-grid">
-          {clusters.map((cluster, i) => (
-            <section
-              key={cluster.id}
-              className="hsm-cluster"
-              data-hsm-cluster={cluster.id}
-            >
-              <header className="hsm-cluster-head">
-                <p className="hsm-cluster-n">
-                  {cluster.n ?? String(i + 1).padStart(2, "0")}
-                </p>
-                <h3 className="hsm-cluster-label">{cluster.label}</h3>
-                <p className="hsm-cluster-detail">{cluster.detail}</p>
-              </header>
-              <div className="hsm-cards">
-                {cluster.operators.map((op) => (
-                  <article
-                    key={op.id}
-                    className={[
-                      "hsm-card",
-                      op.tone === "brand" ? "hsm-card--brand" : "",
-                      op.tone === "bind" ? "hsm-card--bind" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    data-hsm-op={op.id}
+        <title id="hsm-title">{title}</title>
+        <desc id="hsm-desc">{description}</desc>
+
+        {cols.map((cluster, i) => {
+          const x = PAD_X + i * (colW + COL_GAP);
+          const ops = cluster.operators;
+          const maxCard = ops.length >= 4 ? cardAreaH : Math.min(228, cardAreaH);
+          const cardH = Math.min(
+            maxCard,
+            (cardAreaH - CARD_GAP * Math.max(0, ops.length - 1)) / Math.max(1, ops.length),
+          );
+          return (
+            <g key={cluster.id} data-hsm-cluster={cluster.id}>
+              {i < cols.length - 1 ? (
+                <path
+                  d={`M ${x + colW + 2} ${PAD_Y + 28} H ${x + colW + COL_GAP - 2}`}
+                  className="hsm-connector"
+                />
+              ) : null}
+              <rect
+                x={x}
+                y={PAD_Y}
+                width={colW}
+                height={HEADER_H}
+                rx={12}
+                className="hsm-head"
+              />
+              <text x={x + 12} y={PAD_Y + 18} className="hsm-n">
+                {cluster.n ?? String(i + 1).padStart(2, "0")}
+              </text>
+              <text x={x + 12} y={PAD_Y + 36} className="hsm-cluster-label">
+                {cluster.label}
+              </text>
+              <text x={x + 12} y={PAD_Y + 52} className="hsm-cluster-detail">
+                {wrapLines(cluster.detail, 28, 2).map((line, li) => (
+                  <tspan
+                    key={`${cluster.id}-d-${li}`}
+                    x={x + 12}
+                    dy={li === 0 ? 0 : 14}
                   >
-                    <p className="hsm-op">{op.label}</p>
-                    <p className="hsm-skill">
-                      <span className="hsm-kicker">{looksForLabel}</span>
-                      {op.skill}
-                    </p>
-                    <p className="hsm-method">
-                      <span className="hsm-kicker">{methodLabel}</span>
-                      {op.method}
-                    </p>
-                  </article>
+                    {line}
+                  </tspan>
                 ))}
-              </div>
-            </section>
-          ))}
-        </div>
-        {claim ? <p className="hsm-claim">{claim}</p> : null}
-      </div>
+              </text>
+
+              {ops.map((op, oi) => {
+                const y = cardTop + oi * (cardH + CARD_GAP);
+                const skillLines = wrapLines(op.skill, SKILL_MAX, 2);
+                const methodLines = wrapLines(op.method, METHOD_MAX, METHOD_LINES);
+                const skillY = y + 44;
+                const methodKickerY = skillY + skillLines.length * 14 + 6;
+                const methodY = methodKickerY + 14;
+                const tone =
+                  op.tone === "brand"
+                    ? "hsm-card hsm-card--brand"
+                    : op.tone === "bind"
+                      ? "hsm-card hsm-card--bind"
+                      : "hsm-card";
+                return (
+                  <g key={op.id} data-hsm-op={op.id}>
+                    <rect
+                      x={x}
+                      y={y}
+                      width={colW}
+                      height={cardH}
+                      rx={11}
+                      className={tone}
+                    />
+                    <text x={x + 10} y={y + 18} className="hsm-op">
+                      {op.label}
+                    </text>
+                    <text x={x + 10} y={y + 32} className="hsm-kicker hsm-kicker--skill">
+                      {looksForLabel}
+                    </text>
+                    <text x={x + 10} y={skillY} className="hsm-skill">
+                      {skillLines.map((line, li) => (
+                        <tspan
+                          key={`${op.id}-s-${li}`}
+                          x={x + 10}
+                          dy={li === 0 ? 0 : 14}
+                        >
+                          {line}
+                        </tspan>
+                      ))}
+                    </text>
+                    <text x={x + 10} y={methodKickerY} className="hsm-kicker">
+                      {methodLabel}
+                    </text>
+                    <text x={x + 10} y={methodY} className="hsm-method">
+                      {methodLines.map((line, li) => (
+                        <tspan
+                          key={`${op.id}-m-${li}`}
+                          x={x + 10}
+                          dy={li === 0 ? 0 : 13}
+                        >
+                          {line}
+                        </tspan>
+                      ))}
+                    </text>
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })}
+
+        {claim ? (
+          <text x={VB_W / 2} y={CLAIM_Y} textAnchor="middle" className="hsm-claim">
+            {claim}
+          </text>
+        ) : null}
+      </svg>
     </div>
   );
 }
 
 const css = `
-.hsm-frame {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  font-family: var(--font-family), system-ui, sans-serif;
-  color: var(--text-color);
+.hsm-head {
+  fill: color-mix(in srgb, var(--brand-primary) 9%, var(--card-bg-color));
+  stroke: color-mix(in srgb, var(--brand-primary) 28%, var(--border-color));
+  stroke-width: 1.25;
 }
-.hsm-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.7rem;
-  align-items: start;
-}
-.hsm-cluster {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.hsm-cluster-head {
-  padding: 0.55rem 0.65rem 0.6rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary) 9%, var(--card-bg-color));
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 28%, var(--border-color));
-}
-.hsm-cluster-n {
-  margin: 0 0 0.15rem;
-  font-size: 0.68rem;
+.hsm-n {
+  fill: var(--brand-primary);
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--brand-primary);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .hsm-cluster-label {
-  margin: 0;
-  font-size: 0.92rem;
+  fill: var(--strong-text-color);
+  font-size: var(--text-lg);
   font-weight: 700;
-  line-height: 1.25;
-  color: var(--strong-text-color);
+  font-family: var(--font-family), system-ui, sans-serif;
 }
 .hsm-cluster-detail {
-  margin: 0.2rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.35;
-  color: var(--secondary-text-color);
-}
-.hsm-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
 }
 .hsm-card {
-  padding: 0.6rem 0.7rem 0.65rem;
-  border-radius: 12px;
-  background: var(--bg-color);
-  border: 1.5px solid var(--border-color);
+  fill: var(--bg-color);
+  stroke: var(--border-color);
+  stroke-width: 1.5;
 }
 .hsm-card--brand {
-  border-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 6%, var(--bg-color));
+  stroke: var(--brand-primary);
+  fill: color-mix(in srgb, var(--brand-primary) 6%, var(--bg-color));
 }
 .hsm-card--bind {
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--brand-primary) 55%, #c45c26);
+  stroke: color-mix(in srgb, var(--brand-primary) 55%, #c45c26);
+  stroke-dasharray: 6 4;
 }
 .hsm-op {
-  margin: 0 0 0.35rem;
-  font-size: 0.82rem;
+  fill: var(--strong-text-color);
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: var(--strong-text-color);
-}
-.hsm-skill,
-.hsm-method {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-.hsm-skill {
-  color: var(--strong-text-color);
-  font-weight: 600;
-  margin-bottom: 0.28rem;
-}
-.hsm-method {
-  color: var(--secondary-text-color);
+  font-family: var(--font-family), system-ui, sans-serif;
 }
 .hsm-kicker {
-  display: block;
-  margin-bottom: 0.08rem;
-  font-size: 0.62rem;
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--secondary-text-color);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
-.hsm-skill .hsm-kicker { color: var(--brand-primary); }
+.hsm-kicker--skill { fill: var(--brand-primary); }
+.hsm-skill {
+  fill: var(--strong-text-color);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: var(--font-family), system-ui, sans-serif;
+}
+.hsm-method {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-family), system-ui, sans-serif;
+}
 .hsm-claim {
-  margin: 0.15rem 0 0;
-  text-align: center;
-  font-size: 0.88rem;
+  fill: var(--secondary-text-color);
+  font-size: var(--text-base);
   font-style: italic;
-  color: var(--secondary-text-color);
+  font-family: var(--font-family), system-ui, sans-serif;
 }
-.hsm[data-density="compact"] .hsm-method,
-.hsm[data-density="compact"] .hsm-kicker {
-  display: none;
+.hsm-connector {
+  stroke: var(--brand-primary);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 8 92;
+  animation: hsm-flow 2.4s linear infinite;
 }
-.hsm[data-density="compact"] .hsm-frame { gap: 0.45rem; }
-.hsm[data-density="compact"] .hsm-grid { gap: 0.45rem; }
-.hsm[data-density="compact"] .hsm-cluster { gap: 0.3rem; }
-.hsm[data-density="compact"] .hsm-cluster-head { padding: 0.4rem 0.5rem 0.42rem; }
-.hsm[data-density="compact"] .hsm-cluster-label { font-size: 0.8rem; }
-.hsm[data-density="compact"] .hsm-cluster-detail { font-size: 0.68rem; }
-.hsm[data-density="compact"] .hsm-card { padding: 0.38rem 0.5rem 0.4rem; }
-.hsm[data-density="compact"] .hsm-op { margin-bottom: 0.1rem; font-size: 0.74rem; }
-.hsm[data-density="compact"] .hsm-skill { font-size: 0.72rem; margin-bottom: 0; }
-.hsm[data-density="compact"] .hsm-claim { font-size: 0.75rem; }
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-@media (max-width: 900px) {
-  .hsm-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 560px) {
-  .hsm-grid {
-    grid-template-columns: 1fr;
-  }
-  .hsm-card { padding: 0.7rem 0.8rem; }
-  .hsm-skill, .hsm-method { font-size: 0.84rem; }
+@keyframes hsm-flow { to { stroke-dashoffset: -100; } }
+@media (prefers-reduced-motion: reduce) {
+  .hsm-connector { animation: none !important; stroke-dasharray: none; }
 }
 `;
 
