@@ -311,8 +311,9 @@ export function MediationRiseDiagram({
         })}
 
         {points.map((p) => {
-          const valueAbove = p.y > PLOT_T + 34;
-          const valueY = valueAbove ? p.y - 22 : p.y + 26;
+          const valueAbove = p.y > PLOT_T + 48;
+          const valueY = valueAbove ? p.y - 36 : p.y + 26;
+          const periodY = valueAbove ? p.y - 18 : p.y + 44;
           const citeX = Math.min(plotR - 16, p.x + 28);
           const citeItemsForPoint = p.citeKey ? cites?.[p.citeKey] : undefined;
           return (
@@ -327,14 +328,16 @@ export function MediationRiseDiagram({
               >
                 {p.value}
               </text>
-              <text
-                x={p.x}
-                y={PLOT_B + 36}
-                textAnchor="middle"
-                className="mrd-point-period"
-              >
-                {p.period}
-              </text>
+              {p.period ? (
+                <text
+                  x={p.x}
+                  y={periodY}
+                  textAnchor="middle"
+                  className="mrd-point-period"
+                >
+                  {p.period}
+                </text>
+              ) : null}
               {citeItemsForPoint && citeItemsForPoint.length > 0 ? (
                 <SvgRefCite items={citeItemsForPoint} x={citeX} y={p.y} fontSize={14} />
               ) : null}
@@ -345,9 +348,6 @@ export function MediationRiseDiagram({
         {comparePoints.map((p) => {
           const citeX = Math.min(plotR - 16, p.x + 92);
           const citeItemsForPoint = p.citeKey ? cites?.[p.citeKey] : undefined;
-          const nearPrimary = last && p.x - last.x < 88;
-          const periodX = nearPrimary ? p.x + 10 : p.x;
-          const periodAnchor = nearPrimary ? "start" : "middle";
           return (
             <g key={p.id} data-mrd-chip={p.id}>
               <circle
@@ -359,24 +359,23 @@ export function MediationRiseDiagram({
               <circle cx={p.x} cy={p.y} r={5.5} className="mrd-point mrd-point--compare" />
               <text
                 x={p.x + 16}
-                y={p.y - 8}
+                y={p.y - 18}
                 className="mrd-compare-kicker"
               >
                 Different unit
               </text>
               <text
                 x={p.x + 16}
-                y={p.y + 14}
+                y={p.y + 2}
                 className="mrd-point-value mrd-point-value--compare"
               >
                 {p.value}
               </text>
               {p.period ? (
                 <text
-                  x={periodX}
-                  y={PLOT_B + 36}
-                  textAnchor={periodAnchor}
-                  className="mrd-point-period"
+                  x={p.x + 16}
+                  y={p.y + 20}
+                  className="mrd-point-period mrd-point-period--compare"
                 >
                   {p.period}
                 </text>
@@ -385,7 +384,7 @@ export function MediationRiseDiagram({
                 <SvgRefCite
                   items={citeItemsForPoint}
                   x={citeX}
-                  y={p.y + 28}
+                  y={p.y + 36}
                   fontSize={14}
                 />
               ) : null}
@@ -393,7 +392,7 @@ export function MediationRiseDiagram({
           );
         })}
 
-        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 54} textAnchor="middle" className="mrd-time-label">
+        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 36} textAnchor="middle" className="mrd-time-label">
           {timeLabel}
         </text>
         <g className="mrd-legend">
@@ -596,6 +595,7 @@ const css = `
   font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
+.mrd-point-period--compare { fill: var(--color-info); }
 .mrd-chip {
   fill: var(--card-bg-color);
   stroke: var(--brand-primary);
