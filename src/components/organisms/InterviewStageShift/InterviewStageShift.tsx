@@ -98,9 +98,13 @@ export function InterviewStageShift({
           const beforeLines = wrapLines(row.before, BEFORE_MAX, 4);
           const afterLines = wrapLines(row.after, AFTER_MAX, 5);
           const n = String(i + 1).padStart(2, "0");
+          const titleTop = y + 16;
+          const badgeR = 11;
+          const badgeCx = STAGE_X + 22;
+          const badgeCy = titleTop + badgeR;
+          const titleY = titleTop + 16;
           const arrowX1 = ARROW_X + 2;
           const arrowX2 = ARROW_X + ARROW_W - 11;
-          const arrowTrack = `M ${arrowX1} ${midY} H ${arrowX2}`;
           return (
             <g key={row.id} data-iss-row={row.id}>
               <rect
@@ -111,21 +115,21 @@ export function InterviewStageShift({
                 rx={12}
                 className="iss-stage-card"
               />
-              <circle cx={STAGE_X + 22} cy={y + 20} r={11} className="iss-n-ring" />
+              <circle cx={badgeCx} cy={badgeCy} r={badgeR} className="iss-n-ring" />
               <text
-                x={STAGE_X + 22}
-                y={y + 20}
+                x={badgeCx}
+                y={badgeCy}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="iss-n"
               >
                 {n}
               </text>
-              <text x={STAGE_X + 14} y={y + 46} className="iss-stage">
+              <text x={STAGE_X + 40} y={titleY} className="iss-stage">
                 {stageLines.map((line, li) => (
                   <tspan
                     key={`${row.id}-s-${li}`}
-                    x={STAGE_X + 14}
+                    x={STAGE_X + 40}
                     dy={li === 0 ? 0 : 18}
                   >
                     {line}
@@ -141,7 +145,7 @@ export function InterviewStageShift({
                 rx={12}
                 className="iss-before-card"
               />
-              <text x={BEFORE_X + 14} y={y + 28} className="iss-before">
+              <text x={BEFORE_X + 14} y={titleY} className="iss-before">
                 {beforeLines.map((line, li) => (
                   <tspan
                     key={`${row.id}-b-${li}`}
@@ -154,14 +158,10 @@ export function InterviewStageShift({
               </text>
 
               <g className="iss-arrow-group">
-                <path d={arrowTrack} className="iss-arrow-track" />
-                <circle r="3.8" className="iss-arrow-dot">
-                  <animateMotion
-                    dur="1.15s"
-                    repeatCount="indefinite"
-                    path={arrowTrack}
-                  />
-                </circle>
+                <path
+                  d={`M ${arrowX1} ${midY} H ${arrowX2}`}
+                  className="iss-arrow"
+                />
                 <path
                   d={`M ${arrowX2 - 1} ${midY - 5.5} L ${arrowX2 + 8} ${midY} L ${arrowX2 - 1} ${midY + 5.5} Z`}
                   className="iss-arrow-head"
@@ -176,7 +176,7 @@ export function InterviewStageShift({
                 rx={12}
                 className="iss-after-card"
               />
-              <text x={AFTER_X + 14} y={y + 28} className="iss-after">
+              <text x={AFTER_X + 14} y={titleY} className="iss-after">
                 {afterLines.map((line, li) => (
                   <tspan
                     key={`${row.id}-a-${li}`}
@@ -256,13 +256,14 @@ const css = `
   font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
-.iss-arrow-track {
+.iss-arrow {
   fill: none;
-  stroke: color-mix(in srgb, var(--brand-primary) 55%, var(--border-color));
-  stroke-width: 2.2;
+  stroke: var(--brand-primary);
+  stroke-width: 2.4;
   stroke-linecap: round;
+  stroke-dasharray: 2.2 5.6;
+  animation: iss-flow 0.8s linear infinite;
 }
-.iss-arrow-dot { fill: var(--brand-primary); }
 .iss-arrow-head { fill: var(--brand-primary); }
 .iss-claim {
   fill: var(--secondary-text-color);
@@ -274,9 +275,9 @@ const css = `
   fill: var(--brand-primary);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
+@keyframes iss-flow { to { stroke-dashoffset: -15.6; } }
 @media (prefers-reduced-motion: reduce) {
-  .iss-arrow-dot { display: none; }
-  .iss-arrow-track { stroke: var(--brand-primary); }
+  .iss-arrow { animation: none !important; }
 }
 `;
 
