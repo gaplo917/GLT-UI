@@ -1,6 +1,6 @@
 /**
  * Engineer-accepted AI code-share ladder on a 2024–now time axis.
- * Incompatible units sit in a side marker, not on the plotted scale.
+ * Incompatible units share the calendar as a second-color point.
  * One fluid animated SVG for every viewport.
  */
 
@@ -13,7 +13,8 @@ export type MediationRiseLevel = {
   value: string;
   period: string;
   share: number;
-  t?: number;
+  /** ISO date (YYYY-MM-DD) that places the point on the calendar axis. */
+  at?: string;
   citeKey?: string;
 };
 
@@ -27,6 +28,10 @@ export type MediationRiseChip = {
   id: string;
   label: string;
   value: string;
+  /** When set with `at`, the chip plots on the calendar instead of a side card. */
+  share?: number;
+  at?: string;
+  period?: string;
   citeKey?: string;
 };
 
@@ -41,6 +46,9 @@ export type MediationRiseDiagramProps = {
   thresholdLabel?: string;
   thresholdShare?: number;
   claim?: string;
+  /** ISO date that ends the calendar axis (time projection). */
+  horizonAt?: string;
+  projectionLabel?: string;
   title?: string;
   description?: string;
   className?: string;
@@ -62,12 +70,25 @@ function resolveSeries(
   return [];
 }
 
-function plotX(
-  t: number,
-  left: number,
-  right: number,
-): number {
+function utcDay(iso: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
+  if (!m) return null;
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
+function plotX(t: number, left: number, right: number): number {
   return left + t * (right - left);
+}
+
+function yearTicks(startMs: number, endMs: number): { year: number; ms: number }[] {
+  const startYear = new Date(startMs).getUTCFullYear();
+  const endYear = new Date(endMs).getUTCFullYear();
+  const ticks: { year: number; ms: number }[] = [];
+  for (let year = startYear; year <= endYear; year += 1) {
+    const ms = Date.UTC(year, 0, 1);
+    if (ms >= startMs && ms <= endMs) ticks.push({ year, ms });
+  }
+  return ticks;
 }
 
 function plotY(share: number): number {
@@ -86,6 +107,8 @@ export function MediationRiseDiagram({
   thresholdLabel = "Majority threshold",
   thresholdShare = 50,
   claim = "Mediation rises. Review stays human.",
+  horizonAt,
+  projectionLabel = "Projection",
   title = "",
   description = "",
   className,
@@ -97,21 +120,71 @@ export function MediationRiseDiagram({
   const n = primary.levels.length;
   if (n < 1) return null;
 
-  const sideChips = chips ?? [];
-  const plotR = sideChips.length > 0 ? 638 : 908;
-  const points = primary.levels.map((level, i) => {
+  const allChips = chips ?? [];
+  const plotChips = allChips.filter(
+    (chip): chip is MediationRiseChip & { share: number; at: string } =>
+      chip.share != null && Boolean(chip.at),
+  );
+  const cardChips = allChips.filter((chip) => chip.share == null || !chip.at);
+  const plotR = cardChips.length > 0 ? 638 : 908;
+  const x0 = PLOT_L + 18;
+  const x1 = plotR - 18;
+  const dated = primary.levels.map((level, i) => ({
+    ...level,
+    ms: level.at ? utcDay(level.at) : null,
+    fallbackT: n === 1 ? 0.5 : i / (n - 1),
+  }));
+  const compareDated = plotChips.map((chip) => ({
+    ...chip,
+    ms: utcDay(chip.at),
+  }));
+  const primaryMs = dated.map((d) => d.ms).filter((ms): ms is number => ms != null);
+  const compareMs = compareDated
+    .map((d) => d.ms)
+    .filter((ms): ms is number => ms != null);
+  const knownMs = [...primaryMs, ...compareMs];
+  const horizonMs = horizonAt ? utcDay(horizonAt) : null;
+  const startMs = knownMs.length ? Math.min(...knownMs) : 0;
+  const lastPrimaryMs = primaryMs.length ? Math.max(...primaryMs) : 0;
+  const lastObsMs = knownMs.length ? Math.max(...knownMs) : 0;
+  const endMs =
+    horizonMs != null && horizonMs > lastPrimaryMs
+      ? Math.max(horizonMs, lastObsMs)
+      : lastObsMs || 1;
+  const span = Math.max(1, endMs - startMs);
+  const points = dated.map((level) => {
     const t =
-      level.t != null && Number.isFinite(level.t)
-        ? level.t
-        : n === 1
-          ? 0.5
-          : i / (n - 1);
+      level.ms != null ? (level.ms - startMs) / span : level.fallbackT;
     return {
       ...level,
-      x: plotX(t, PLOT_L + 18, plotR - 18),
+      x: plotX(t, x0, x1),
       y: plotY(level.share),
     };
   });
+  const comparePoints = compareDated.map((chip) => {
+    const t = chip.ms != null ? (chip.ms - startMs) / span : 1;
+    return {
+      ...chip,
+      x: plotX(t, x0, x1),
+      y: plotY(chip.share),
+    };
+  });
+  const last = points[points.length - 1];
+  const prev = points.length > 1 ? points[points.length - 2] : null;
+  const projT = 1;
+  const projX = plotX(projT, x0, x1);
+  let projY: number | null = null;
+  if (
+    last &&
+    prev &&
+    last.ms != null &&
+    prev.ms != null &&
+    last.ms > prev.ms &&
+    endMs > last.ms
+  ) {
+    const slope = (last.share - prev.share) / (last.ms - prev.ms);
+    projY = plotY(last.share + slope * (endMs - last.ms));
+  }
 
   const lineD = points
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
@@ -121,6 +194,7 @@ export function MediationRiseDiagram({
       ? `${lineD} L ${points[points.length - 1]!.x.toFixed(1)} ${PLOT_B} L ${points[0]!.x.toFixed(1)} ${PLOT_B} Z`
       : "";
   const threshY = plotY(thresholdShare);
+  const years = knownMs.length ? yearTicks(startMs, endMs) : [];
 
   return (
     <div
@@ -200,6 +274,41 @@ export function MediationRiseDiagram({
 
         <path d={areaD} className="mrd-area" />
         <path d={lineD} className="mrd-line" fill="none" />
+        {last && projY != null ? (
+          <g data-mrd-projection="">
+            <path
+              d={`M ${last.x.toFixed(1)} ${last.y.toFixed(1)} L ${projX.toFixed(1)} ${projY.toFixed(1)}`}
+              className="mrd-projection"
+              fill="none"
+            />
+            <circle cx={projX} cy={projY} r={4} className="mrd-projection-point" />
+            <text
+              x={((last.x + projX) / 2).toFixed(1)}
+              y={((last.y + projY) / 2 - 12).toFixed(1)}
+              textAnchor="middle"
+              className="mrd-projection-label"
+            >
+              {projectionLabel}
+            </text>
+          </g>
+        ) : null}
+
+        {years.map((tick) => {
+          const x = plotX((tick.ms - startMs) / span, x0, x1);
+          return (
+            <g key={`year-${tick.year}`} data-mrd-year={tick.year}>
+              <path d={`M ${x} ${PLOT_B} V ${PLOT_B + 6}`} className="mrd-year-tick" />
+              <text
+                x={x}
+                y={PLOT_B + 18}
+                textAnchor="middle"
+                className="mrd-year-label"
+              >
+                {tick.year}
+              </text>
+            </g>
+          );
+        })}
 
         {points.map((p) => {
           const valueAbove = p.y > PLOT_T + 34;
@@ -220,7 +329,7 @@ export function MediationRiseDiagram({
               </text>
               <text
                 x={p.x}
-                y={PLOT_B + 22}
+                y={PLOT_B + 36}
                 textAnchor="middle"
                 className="mrd-point-period"
               >
@@ -233,14 +342,85 @@ export function MediationRiseDiagram({
           );
         })}
 
-        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 46} textAnchor="middle" className="mrd-time-label">
+        {comparePoints.map((p) => {
+          const citeX = Math.min(plotR - 16, p.x + 92);
+          const citeItemsForPoint = p.citeKey ? cites?.[p.citeKey] : undefined;
+          const nearPrimary = last && p.x - last.x < 88;
+          const periodX = nearPrimary ? p.x + 10 : p.x;
+          const periodAnchor = nearPrimary ? "start" : "middle";
+          return (
+            <g key={p.id} data-mrd-chip={p.id}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={11}
+                className="mrd-point-ring mrd-point-ring--compare"
+              />
+              <circle cx={p.x} cy={p.y} r={5.5} className="mrd-point mrd-point--compare" />
+              <text
+                x={p.x + 16}
+                y={p.y - 8}
+                className="mrd-compare-kicker"
+              >
+                Different unit
+              </text>
+              <text
+                x={p.x + 16}
+                y={p.y + 14}
+                className="mrd-point-value mrd-point-value--compare"
+              >
+                {p.value}
+              </text>
+              {p.period ? (
+                <text
+                  x={periodX}
+                  y={PLOT_B + 36}
+                  textAnchor={periodAnchor}
+                  className="mrd-point-period"
+                >
+                  {p.period}
+                </text>
+              ) : null}
+              {citeItemsForPoint && citeItemsForPoint.length > 0 ? (
+                <SvgRefCite
+                  items={citeItemsForPoint}
+                  x={citeX}
+                  y={p.y + 28}
+                  fontSize={14}
+                />
+              ) : null}
+            </g>
+          );
+        })}
+
+        <text x={(PLOT_L + plotR) / 2} y={PLOT_B + 54} textAnchor="middle" className="mrd-time-label">
           {timeLabel}
         </text>
-        <text x={PLOT_L + 8} y={PLOT_T + 16} className="mrd-series-label">
-          {primary.label}
-        </text>
+        <g className="mrd-legend">
+          <circle cx={PLOT_L + 16} cy={PLOT_T + 16} r={5} className="mrd-point" />
+          <text x={PLOT_L + 28} y={PLOT_T + 20} className="mrd-series-label">
+            {primary.label}
+          </text>
+          {comparePoints.map((chip, i) => (
+            <g key={`legend-${chip.id}`}>
+              <circle
+                cx={PLOT_L + 16}
+                cy={PLOT_T + 36 + i * 20}
+                r={5}
+                className="mrd-point mrd-point--compare"
+              />
+              <text
+                x={PLOT_L + 28}
+                y={PLOT_T + 40 + i * 20}
+                className="mrd-series-label mrd-series-label--compare"
+              >
+                {chip.label}
+              </text>
+            </g>
+          ))}
+        </g>
 
-        {sideChips.map((chip, i) => {
+        {cardChips.map((chip, i) => {
           const y = 92 + i * 168;
           const chipCites = chip.citeKey ? cites?.[chip.citeKey] : undefined;
           return (
@@ -327,6 +507,7 @@ const css = `
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mrd-series-label { font-weight: 600; }
+.mrd-series-label--compare { fill: var(--color-info); }
 .mrd-tick {
   fill: var(--secondary-text-color);
   font-size: var(--text-sm);
@@ -355,18 +536,60 @@ const css = `
   stroke-dasharray: 12 10;
   animation: mrd-flow 3s linear infinite;
 }
+.mrd-projection {
+  stroke: var(--brand-primary);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 2.2 5.6;
+  animation: mrd-flow 0.8s linear infinite;
+}
+.mrd-projection-point {
+  fill: var(--bg-color);
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  stroke-dasharray: 2 2;
+}
+.mrd-projection-label {
+  fill: var(--brand-primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.mrd-year-tick {
+  stroke: var(--secondary-text-color);
+  stroke-width: 1;
+}
+.mrd-year-label {
+  fill: var(--secondary-text-color);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
 .mrd-point-ring {
   fill: color-mix(in srgb, var(--brand-primary) 16%, var(--bg-color));
   stroke: var(--brand-primary);
   stroke-width: 1.75;
   animation: mrd-pulse 2.4s ease-in-out infinite;
 }
+.mrd-point-ring--compare {
+  fill: color-mix(in srgb, var(--color-info) 16%, var(--bg-color));
+  stroke: var(--color-info);
+}
 .mrd-point { fill: var(--brand-primary); }
+.mrd-point--compare { fill: var(--color-info); }
 .mrd-point-value {
   fill: var(--strong-text-color);
   font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
+}
+.mrd-point-value--compare { fill: var(--color-info); }
+.mrd-compare-kicker {
+  fill: var(--color-info);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .mrd-point-period {
   fill: var(--secondary-text-color);
@@ -435,11 +658,13 @@ const css = `
 }
 @media (prefers-reduced-motion: reduce) {
   .mrd-line,
+  .mrd-projection,
   .mrd-chip-elbow,
   .mrd-point-ring {
     animation: none !important;
   }
   .mrd-line { stroke-dasharray: none; }
+  .mrd-projection { stroke-dasharray: 2.2 5.6; }
   .mrd-chip-elbow { stroke-dasharray: none; }
 }
 `;
