@@ -6,6 +6,7 @@
 
 import type { RefCiteItem } from "@/components/molecules/RefCite/refCiteTypes.js";
 import { SvgRefCite } from "@/components/molecules/SvgRefCite/SvgRefCite.js";
+import { wrapLines } from "@/components/organisms/MultiModePolicyBand/wrapLines.js";
 
 export type ScoredRubricDimension = {
   id: string;
@@ -43,23 +44,10 @@ export type ScoredInterviewRubricProps = {
 
 const VB_W = 960;
 const VB_H = 720;
-
-function wrapDetail(text: string, maxChars: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    const next = cur ? `${cur} ${w}` : w;
-    if (next.length > maxChars && cur) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = next;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 4);
-}
+const PAD_X = 24;
+const PAD_Y = 16;
+const COL_GAP = 14;
+const INSET = 16;
 
 export function ScoredInterviewRubric({
   dimensions,
@@ -80,25 +68,20 @@ export function ScoredInterviewRubric({
 }: ScoredInterviewRubricProps) {
   if (dimensions.length < 2) return null;
 
-  const padX = 36;
   const phaseRow = phases && phases.length > 0 ? phases : [];
-  const phaseH = phaseRow.length > 0 ? 108 : 0;
-  const topY = 16 + phaseH;
-  const colGap = 16;
-  const usable = VB_W - padX * 2;
-  const colW = (usable - colGap * (dimensions.length - 1)) / dimensions.length;
-  const colH = 250;
-  const cols = dimensions.map((d, i) => ({
-    ...d,
-    x: padX + i * (colW + colGap),
-    y: topY + 34,
-  }));
-  const barY = topY + 6;
-  const pulseY = topY + 34 + colH + 22;
-  const phaseW =
-    phaseRow.length > 0
-      ? (usable - 20 * (phaseRow.length - 1)) / phaseRow.length
-      : 0;
+  const usable = VB_W - PAD_X * 2;
+  const colW = (usable - COL_GAP * (dimensions.length - 1)) / dimensions.length;
+  const colX = (i: number) => PAD_X + i * (colW + COL_GAP);
+
+  const phaseH = phaseRow.length > 0 ? 100 : 0;
+  const phaseY = PAD_Y;
+  const barY = phaseRow.length > 0 ? phaseY + phaseH + 12 : PAD_Y;
+  const barH = 30;
+  const dimY = barY + barH + 12;
+  const dimH = 176;
+  const pulseY = dimY + dimH + 16;
+  const pulseH = 118;
+  const claimY = pulseY + pulseH + 26;
 
   return (
     <div
@@ -118,43 +101,56 @@ export function ScoredInterviewRubric({
         <desc id="sir-desc">{description}</desc>
 
         {phaseRow.map((p, i) => {
-          const x = padX + i * (phaseW + 20);
+          const x = colX(i);
+          const n = p.n ?? String(i + 1).padStart(2, "0");
           return (
             <g key={p.id} data-sir-phase={p.id}>
-              <rect x={x} y={12} width={phaseW} height={92} rx={10} className="sir-phase" />
-              <text x={x + 14} y={34} className="sir-phase-n">
-                {p.n ?? String(i + 1).padStart(2, "0")}
+              <rect
+                x={x}
+                y={phaseY}
+                width={colW}
+                height={phaseH}
+                rx={12}
+                className="sir-phase"
+              />
+              <text x={x + INSET} y={phaseY + 28} className="sir-n">
+                {n}
               </text>
-              <text x={x + 44} y={34} className="sir-phase-label">
+              <text x={x + INSET + 28} y={phaseY + 28} className="sir-label">
                 {p.label}
               </text>
-              <text x={x + 14} y={58} className="sir-phase-detail">
-                {wrapDetail(p.detail, 22).map(
-                  (line, li) => (
-                    <tspan
-                      key={`${p.id}-pd-${li}`}
-                      x={x + 14}
-                      dy={li === 0 ? 0 : 16}
-                    >
-                      {line}
-                    </tspan>
-                  ),
-                )}
+              <text x={x + INSET} y={phaseY + 52} className="sir-detail">
+                {wrapLines(p.detail, 28, 3).map((line, li) => (
+                  <tspan
+                    key={`${p.id}-pd-${li}`}
+                    x={x + INSET}
+                    dy={li === 0 ? 0 : 16}
+                  >
+                    {line}
+                  </tspan>
+                ))}
               </text>
               {i < phaseRow.length - 1 ? (
                 <path
-                  d={`M ${x + phaseW + 3} ${32} H ${x + phaseW + 17}`}
-                  className="sir-phase-arrow"
+                  d={`M ${x + colW + 3} ${phaseY + 28} H ${x + colW + COL_GAP - 3}`}
+                  className="sir-flow-line"
                 />
               ) : null}
             </g>
           );
         })}
 
-        <rect x={padX} y={barY} width={usable} height={22} rx={11} className="sir-bar" />
+        <rect
+          x={PAD_X}
+          y={barY}
+          width={usable}
+          height={barH}
+          rx={15}
+          className="sir-bar"
+        />
         <text
           x={VB_W / 2}
-          y={barY + 12}
+          y={barY + barH / 2}
           textAnchor="middle"
           dominantBaseline="middle"
           className="sir-bar-text"
@@ -162,61 +158,90 @@ export function ScoredInterviewRubric({
           {barLabel}
         </text>
 
-        {cols.map((c) => (
-          <g key={c.id} data-sir-dim={c.id}>
-            <rect x={c.x} y={c.y} width={colW} height={colH} rx={14} className="sir-card" />
-            <circle cx={c.x + 26} cy={c.y + 26} r={15} className="sir-score-ring" />
-            <circle cx={c.x + 26} cy={c.y + 26} r={6.5} className="sir-score-core" />
-            <text
-              x={c.x + 26}
-              y={c.y + 26}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              className="sir-n"
-            >
-              {c.n}
-            </text>
-            <text x={c.x + 50} y={c.y + 28} className="sir-label">
-              {wrapDetail(c.label, 14).map((line, li) => (
-                <tspan key={`${c.id}-l-${li}`} x={c.x + 50} dy={li === 0 ? 0 : 22}>
-                  {line}
-                </tspan>
-              ))}
-            </text>
-            <text x={c.x + 50} y={c.y + 78} className="sir-score-label">
-              {c.scoreLabel ?? "Scored in loop"}
-            </text>
-            <text x={c.x + 16} y={c.y + 118} className="sir-detail">
-              {wrapDetail(c.detail, Math.max(18, Math.floor(colW / 12))).map((line, li) => (
-                <tspan key={`${c.id}-d-${li}`} x={c.x + 16} dy={li === 0 ? 0 : 22}>
-                  {line}
-                </tspan>
-              ))}
-            </text>
-          </g>
-        ))}
+        {dimensions.map((d, i) => {
+          const x = colX(i);
+          return (
+            <g key={d.id} data-sir-dim={d.id}>
+              <rect
+                x={x}
+                y={dimY}
+                width={colW}
+                height={dimH}
+                rx={12}
+                className="sir-card"
+              />
+              <text x={x + INSET} y={dimY + 30} className="sir-n">
+                {d.n}
+              </text>
+              <text x={x + INSET + 28} y={dimY + 30} className="sir-label">
+                {wrapLines(d.label, 22, 2).map((line, li) => (
+                  <tspan
+                    key={`${d.id}-l-${li}`}
+                    x={x + INSET + 28}
+                    dy={li === 0 ? 0 : 20}
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+              <text x={x + INSET} y={dimY + 68} className="sir-score-label">
+                {d.scoreLabel ?? "Scored in loop"}
+              </text>
+              <text x={x + INSET} y={dimY + 96} className="sir-detail">
+                {wrapLines(d.detail, Math.max(22, Math.floor((colW - INSET * 2) / 8)), 4).map(
+                  (line, li) => (
+                    <tspan
+                      key={`${d.id}-d-${li}`}
+                      x={x + INSET}
+                      dy={li === 0 ? 0 : 18}
+                    >
+                      {line}
+                    </tspan>
+                  ),
+                )}
+              </text>
+            </g>
+          );
+        })}
 
         <path
-          d={`M ${VB_W / 2} ${topY + 34 + colH} V ${pulseY}`}
-          className="sir-down"
+          d={`M ${VB_W / 2} ${dimY + dimH} V ${pulseY}`}
+          className="sir-flow-line"
         />
 
         <rect
-          x={padX}
+          x={PAD_X}
           y={pulseY}
           width={usable}
-          height={110}
+          height={pulseH}
           rx={12}
           className="sir-pulse-rail"
         />
-        <text x={padX + 16} y={pulseY + 18} className="sir-pulse-title">
+        <text x={PAD_X + INSET} y={pulseY + 28} className="sir-pulse-title">
           Post-hire validation method
         </text>
+        {goalLabel ? (
+          <text
+            x={VB_W - PAD_X - INSET}
+            y={pulseY + 28}
+            textAnchor="end"
+            className="sir-goal"
+          >
+            {goalLabel}
+          </text>
+        ) : null}
 
-        <rect x={padX + 16} y={pulseY + 30} width={118} height={28} rx={8} className="sir-pulse-chip" />
+        <rect
+          x={PAD_X + INSET}
+          y={pulseY + 46}
+          width={128}
+          height={32}
+          rx={8}
+          className="sir-pulse-chip"
+        />
         <text
-          x={padX + 75}
-          y={pulseY + 45}
+          x={PAD_X + INSET + 64}
+          y={pulseY + 62}
           textAnchor="middle"
           dominantBaseline="middle"
           className="sir-pulse-chip-text"
@@ -224,13 +249,20 @@ export function ScoredInterviewRubric({
           {pulse45Label}
         </text>
         <path
-          d={`M ${padX + 140} ${pulseY + 44} H ${padX + 168}`}
-          className="sir-pulse-arrow"
+          d={`M ${PAD_X + INSET + 132} ${pulseY + 62} H ${PAD_X + INSET + 154}`}
+          className="sir-flow-line"
         />
-        <rect x={padX + 174} y={pulseY + 30} width={118} height={28} rx={8} className="sir-pulse-chip" />
+        <rect
+          x={PAD_X + INSET + 158}
+          y={pulseY + 46}
+          width={128}
+          height={32}
+          rx={8}
+          className="sir-pulse-chip"
+        />
         <text
-          x={padX + 233}
-          y={pulseY + 45}
+          x={PAD_X + INSET + 222}
+          y={pulseY + 62}
           textAnchor="middle"
           dominantBaseline="middle"
           className="sir-pulse-chip-text"
@@ -238,58 +270,51 @@ export function ScoredInterviewRubric({
           {pulse90Label}
         </text>
         <path
-          d={`M ${padX + 298} ${pulseY + 44} H ${padX + 326}`}
-          className="sir-pulse-arrow"
+          d={`M ${PAD_X + INSET + 290} ${pulseY + 62} H ${PAD_X + INSET + 312}`}
+          className="sir-flow-line"
         />
         <rect
-          x={padX + 332}
-          y={pulseY + 30}
-          width={150}
-          height={28}
+          x={PAD_X + INSET + 316}
+          y={pulseY + 46}
+          width={168}
+          height={32}
           rx={8}
           className="sir-pulse-open"
         />
         <text
-          x={padX + 407}
-          y={pulseY + 45}
+          x={PAD_X + INSET + 400}
+          y={pulseY + 62}
           textAnchor="middle"
           dominantBaseline="middle"
           className="sir-pulse-open-text"
         >
           {resultsOpenLabel}
         </text>
-
-        {goalLabel ? (
-          <text x={VB_W - padX - 16} y={pulseY + 20} textAnchor="end" className="sir-goal">
-            {goalLabel}
-          </text>
-        ) : (
-          <text x={VB_W - padX - 16} y={pulseY + 20} textAnchor="end" className="sir-pulse-caveat">
-            {pulseCaveat}
-          </text>
-        )}
-        {goalLabel ? (
-          <text x={VB_W - padX - 16} y={pulseY + 58} textAnchor="end" className="sir-pulse-caveat">
-            {pulseCaveat}
-          </text>
-        ) : null}
+        <text
+          x={VB_W - PAD_X - INSET}
+          y={pulseY + 62}
+          textAnchor="end"
+          dominantBaseline="middle"
+          className="sir-pulse-caveat"
+        >
+          {pulseCaveat}
+        </text>
 
         {interRoundValue ? (
-          <text x={padX + 16} y={VB_H - 14} className="sir-inter">
+          <text x={PAD_X} y={claimY} className="sir-inter">
             {interRoundLabel} · {interRoundValue}
           </text>
         ) : null}
-
         <text
-          x={interRoundValue ? VB_W - padX : VB_W / 2}
-          y={VB_H - 14}
+          x={interRoundValue ? VB_W - PAD_X : VB_W / 2}
+          y={claimY}
           textAnchor={interRoundValue ? "end" : "middle"}
           className="sir-claim"
         >
           {claim}
         </text>
         {cites && cites.length > 0 ? (
-          <SvgRefCite items={cites} x={VB_W - padX} y={VB_H - 6} fontSize={14} />
+          <SvgRefCite items={cites} x={VB_W - PAD_X} y={claimY + 2} fontSize={14} />
         ) : null}
       </svg>
     </div>
@@ -308,51 +333,14 @@ const css = `
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
-.sir-phase {
+.sir-phase,
+.sir-card {
   fill: var(--bg-color);
   stroke: var(--border-color);
   stroke-width: 1.25;
 }
-.sir-phase-n {
-  fill: var(--brand-primary);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  font-family: var(--font-mono, ui-monospace, monospace);
-}
-.sir-phase-label {
-  fill: var(--strong-text-color);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  font-family: var(--font-family), system-ui, sans-serif;
-}
-.sir-phase-detail {
-  fill: var(--secondary-text-color);
-  font-size: var(--text-sm);
-  font-family: var(--font-family), system-ui, sans-serif;
-}
-.sir-phase-arrow {
-  stroke: var(--brand-primary);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 6 94;
-  animation: sir-flow 2.4s linear infinite;
-}
-.sir-card {
-  fill: var(--bg-color);
-  stroke: var(--border-color);
-  stroke-width: 1.5;
-}
-.sir-score-ring {
-  fill: none;
-  stroke: var(--brand-primary);
-  stroke-width: 2;
-}
-.sir-score-core {
-  fill: var(--brand-primary);
-  animation: sir-pulse 2.2s ease-in-out infinite;
-}
 .sir-n {
-  fill: var(--bg-color);
+  fill: var(--brand-primary);
   font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
@@ -366,18 +354,20 @@ const css = `
 .sir-score-label {
   fill: var(--secondary-text-color);
   font-size: var(--text-sm);
-  font-family: var(--font-family), system-ui, sans-serif;
-  letter-spacing: 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-detail {
   fill: var(--secondary-text-color);
   font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
-.sir-down {
+.sir-flow-line {
+  fill: none;
   stroke: var(--brand-primary);
-  stroke-width: 1.75;
-  stroke-dasharray: 4 4;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 2.2 5.6;
+  animation: sir-flow 0.8s linear infinite;
 }
 .sir-pulse-rail {
   fill: color-mix(in srgb, var(--card-bg-color) 85%, var(--bg-color));
@@ -400,13 +390,6 @@ const css = `
   font-size: var(--text-sm);
   font-weight: 600;
   font-family: var(--font-mono, ui-monospace, monospace);
-}
-.sir-pulse-arrow {
-  stroke: var(--brand-primary);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 6 94;
-  animation: sir-flow 2.4s linear infinite;
 }
 .sir-pulse-open {
   fill: transparent;
@@ -442,14 +425,9 @@ const css = `
   font-size: var(--text-base);
   font-family: var(--font-family), system-ui, sans-serif;
 }
-@keyframes sir-pulse {
-  0%, 100% { opacity: 0.65; }
-  50% { opacity: 1; }
-}
-@keyframes sir-flow { to { stroke-dashoffset: -100; } }
+@keyframes sir-flow { to { stroke-dashoffset: -15.6; } }
 @media (prefers-reduced-motion: reduce) {
-  .sir-score-core, .sir-pulse-arrow { animation: none !important; }
-  .sir-pulse-arrow { stroke-dasharray: none; }
+  .sir-flow-line { animation: none !important; }
 }
 `;
 
