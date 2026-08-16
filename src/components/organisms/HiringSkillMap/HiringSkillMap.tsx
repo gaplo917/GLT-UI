@@ -32,16 +32,15 @@ export type HiringSkillMapProps = {
 };
 
 const VB_W = 960;
-const VB_H = 800;
+const VB_H = 720;
 const PAD_X = 20;
-const PAD_Y = 14;
+const PAD_Y = 8;
 const GAP = 12;
 const INSET_X = 16;
 const INSET_Y = 18;
-const HEAD_H = 72;
-const CARD_H = 228;
+const HEAD_H = 84;
+const CARD_H = 244;
 const LINE = 16;
-const CLAIM_Y = VB_H - 18;
 const SKILL_MAX = 22;
 const METHOD_MAX = 24;
 const METHOD_LINES = 8;
@@ -120,6 +119,7 @@ function ClusterHead({
   const labelBudget = Math.max(16, Math.floor((w - INSET_X - 28 - INSET_X) / 8));
   const detailBudget = Math.max(22, Math.floor((w - INSET_X * 2) / 7.2));
   const labelLines = wrapLines(cluster.label, labelBudget, 2);
+  const detailY = y + 24 + labelLines.length * 18 + 8;
   return (
     <g>
       <rect x={x} y={y} width={w} height={HEAD_H} rx={12} className="hsm-head" />
@@ -133,7 +133,7 @@ function ClusterHead({
           </tspan>
         ))}
       </text>
-      <text x={textX} y={y + 50} className="hsm-cluster-detail">
+      <text x={textX} y={detailY} className="hsm-cluster-detail">
         {wrapLines(cluster.detail, detailBudget, 2).map((line, li) => (
           <tspan key={`${cluster.id}-d-${li}`} x={textX} dy={li === 0 ? 0 : 14}>
             {line}
@@ -162,11 +162,12 @@ export function HiringSkillMap({
   ];
 
   const usable = VB_W - PAD_X * 2;
-  const topCardY = PAD_Y + HEAD_H + 10;
+  const topCardY = PAD_Y + HEAD_H + 8;
   const topCardW = (usable - GAP * 3) / 4;
-  const bottomHeadY = topCardY + CARD_H + 14;
-  const bottomCardY = bottomHeadY + HEAD_H + 10;
-  const bottomFr = [1.05, 2.95, 1.05];
+  const bottomHeadY = topCardY + CARD_H + 10;
+  const bottomCardY = bottomHeadY + HEAD_H + 8;
+  const claimY = bottomCardY + CARD_H + 20;
+  const bottomFr = [1.2, 2.6, 1.2];
   const bottomSum = bottomFr.reduce((a, b) => a + b, 0);
   const bottomUsable = usable - GAP * 2;
   const bottomWs = bottomFr.map((f) => (bottomUsable * f) / bottomSum);
@@ -284,7 +285,7 @@ export function HiringSkillMap({
         </g>
 
         {claim ? (
-          <text x={VB_W / 2} y={CLAIM_Y} textAnchor="middle" className="hsm-claim">
+          <text x={VB_W / 2} y={claimY} textAnchor="middle" className="hsm-claim">
             {claim}
           </text>
         ) : null}
@@ -325,11 +326,13 @@ const css = `
 }
 .hsm-card--brand {
   stroke: var(--brand-primary);
-  fill: color-mix(in srgb, var(--brand-primary) 6%, var(--bg-color));
+  fill: color-mix(in srgb, var(--brand-primary) 8%, var(--bg-color));
+  animation: hsm-highlight 2.2s ease-in-out infinite;
 }
 .hsm-card--bind {
   stroke: color-mix(in srgb, var(--brand-primary) 55%, #c45c26);
   stroke-dasharray: 6 4;
+  animation: hsm-highlight-bind 2.2s ease-in-out infinite;
 }
 .hsm-op {
   fill: var(--strong-text-color);
@@ -367,12 +370,33 @@ const css = `
   stroke: var(--brand-primary);
   stroke-width: 2.2;
   stroke-linecap: round;
-  stroke-dasharray: 8 92;
-  animation: hsm-flow 2.4s linear infinite;
+  stroke-dasharray: 2.2 5.6;
+  animation: hsm-flow 0.8s linear infinite;
 }
-@keyframes hsm-flow { to { stroke-dashoffset: -100; } }
+@keyframes hsm-flow { to { stroke-dashoffset: -15.6; } }
+@keyframes hsm-highlight {
+  0%, 100% {
+    fill: color-mix(in srgb, var(--brand-primary) 7%, var(--bg-color));
+    stroke-width: 1.75;
+  }
+  50% {
+    fill: color-mix(in srgb, var(--brand-primary) 20%, var(--bg-color));
+    stroke-width: 2.5;
+  }
+}
+@keyframes hsm-highlight-bind {
+  0%, 100% {
+    fill: color-mix(in srgb, var(--brand-primary) 4%, var(--bg-color));
+    stroke-width: 1.5;
+  }
+  50% {
+    fill: color-mix(in srgb, var(--brand-primary) 14%, var(--bg-color));
+    stroke-width: 2.25;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .hsm-connector { animation: none !important; stroke-dasharray: none; }
+  .hsm-connector { animation: none !important; }
+  .hsm-card--brand, .hsm-card--bind { animation: none !important; }
 }
 `;
 
