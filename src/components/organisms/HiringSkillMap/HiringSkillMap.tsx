@@ -25,7 +25,6 @@ export type HiringSkillCluster = {
 export type HiringSkillMapProps = {
   clusters: readonly HiringSkillCluster[];
   looksForLabel?: string;
-  methodLabel?: string;
   claim?: string;
   title?: string;
   description?: string;
@@ -59,7 +58,6 @@ function OperatorCard({
   w,
   h,
   looksForLabel,
-  methodLabel,
 }: {
   op: HiringSkillOperator;
   x: number;
@@ -67,7 +65,6 @@ function OperatorCard({
   w: number;
   h: number;
   looksForLabel: string;
-  methodLabel: string;
 }) {
   const budget = Math.max(18, Math.floor((w - INSET_X * 2) / 7.4));
   const skillLines = wrapLines(op.skill, Math.min(SKILL_MAX, budget), 2);
@@ -76,8 +73,7 @@ function OperatorCard({
   const opY = y + INSET_Y + 12;
   const skillKickerY = opY + 20;
   const skillY = skillKickerY + 16;
-  const methodKickerY = skillY + skillLines.length * LINE + 12;
-  const methodY = methodKickerY + 16;
+  const methodY = skillY + skillLines.length * LINE + 14;
   return (
     <g data-hsm-op={op.id}>
       <rect x={x} y={y} width={w} height={h} rx={12} className={cardTone(op.tone)} />
@@ -93,9 +89,6 @@ function OperatorCard({
             {line}
           </tspan>
         ))}
-      </text>
-      <text x={textX} y={methodKickerY} className="hsm-kicker">
-        {methodLabel}
       </text>
       <text x={textX} y={methodY} className="hsm-method">
         {methodLines.map((line, li) => (
@@ -159,7 +152,6 @@ function ClusterHead({
 export function HiringSkillMap({
   clusters,
   looksForLabel = "Looks for",
-  methodLabel = "Surfaces it by",
   claim = "Each policy observes a skill. The skill is the hiring object.",
   title = "",
   description = "",
@@ -226,7 +218,6 @@ export function HiringSkillMap({
               w={topCardW}
               h={topCardH}
               looksForLabel={looksForLabel}
-              methodLabel={methodLabel}
             />
           ))}
         </g>
@@ -253,7 +244,6 @@ export function HiringSkillMap({
               w={bottomWs[0]!}
               h={bottomCardH}
               looksForLabel={looksForLabel}
-              methodLabel={methodLabel}
             />
           ))}
         </g>
@@ -275,7 +265,6 @@ export function HiringSkillMap({
               w={namedCardW}
               h={bottomCardH}
               looksForLabel={looksForLabel}
-              methodLabel={methodLabel}
             />
           ))}
         </g>
@@ -297,7 +286,6 @@ export function HiringSkillMap({
               w={bottomWs[2]!}
               h={bottomCardH}
               looksForLabel={looksForLabel}
-              methodLabel={methodLabel}
             />
           ))}
         </g>
