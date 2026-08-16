@@ -38,7 +38,8 @@ const PAD_Y = 14;
 const GAP = 12;
 const INSET_X = 16;
 const INSET_Y = 18;
-const HEAD_H = 96;
+const HEAD_H = 72;
+const CARD_H = 228;
 const LINE = 16;
 const CLAIM_Y = VB_H - 18;
 const SKILL_MAX = 22;
@@ -115,31 +116,25 @@ function ClusterHead({
   w: number;
 }) {
   const textX = x + INSET_X;
-  const stackLabel = w < 280;
-  const labelBudget = Math.max(14, Math.floor((w - INSET_X * 2) / 8.5));
-  const detailBudget = Math.max(20, Math.floor((w - INSET_X * 2) / 5.8));
+  const labelX = textX + 28;
+  const labelBudget = Math.max(16, Math.floor((w - INSET_X - 28 - INSET_X) / 8));
+  const detailBudget = Math.max(22, Math.floor((w - INSET_X * 2) / 7.2));
   const labelLines = wrapLines(cluster.label, labelBudget, 2);
-  const labelY = stackLabel ? y + 38 : y + 20;
-  const detailY = stackLabel ? y + 38 + labelLines.length * 16 + 2 : y + 44;
   return (
     <g>
       <rect x={x} y={y} width={w} height={HEAD_H} rx={12} className="hsm-head" />
-      <text x={textX} y={y + 20} className="hsm-n">
+      <text x={textX} y={y + 24} className="hsm-n">
         {cluster.n ?? String(index + 1).padStart(2, "0")}
       </text>
-      <text
-        x={stackLabel ? textX : textX + 28}
-        y={labelY}
-        className="hsm-cluster-label"
-      >
+      <text x={labelX} y={y + 24} className="hsm-cluster-label">
         {labelLines.map((line, li) => (
-          <tspan key={`${cluster.id}-l-${li}`} x={stackLabel ? textX : textX + 28} dy={li === 0 ? 0 : 16}>
+          <tspan key={`${cluster.id}-l-${li}`} x={labelX} dy={li === 0 ? 0 : 18}>
             {line}
           </tspan>
         ))}
       </text>
-      <text x={textX} y={detailY} className="hsm-cluster-detail">
-        {wrapLines(cluster.detail, detailBudget, 3).map((line, li) => (
+      <text x={textX} y={y + 50} className="hsm-cluster-detail">
+        {wrapLines(cluster.detail, detailBudget, 2).map((line, li) => (
           <tspan key={`${cluster.id}-d-${li}`} x={textX} dy={li === 0 ? 0 : 14}>
             {line}
           </tspan>
@@ -167,12 +162,10 @@ export function HiringSkillMap({
   ];
 
   const usable = VB_W - PAD_X * 2;
-  const topCardY = PAD_Y + HEAD_H + 8;
-  const topCardH = 222;
+  const topCardY = PAD_Y + HEAD_H + 10;
   const topCardW = (usable - GAP * 3) / 4;
-  const bottomHeadY = topCardY + topCardH + 16;
-  const bottomCardY = bottomHeadY + HEAD_H + 8;
-  const bottomCardH = CLAIM_Y - 22 - bottomCardY;
+  const bottomHeadY = topCardY + CARD_H + 14;
+  const bottomCardY = bottomHeadY + HEAD_H + 10;
   const bottomFr = [1.05, 2.95, 1.05];
   const bottomSum = bottomFr.reduce((a, b) => a + b, 0);
   const bottomUsable = usable - GAP * 2;
@@ -216,14 +209,14 @@ export function HiringSkillMap({
               x={PAD_X + i * (topCardW + GAP)}
               y={topCardY}
               w={topCardW}
-              h={topCardH}
+              h={CARD_H}
               looksForLabel={looksForLabel}
             />
           ))}
         </g>
 
         <path
-          d={`M ${PAD_X + usable / 2} ${topCardY + topCardH + 4} V ${bottomHeadY - 4}`}
+          d={`M ${PAD_X + usable / 2} ${topCardY + CARD_H + 4} V ${bottomHeadY - 4}`}
           className="hsm-connector"
         />
 
@@ -242,7 +235,7 @@ export function HiringSkillMap({
               x={bottomXs[0]!}
               y={bottomCardY}
               w={bottomWs[0]!}
-              h={bottomCardH}
+              h={CARD_H}
               looksForLabel={looksForLabel}
             />
           ))}
@@ -263,7 +256,7 @@ export function HiringSkillMap({
               x={bottomXs[1]! + i * (namedCardW + GAP)}
               y={bottomCardY}
               w={namedCardW}
-              h={bottomCardH}
+              h={CARD_H}
               looksForLabel={looksForLabel}
             />
           ))}
@@ -284,7 +277,7 @@ export function HiringSkillMap({
               x={bottomXs[2]!}
               y={bottomCardY}
               w={bottomWs[2]!}
-              h={bottomCardH}
+              h={CARD_H}
               looksForLabel={looksForLabel}
             />
           ))}
