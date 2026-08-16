@@ -42,7 +42,7 @@ export type ScoredInterviewRubricProps = {
 };
 
 const VB_W = 960;
-const VB_H = 480;
+const VB_H = 720;
 
 function wrapDetail(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/);
@@ -82,12 +82,12 @@ export function ScoredInterviewRubric({
 
   const padX = 36;
   const phaseRow = phases && phases.length > 0 ? phases : [];
-  const phaseH = phaseRow.length > 0 ? 68 : 0;
-  const topY = 14 + phaseH;
-  const colGap = 14;
+  const phaseH = phaseRow.length > 0 ? 108 : 0;
+  const topY = 16 + phaseH;
+  const colGap = 16;
   const usable = VB_W - padX * 2;
   const colW = (usable - colGap * (dimensions.length - 1)) / dimensions.length;
-  const colH = 148;
+  const colH = 250;
   const cols = dimensions.map((d, i) => ({
     ...d,
     x: padX + i * (colW + colGap),
@@ -121,15 +121,25 @@ export function ScoredInterviewRubric({
           const x = padX + i * (phaseW + 20);
           return (
             <g key={p.id} data-sir-phase={p.id}>
-              <rect x={x} y={10} width={phaseW} height={44} rx={10} className="sir-phase" />
-              <text x={x + 14} y={26} className="sir-phase-n">
+              <rect x={x} y={12} width={phaseW} height={92} rx={10} className="sir-phase" />
+              <text x={x + 14} y={34} className="sir-phase-n">
                 {p.n ?? String(i + 1).padStart(2, "0")}
               </text>
-              <text x={x + 40} y={26} className="sir-phase-label">
+              <text x={x + 44} y={34} className="sir-phase-label">
                 {p.label}
               </text>
-              <text x={x + 14} y={42} className="sir-phase-detail">
-                {p.detail}
+              <text x={x + 14} y={58} className="sir-phase-detail">
+                {wrapDetail(p.detail, 22).map(
+                  (line, li) => (
+                    <tspan
+                      key={`${p.id}-pd-${li}`}
+                      x={x + 14}
+                      dy={li === 0 ? 0 : 16}
+                    >
+                      {line}
+                    </tspan>
+                  ),
+                )}
               </text>
               {i < phaseRow.length - 1 ? (
                 <path
@@ -166,15 +176,19 @@ export function ScoredInterviewRubric({
             >
               {c.n}
             </text>
-            <text x={c.x + 50} y={c.y + 22} className="sir-label">
-              {c.label}
+            <text x={c.x + 50} y={c.y + 28} className="sir-label">
+              {wrapDetail(c.label, 14).map((line, li) => (
+                <tspan key={`${c.id}-l-${li}`} x={c.x + 50} dy={li === 0 ? 0 : 22}>
+                  {line}
+                </tspan>
+              ))}
             </text>
-            <text x={c.x + 50} y={c.y + 40} className="sir-score-label">
+            <text x={c.x + 50} y={c.y + 78} className="sir-score-label">
               {c.scoreLabel ?? "Scored in loop"}
             </text>
-            <text x={c.x + 14} y={c.y + 68} className="sir-detail">
-              {wrapDetail(c.detail, Math.floor(colW / 7.2)).map((line, li) => (
-                <tspan key={`${c.id}-d-${li}`} x={c.x + 14} dy={li === 0 ? 0 : 15}>
+            <text x={c.x + 16} y={c.y + 118} className="sir-detail">
+              {wrapDetail(c.detail, Math.max(18, Math.floor(colW / 12))).map((line, li) => (
+                <tspan key={`${c.id}-d-${li}`} x={c.x + 16} dy={li === 0 ? 0 : 22}>
                   {line}
                 </tspan>
               ))}
@@ -191,7 +205,7 @@ export function ScoredInterviewRubric({
           x={padX}
           y={pulseY}
           width={usable}
-          height={72}
+          height={110}
           rx={12}
           className="sir-pulse-rail"
         />
@@ -352,7 +366,8 @@ const css = `
 .sir-score-label {
   fill: var(--secondary-text-color);
   font-size: var(--text-sm);
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-family), system-ui, sans-serif;
+  letter-spacing: 0;
 }
 .sir-detail {
   fill: var(--secondary-text-color);

@@ -43,7 +43,7 @@ export type MultiModePolicyBandProps = {
 };
 
 const VB_W = 960;
-const VB_H = 480;
+const VB_H = 720;
 
 export function MultiModePolicyBand({
   modes,
@@ -66,10 +66,12 @@ export function MultiModePolicyBand({
   const gap = 14;
   const usable = VB_W - padX * 2;
   const ops = operatingItems ?? [];
-  const opH = ops.length > 0 ? 86 : 0;
+  const opCols = 2;
+  const opH = ops.length > 0 ? 88 : 0;
   const colW = (usable - gap * (modes.length - 1)) / modes.length;
-  const modeY = ops.length > 0 ? 124 : 52;
-  const modeH = 150;
+  const opRows = ops.length > 0 ? Math.ceil(ops.length / opCols) : 0;
+  const modeY = ops.length > 0 ? 48 + opRows * (opH + 10) + 36 : 52;
+  const modeH = 220;
   const cols = modes.map((m, i) => ({
     ...m,
     x: padX + i * (colW + gap),
@@ -99,24 +101,27 @@ export function MultiModePolicyBand({
               {operatingLabel}
             </text>
             {operatingCites && operatingCites.length > 0 ? (
-              <SvgRefCite items={operatingCites} x={padX + 200} y={20} fontSize={14} />
+              <SvgRefCite items={operatingCites} x={padX + usable - 24} y={20} fontSize={14} />
             ) : null}
             {ops.map((item, i) => {
-              const tw = (usable - gap * (ops.length - 1)) / ops.length;
-              const x = padX + i * (tw + gap);
+              const tw = (usable - gap * (opCols - 1)) / opCols;
+              const col = i % opCols;
+              const row = Math.floor(i / opCols);
+              const x = padX + col * (tw + gap);
+              const y = 36 + row * (opH + 10);
               return (
                 <g key={item.id}>
-                  <rect x={x} y={30} width={tw} height={opH - 8} rx={10} className="mmp-op-chip" />
-                  <text x={x + 12} y={46} className="mmp-op-label">
+                  <rect x={x} y={y} width={tw} height={opH - 8} rx={10} className="mmp-op-chip" />
+                  <text x={x + 14} y={y + 24} className="mmp-op-label">
                     {item.label}
                   </text>
-                  <text x={x + 12} y={62} className="mmp-op-detail">
+                  <text x={x + 14} y={y + 48} className="mmp-op-detail">
                     {wrapLines(item.detail, OPERATING_DETAIL_MAX_CHARS).map(
                       (line, li) => (
                         <tspan
                           key={`${item.id}-d-${li}`}
-                          x={x + 12}
-                          dy={li === 0 ? 0 : 13}
+                          x={x + 14}
+                          dy={li === 0 ? 0 : 20}
                         >
                           {line}
                         </tspan>
@@ -133,7 +138,7 @@ export function MultiModePolicyBand({
           {preferredLabel}
         </text>
         {preferredCites && preferredCites.length > 0 ? (
-          <SvgRefCite items={preferredCites} x={padX + 280} y={modeY - 12} fontSize={14} />
+          <SvgRefCite items={preferredCites} x={padX + usable - 24} y={modeY - 12} fontSize={14} />
         ) : null}
 
         {cols.map((c, i) => (
@@ -145,25 +150,25 @@ export function MultiModePolicyBand({
               />
             ) : null}
             <rect x={c.x} y={modeY} width={colW} height={modeH} rx={14} className="mmp-mode-card" />
-            <circle cx={c.x + 28} cy={modeY + 28} r={14} className="mmp-mode-ring" />
-            <text x={c.x + 28} y={modeY + 28} textAnchor="middle" dominantBaseline="middle" className="mmp-n">
+            <circle cx={c.x + 30} cy={modeY + 34} r={16} className="mmp-mode-ring" />
+            <text x={c.x + 30} y={modeY + 34} textAnchor="middle" dominantBaseline="middle" className="mmp-n">
               {c.n}
             </text>
-            <text x={c.x + 52} y={modeY + 24} className="mmp-label">
+            <text x={c.x + 56} y={modeY + 30} className="mmp-label">
               {c.label}
             </text>
-            <text x={c.x + 52} y={modeY + 42} className="mmp-intent">
+            <text x={c.x + 56} y={modeY + 56} className="mmp-intent">
               {c.intent}
             </text>
-            <text x={c.x + 18} y={modeY + 78} className="mmp-measures-kicker">
+            <text x={c.x + 20} y={modeY + 100} className="mmp-measures-kicker">
               Measures
             </text>
-            <text x={c.x + 18} y={modeY + 100}>
-              {wrapLines(c.measures, 28).map((line, li) => (
+            <text x={c.x + 20} y={modeY + 128}>
+              {wrapLines(c.measures, 26).map((line, li) => (
                 <tspan
                   key={`${c.id}-m-${li}`}
-                  x={c.x + 18}
-                  dy={li === 0 ? 0 : 16}
+                  x={c.x + 20}
+                  dy={li === 0 ? 0 : 22}
                   className="mmp-measures"
                 >
                   {line}
@@ -178,7 +183,7 @@ export function MultiModePolicyBand({
           {publishedLabel}
         </text>
         {publishedCites && publishedCites.length > 0 ? (
-          <SvgRefCite items={publishedCites} x={padX + 220} y={policyY - 12} fontSize={14} />
+          <SvgRefCite items={publishedCites} x={padX + usable - 24} y={policyY - 14} fontSize={14} />
         ) : null}
         <rect
           x={padX}

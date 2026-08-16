@@ -1,4 +1,4 @@
-/** Conservative line budget for operating-chip detail (11px type, ~211px chip). */
+/** Conservative line budget for operating-chip detail (Tailwind --text-sm). */
 export const OPERATING_DETAIL_MAX_CHARS = 22;
 
 /** Word-wrap used by MultiModePolicyBand SVG labels. */

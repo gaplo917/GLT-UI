@@ -34,11 +34,11 @@ const CX = 480;
 const CY = 360;
 const RX = 210;
 const RY = 118;
-const BOX_W = 210;
-const BOX_H = 92;
-const CHIP_Y = 18;
-const CHIP_H = 36;
-const CARD_GAP = 78;
+const BOX_W = 214;
+const BOX_H = 132;
+const CHIP_Y = 16;
+const CHIP_H = 38;
+const CARD_GAP = 96;
 const ARROW_LEN = 12;
 const ARROW_HALF = 3.1;
 /** Visual radians from +x; parametric 45° sits on the flat sides. */
@@ -243,9 +243,9 @@ export function FluencyCollaborationLoop({
             >
               {n.label}
             </text>
-            <text x={16} y={54} className="fcl-detail">
-              {wrapDetail(n.detail, 22).map((line, li) => (
-                <tspan key={`${n.id}-d-${li}`} x={16} dy={li === 0 ? 0 : 18}>
+            <text x={16} y={62} className="fcl-detail">
+              {wrapDetail(n.detail, 20).map((line, li) => (
+                <tspan key={`${n.id}-d-${li}`} x={16} dy={li === 0 ? 0 : 22}>
                   {line}
                 </tspan>
               ))}
