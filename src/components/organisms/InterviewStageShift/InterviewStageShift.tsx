@@ -170,7 +170,7 @@ const css = `
     padding: 0.65rem 0.8rem;
   }
   .iss-stage {
-    background: color-mix(in srgb, var(--brand-primary) 10%, var(--card-bg-color));
+    background: color-mix(in srgb, var(--strong-text-color) 7%, var(--card-bg-color));
     padding-top: 0.8rem;
   }
   .iss-before, .iss-after {
