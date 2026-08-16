@@ -42,7 +42,7 @@ export type ScoredInterviewRubricProps = {
 };
 
 const VB_W = 960;
-const VB_H = 430;
+const VB_H = 480;
 
 function wrapDetail(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/);
@@ -82,12 +82,12 @@ export function ScoredInterviewRubric({
 
   const padX = 36;
   const phaseRow = phases && phases.length > 0 ? phases : [];
-  const phaseH = phaseRow.length > 0 ? 56 : 0;
+  const phaseH = phaseRow.length > 0 ? 68 : 0;
   const topY = 14 + phaseH;
   const colGap = 14;
   const usable = VB_W - padX * 2;
   const colW = (usable - colGap * (dimensions.length - 1)) / dimensions.length;
-  const colH = 124;
+  const colH = 148;
   const cols = dimensions.map((d, i) => ({
     ...d,
     x: padX + i * (colW + colGap),
@@ -275,7 +275,7 @@ export function ScoredInterviewRubric({
           {claim}
         </text>
         {cites && cites.length > 0 ? (
-          <SvgRefCite items={cites} x={VB_W - padX} y={VB_H - 6} fontSize={10} />
+          <SvgRefCite items={cites} x={VB_W - padX} y={VB_H - 6} fontSize={14} />
         ) : null}
       </svg>
     </div>
@@ -290,7 +290,7 @@ const css = `
 }
 .sir-bar-text {
   fill: var(--brand-primary);
-  font-size: 12px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
@@ -301,19 +301,19 @@ const css = `
 }
 .sir-phase-n {
   fill: var(--brand-primary);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-phase-label {
   fill: var(--strong-text-color);
-  font-size: 12.5px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-phase-detail {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-phase-arrow {
@@ -339,24 +339,24 @@ const css = `
 }
 .sir-n {
   fill: var(--bg-color);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-label {
   fill: var(--strong-text-color);
-  font-size: 13.5px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-score-label {
   fill: var(--secondary-text-color);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-detail {
   fill: var(--secondary-text-color);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-down {
@@ -371,7 +371,7 @@ const css = `
 }
 .sir-pulse-title {
   fill: var(--strong-text-color);
-  font-size: 11.5px;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-family: var(--font-family), system-ui, sans-serif;
 }
@@ -382,7 +382,7 @@ const css = `
 }
 .sir-pulse-chip-text {
   fill: var(--brand-primary);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
@@ -401,30 +401,30 @@ const css = `
 }
 .sir-pulse-open-text {
   fill: var(--secondary-text-color);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-style: italic;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-pulse-caveat {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-style: italic;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .sir-goal {
   fill: var(--brand-primary);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 600;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-inter {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .sir-claim {
   fill: var(--secondary-text-color);
-  font-size: 12px;
+  font-size: var(--text-base);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 @keyframes sir-pulse {

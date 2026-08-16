@@ -29,17 +29,17 @@ export type FluencyCollaborationLoopProps = {
 };
 
 const VB_W = 960;
-const VB_H = 540;
+const VB_H = 720;
 const CX = 480;
-const CY = 268;
-const RX = 228;
-const RY = 82;
-const BOX_W = 188;
-const BOX_H = 66;
-const CHIP_Y = 10;
-const CHIP_H = 28;
-const CARD_GAP = 58;
-const ARROW_LEN = 8;
+const CY = 360;
+const RX = 210;
+const RY = 118;
+const BOX_W = 210;
+const BOX_H = 92;
+const CHIP_Y = 18;
+const CHIP_H = 36;
+const CARD_GAP = 78;
+const ARROW_LEN = 12;
 const ARROW_HALF = 3.1;
 /** Visual radians from +x; parametric 45° sits on the flat sides. */
 const ARROW_VISUAL = [deg(-60), deg(30), deg(120), deg(210)];
@@ -115,9 +115,9 @@ export function FluencyCollaborationLoop({
   const order = dimensions.slice(0, 4);
   const slots = [
     { x: CX, y: CY - RY - CARD_GAP, anchor: "middle" as const },
-    { x: CX + RX + 18, y: CY, anchor: "start" as const },
+    { x: CX + RX + 14, y: CY, anchor: "start" as const },
     { x: CX, y: CY + RY + CARD_GAP, anchor: "middle" as const },
-    { x: CX - RX - 18, y: CY, anchor: "end" as const },
+    { x: CX - RX - 14, y: CY, anchor: "end" as const },
   ];
   const nodes = order.map((dim, i) => {
     const slot = slots[i] ?? slots[0]!;
@@ -142,7 +142,7 @@ export function FluencyCollaborationLoop({
 
   const oval = `M ${CX - RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX + RX} ${CY} A ${RX} ${RY} 0 1 1 ${CX - RX} ${CY}`;
   const flowThetas = ARROW_VISUAL.map(visualToParametric);
-  const chipW = Math.min(520, Math.max(360, indexLabel.length * 8.2));
+  const chipW = Math.min(640, Math.max(400, indexLabel.length * 10.4));
 
   return (
     <div
@@ -213,7 +213,7 @@ export function FluencyCollaborationLoop({
           className="fcl-elbow"
         />
 
-        <circle cx={CX} cy={CY} r={66} className="fcl-center" />
+        <circle cx={CX} cy={CY} r={78} className="fcl-center" />
         <text x={CX} y={CY - 8} textAnchor="middle" className="fcl-center-title">
           {centerTitle}
         </text>
@@ -233,19 +233,19 @@ export function FluencyCollaborationLoop({
               rx={12}
               className={n.tone === "brand" ? "fcl-card fcl-card--brand" : "fcl-card"}
             />
-            <text x={14} y={22} className="fcl-n">
+            <text x={16} y={28} className="fcl-n">
               {n.n}
             </text>
             <text
-              x={40}
-              y={22}
+              x={48}
+              y={28}
               className={n.tone === "brand" ? "fcl-label fcl-label--brand" : "fcl-label"}
             >
               {n.label}
             </text>
-            <text x={14} y={42} className="fcl-detail">
-              {wrapDetail(n.detail, 26).map((line, li) => (
-                <tspan key={`${n.id}-d-${li}`} x={14} dy={li === 0 ? 0 : 14}>
+            <text x={16} y={54} className="fcl-detail">
+              {wrapDetail(n.detail, 22).map((line, li) => (
+                <tspan key={`${n.id}-d-${li}`} x={16} dy={li === 0 ? 0 : 18}>
                   {line}
                 </tspan>
               ))}
@@ -253,14 +253,14 @@ export function FluencyCollaborationLoop({
           </g>
         ))}
 
-        <text x={CX} y={VB_H - 36} textAnchor="middle" className="fcl-return">
+        <text x={CX} y={VB_H - 44} textAnchor="middle" className="fcl-return">
           {returnLabel}
         </text>
-        <text x={CX} y={VB_H - 20} textAnchor="middle" className="fcl-distinction">
+        <text x={CX} y={VB_H - 24} textAnchor="middle" className="fcl-distinction">
           {distinctionLabel}
         </text>
         {cites && cites.length > 0 ? (
-          <SvgRefCite items={cites} x={CX} y={VB_H - 6} fontSize={10} />
+          <SvgRefCite items={cites} x={CX} y={VB_H - 6} fontSize={14} />
         ) : null}
       </svg>
     </div>
@@ -275,7 +275,7 @@ const css = `
 }
 .fcl-index-text {
   fill: var(--brand-primary);
-  font-size: 11.5px;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-family: var(--font-mono, ui-monospace, monospace);
   letter-spacing: 0.03em;
@@ -305,13 +305,13 @@ const css = `
 }
 .fcl-center-title {
   fill: var(--strong-text-color);
-  font-size: 14px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .fcl-center-sub {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .fcl-card {
@@ -325,31 +325,31 @@ const css = `
 }
 .fcl-n {
   fill: var(--brand-primary);
-  font-size: 11px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .fcl-label {
   fill: var(--strong-text-color);
-  font-size: 13px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .fcl-label--brand { fill: var(--brand-primary); }
 .fcl-detail {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .fcl-return {
   fill: var(--brand-primary);
-  font-size: 12px;
+  font-size: var(--text-lg);
   font-weight: 600;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .fcl-distinction {
   fill: var(--secondary-text-color);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 @keyframes fcl-flow { to { stroke-dashoffset: -100; } }

@@ -43,7 +43,7 @@ export type MultiModePolicyBandProps = {
 };
 
 const VB_W = 960;
-const VB_H = 444;
+const VB_H = 480;
 
 export function MultiModePolicyBand({
   modes,
@@ -66,10 +66,10 @@ export function MultiModePolicyBand({
   const gap = 14;
   const usable = VB_W - padX * 2;
   const ops = operatingItems ?? [];
-  const opH = ops.length > 0 ? 74 : 0;
+  const opH = ops.length > 0 ? 86 : 0;
   const colW = (usable - gap * (modes.length - 1)) / modes.length;
   const modeY = ops.length > 0 ? 124 : 52;
-  const modeH = 136;
+  const modeH = 150;
   const cols = modes.map((m, i) => ({
     ...m,
     x: padX + i * (colW + gap),
@@ -99,7 +99,7 @@ export function MultiModePolicyBand({
               {operatingLabel}
             </text>
             {operatingCites && operatingCites.length > 0 ? (
-              <SvgRefCite items={operatingCites} x={padX + 200} y={20} fontSize={10} />
+              <SvgRefCite items={operatingCites} x={padX + 200} y={20} fontSize={14} />
             ) : null}
             {ops.map((item, i) => {
               const tw = (usable - gap * (ops.length - 1)) / ops.length;
@@ -133,7 +133,7 @@ export function MultiModePolicyBand({
           {preferredLabel}
         </text>
         {preferredCites && preferredCites.length > 0 ? (
-          <SvgRefCite items={preferredCites} x={padX + 280} y={modeY - 12} fontSize={10} />
+          <SvgRefCite items={preferredCites} x={padX + 280} y={modeY - 12} fontSize={14} />
         ) : null}
 
         {cols.map((c, i) => (
@@ -178,7 +178,7 @@ export function MultiModePolicyBand({
           {publishedLabel}
         </text>
         {publishedCites && publishedCites.length > 0 ? (
-          <SvgRefCite items={publishedCites} x={padX + 220} y={policyY - 12} fontSize={10} />
+          <SvgRefCite items={publishedCites} x={padX + 220} y={policyY - 12} fontSize={14} />
         ) : null}
         <rect
           x={padX}
@@ -209,7 +209,7 @@ export function MultiModePolicyBand({
 const css = `
 .mmp-layer-title {
   fill: var(--strong-text-color);
-  font-size: 12.5px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
@@ -224,13 +224,13 @@ const css = `
 }
 .mmp-op-label {
   fill: var(--strong-text-color);
-  font-size: 12px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-op-detail {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-mode-card {
@@ -245,24 +245,24 @@ const css = `
 }
 .mmp-n {
   fill: var(--brand-primary);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .mmp-label {
   fill: var(--strong-text-color);
-  font-size: 14px;
+  font-size: var(--text-lg);
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-intent {
   fill: var(--secondary-text-color);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .mmp-measures-kicker {
   fill: var(--brand-primary);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-mono, ui-monospace, monospace);
   letter-spacing: 0.06em;
@@ -270,7 +270,7 @@ const css = `
 }
 .mmp-measures {
   fill: var(--secondary-text-color);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-connector {
@@ -288,12 +288,12 @@ const css = `
 }
 .mmp-policy-status {
   fill: var(--secondary-text-color);
-  font-size: 12.5px;
+  font-size: var(--text-lg);
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mmp-claim {
   fill: var(--secondary-text-color);
-  font-size: 12.5px;
+  font-size: var(--text-base);
   font-style: italic;
   font-family: var(--font-family), system-ui, sans-serif;
 }
