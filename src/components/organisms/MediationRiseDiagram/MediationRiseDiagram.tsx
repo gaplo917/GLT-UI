@@ -346,7 +346,10 @@ export function MediationRiseDiagram({
         })}
 
         {comparePoints.map((p) => {
-          const citeX = Math.min(plotR - 16, p.x + 92);
+          const labelX = p.x + 18;
+          const valueY = p.y - 8;
+          const periodY = p.y + 10;
+          const citeX = Math.min(plotR - 16, labelX + 54);
           const citeItemsForPoint = p.citeKey ? cites?.[p.citeKey] : undefined;
           return (
             <g key={p.id} data-mrd-chip={p.id}>
@@ -358,35 +361,23 @@ export function MediationRiseDiagram({
               />
               <circle cx={p.x} cy={p.y} r={5.5} className="mrd-point mrd-point--compare" />
               <text
-                x={p.x + 16}
-                y={p.y - 18}
-                className="mrd-compare-kicker"
-              >
-                Different unit
-              </text>
-              <text
-                x={p.x + 16}
-                y={p.y + 2}
+                x={labelX}
+                y={valueY}
                 className="mrd-point-value mrd-point-value--compare"
               >
                 {p.value}
               </text>
               {p.period ? (
                 <text
-                  x={p.x + 16}
-                  y={p.y + 20}
+                  x={labelX}
+                  y={periodY}
                   className="mrd-point-period mrd-point-period--compare"
                 >
                   {p.period}
                 </text>
               ) : null}
               {citeItemsForPoint && citeItemsForPoint.length > 0 ? (
-                <SvgRefCite
-                  items={citeItemsForPoint}
-                  x={citeX}
-                  y={p.y + 36}
-                  fontSize={14}
-                />
+                <SvgRefCite items={citeItemsForPoint} x={citeX} y={valueY} fontSize={14} />
               ) : null}
             </g>
           );
@@ -436,10 +427,7 @@ export function MediationRiseDiagram({
                 rx={14}
                 className="mrd-chip"
               />
-              <text x={plotR + 54} y={y + 28} className="mrd-chip-kicker">
-                Different unit
-              </text>
-              <text x={plotR + 54} y={y + 54} className="mrd-chip-label">
+              <text x={plotR + 54} y={y + 40} className="mrd-chip-label">
                 {chip.label}
               </text>
               <text x={plotR + 54} y={y + 88} className="mrd-chip-value">
@@ -582,14 +570,6 @@ const css = `
   font-family: var(--font-family), system-ui, sans-serif;
 }
 .mrd-point-value--compare { fill: var(--color-info); }
-.mrd-compare-kicker {
-  fill: var(--color-info);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
 .mrd-point-period {
   fill: var(--secondary-text-color);
   font-size: var(--text-sm);
@@ -601,14 +581,6 @@ const css = `
   stroke: var(--brand-primary);
   stroke-width: 1.5;
   stroke-dasharray: 7 5;
-}
-.mrd-chip-kicker {
-  fill: var(--brand-primary);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 .mrd-chip-label {
   fill: var(--strong-text-color);
