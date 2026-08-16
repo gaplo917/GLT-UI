@@ -169,7 +169,7 @@ export function MediationRiseDiagram({
         legend={false}
         showGrid
         dataLabels
-        aspectRatio={compact ? 4 : 2.15}
+        aspectRatio={2.15}
         ariaLabel={description || title || 'Engineer-accepted AI code share over time'}
       />
 

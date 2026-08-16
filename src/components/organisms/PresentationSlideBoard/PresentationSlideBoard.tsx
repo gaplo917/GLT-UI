@@ -24,6 +24,7 @@ export type PresentationCalloutLabels = {
 export type PresentationSlideBoardLayout =
   | 'title'
   | 'bullets'
+  | 'figure'
   | 'figure-wide'
   | 'figure-side'
   | 'cards'
@@ -66,7 +67,9 @@ export interface PresentationSlideBoardProps {
 /**
  * Content-agnostic presentation slide board. Host supplies all copy, figures,
  * and cards. Layout chrome via PresentationSlideFrame; body by `layout`.
- * Prose uses left-right columns (bullets | impact) for board-length reading.
+ * Figure pairing: `figure-side` left/right (4:3 + remaining prose),
+ * `figure-wide` top/bottom (2:1 + remaining prose), `figure` full-body
+ * (text-heavy SVG, no restating bullets).
  */
 export function PresentationSlideBoard({
   layout,
@@ -126,6 +129,14 @@ export function PresentationSlideBoard({
         <PresentationProseColumns
           bullets={bullets}
           callout={labeledCallout}
+        />
+      ) : null}
+
+      {layout === 'figure' && figure != null ? (
+        <PresentationFigureKeypoints
+          wide={false}
+          caption={figureCaption}
+          figure={figure}
         />
       ) : null}
 
