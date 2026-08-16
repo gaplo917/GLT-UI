@@ -43,8 +43,6 @@ export type MediationRiseDiagramProps = {
   timeLabel?: string;
   shareLabel?: string;
   gateLabel?: string;
-  thresholdLabel?: string;
-  thresholdShare?: number;
   claim?: string;
   /** ISO date that ends the calendar axis (time projection). */
   horizonAt?: string;
@@ -104,8 +102,6 @@ export function MediationRiseDiagram({
   timeLabel = "",
   shareLabel = "Accepted AI-generated code ratio",
   gateLabel = "Human accept / review gate",
-  thresholdLabel = "Majority threshold",
-  thresholdShare = 50,
   claim = "Mediation rises. Review stays human.",
   horizonAt,
   projectionLabel = "Projection",
@@ -193,7 +189,6 @@ export function MediationRiseDiagram({
     points.length > 0
       ? `${lineD} L ${points[points.length - 1]!.x.toFixed(1)} ${PLOT_B} L ${points[0]!.x.toFixed(1)} ${PLOT_B} Z`
       : "";
-  const threshY = plotY(thresholdShare);
   const years = knownMs.length ? yearTicks(startMs, endMs) : [];
 
   return (
@@ -221,25 +216,6 @@ export function MediationRiseDiagram({
         <text x={28} y={52} className="mrd-claim">
           {claim}
         </text>
-        <rect
-          x={VB_W - 318}
-          y={12}
-          width={290}
-          height={52}
-          rx={12}
-          className="mrd-threshold-chip"
-        />
-        <text x={VB_W - 304} y={30} className="mrd-threshold-kicker">
-          {wrapLines(thresholdLabel, 28, 2).map((line, li) => (
-            <tspan key={`th-${li}`} x={VB_W - 304} dy={li === 0 ? 0 : 16}>
-              {line}
-            </tspan>
-          ))}
-        </text>
-        <text x={VB_W - 64} y={40} textAnchor="end" className="mrd-threshold-value">
-          {thresholdShare}%
-        </text>
-
         <text
           x={22}
           y={(PLOT_T + PLOT_B) / 2}
@@ -262,23 +238,13 @@ export function MediationRiseDiagram({
           const y = plotY(tick);
           return (
             <g key={`tick-${tick}`}>
-              <path
-                d={`M ${PLOT_L} ${y} H ${plotR}`}
-                className={
-                  tick === thresholdShare ? "mrd-grid mrd-grid--major" : "mrd-grid"
-                }
-              />
+              <path d={`M ${PLOT_L} ${y} H ${plotR}`} className="mrd-grid" />
               <text x={PLOT_L - 10} y={y} textAnchor="end" dominantBaseline="middle" className="mrd-tick">
                 {tick}%
               </text>
             </g>
           );
         })}
-
-        <path
-          d={`M ${PLOT_L} ${threshY} H ${plotR}`}
-          className="mrd-threshold-line"
-        />
 
         <path d={areaD} className="mrd-area" />
         <path d={lineD} className="mrd-line" fill="none" />
@@ -431,7 +397,7 @@ export function MediationRiseDiagram({
           return (
             <g key={chip.id} data-mrd-chip={chip.id}>
               <path
-                d={`M ${plotR + 8} ${threshY} H ${plotR + 22} V ${y + 70} H ${plotR + 36}`}
+                d={`M ${plotR + 8} ${y + 70} H ${plotR + 36}`}
                 className="mrd-chip-elbow"
               />
               <rect
@@ -485,22 +451,6 @@ const css = `
   font-weight: 700;
   font-family: var(--font-family), system-ui, sans-serif;
 }
-.mrd-threshold-chip {
-  fill: color-mix(in srgb, var(--brand-primary) 8%, var(--card-bg-color));
-  stroke: color-mix(in srgb, var(--brand-primary) 42%, var(--border-color));
-  stroke-width: 1.25;
-}
-.mrd-threshold-kicker {
-  fill: var(--secondary-text-color);
-  font-size: var(--text-sm);
-  font-family: var(--font-family), system-ui, sans-serif;
-}
-.mrd-threshold-value {
-  fill: var(--brand-primary);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  font-family: var(--font-family), system-ui, sans-serif;
-}
 .mrd-axis-title,
 .mrd-time-label,
 .mrd-series-label {
@@ -518,14 +468,6 @@ const css = `
 .mrd-grid {
   stroke: var(--border-color);
   stroke-width: 1;
-}
-.mrd-grid--major {
-  stroke: color-mix(in srgb, var(--brand-primary) 28%, var(--border-color));
-}
-.mrd-threshold-line {
-  stroke: var(--brand-primary);
-  stroke-width: 1.75;
-  stroke-dasharray: 7 6;
 }
 .mrd-area {
   fill: color-mix(in srgb, var(--brand-primary) 14%, transparent);
