@@ -407,12 +407,14 @@ export function PresentationStrip({
         <div
           ref={viewportRef}
           className="relative h-full w-full"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            if (e.target === viewportRef.current) close();
+          }}
         >
           <div
             data-testid="presentation-16x9-stage"
             data-present-aspect="16/9"
-            className="absolute flex flex-col overflow-hidden bg-[var(--bg-color)]"
+            className="absolute overflow-hidden bg-[var(--bg-color)]"
             style={{
               left: stageBox.x,
               top: stageBox.y,
@@ -421,61 +423,31 @@ export function PresentationStrip({
               aspectRatio: '16 / 9',
             }}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 px-3 py-2 sm:px-5">
-              <div className="min-w-0">
-                <p
-                  id={titleId}
-                  className="truncate text-sm font-semibold tracking-tight text-[var(--strong-text-color)]"
-                >
-                  {dialogHeading}
-                </p>
-                <p className="text-xs text-[var(--secondary-text-color)]">
-                  <span className="tabular-nums">
-                    {current.num}/{slides[total - 1]?.num ?? total}
-                  </span>{' '}
-                  · {current.label}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  data-testid="presentation-dialog-prev"
-                  onClick={prev}
-                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-                  aria-label={prevAria}
-                >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  data-testid="presentation-dialog-next"
-                  onClick={next}
-                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-                  aria-label={nextAria}
-                >
-                  →
-                </button>
-                <button
-                  type="button"
-                  data-testid="presentation-dialog-close"
-                  onClick={close}
-                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium text-[var(--text-color)]"
-                >
-                  {closeLabel}
-                </button>
-              </div>
-            </div>
-
-            <div className="relative min-h-0 flex-1">
-              <FitContain
-                active={dialogOpen}
-                naturalW={slideNaturalW}
-                naturalH={slideNaturalH}
-                pad={0}
-                className="h-full w-full"
-              >
-                {renderSlide(index, current)}
-              </FitContain>
+            <p
+              id={titleId}
+              className="absolute m-0 overflow-hidden"
+              style={{ width: 1, height: 1, clip: 'rect(0 0 0 0)' }}
+            >
+              {dialogHeading}
+            </p>
+            <button
+              type="button"
+              data-testid="presentation-dialog-close"
+              onClick={close}
+              className="absolute overflow-hidden"
+              style={{ width: 1, height: 1, clip: 'rect(0 0 0 0)' }}
+            >
+              {closeLabel}
+            </button>
+            <FitContain
+              active={dialogOpen}
+              naturalW={slideNaturalW}
+              naturalH={slideNaturalH}
+              pad={0}
+              className="h-full w-full"
+            >
+              {renderSlide(index, current)}
+            </FitContain>
 
             <button
               type="button"
@@ -553,26 +525,25 @@ export function PresentationStrip({
                 →
               </span>
             </button>
-            </div>
 
-            <div className="shrink-0 px-3 py-2 sm:px-4">
-              <div className="flex gap-2 overflow-x-auto [scrollbar-width:thin]">
-                {slides.map((slide, i) => (
-                  <button
-                    key={slide.id}
-                    type="button"
-                    onClick={() => setIndex(i)}
-                    className={cn(
-                      'shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-medium tabular-nums transition',
-                      i === index
-                        ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/15 text-[var(--strong-text-color)]'
-                        : 'border-[var(--border-color)] text-[var(--secondary-text-color)] hover:border-[var(--brand-primary)]/40',
-                    )}
-                  >
-                    {slide.num} {slide.label}
-                  </button>
-                ))}
-              </div>
+            <div
+              data-testid="presentation-progress"
+              role="progressbar"
+              aria-valuemin={1}
+              aria-valuemax={total}
+              aria-valuenow={index + 1}
+              aria-valuetext={slideOfText}
+              className="absolute inset-x-0 bottom-0 z-20 overflow-hidden"
+              style={{ height: 3, backgroundColor: 'color-mix(in srgb, var(--border-color) 70%, transparent)' }}
+            >
+              <span
+                className="block h-full"
+                style={{
+                  width: `${((index + 1) / Math.max(total, 1)) * 100}%`,
+                  backgroundColor: 'var(--brand-primary)',
+                  transition: 'width 180ms ease',
+                }}
+              />
             </div>
           </div>
         </div>
