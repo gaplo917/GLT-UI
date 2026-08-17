@@ -77,7 +77,7 @@ export function PresentationSlideFrame({
             )}
             {title != null && (
               <h2
-                className="m-0 mt-1 text-[22px] font-normal leading-[1.2] tracking-tight text-[var(--strong-text-color)]"
+                className="m-0 mt-1 text-[28px] font-bold leading-[1.15] tracking-tight text-[var(--strong-text-color)]"
                 style={{
                   fontFamily:
                     'var(--font-display, "Times New Roman", serif)',

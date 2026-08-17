@@ -9,7 +9,7 @@ export interface PresentationBulletListProps
 
 /**
  * Presentation-deck bullet list.
- * 16px type at 1.15 line-height; later items get top margin (first item does not).
+ * 16px type at 1.15 line-height; every item, including the first, has 1.35lh top margin.
  * Uses native list markers so the bullet is vertically centered on the first
  * line of multi-line items (browser list layout).
  */
@@ -27,7 +27,7 @@ export function PresentationBulletList({
       {...props}
     >
       {items.map((b, i) => (
-        <li key={i} className="mt-[1.5lh] min-w-0 pl-0.5 first:mt-0">
+        <li key={i} className="mt-[1.35lh] min-w-0 pl-0.5">
           {b}
         </li>
       ))}
