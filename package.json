@@ -66,7 +66,8 @@
     "start": "npm run start -w demo",
     "lint": "npm run lint -w demo",
     "publish:ui": "npm publish --access public",
-    "test:demo-props": "node scripts/props-demo-coverage.mjs"
+    "test:demo-props": "node scripts/props-demo-coverage.mjs",
+    "test:contain-16x9": "node scripts/assert-contain-center-16x9.mjs"
   },
   "publishConfig": {
     "access": "public"

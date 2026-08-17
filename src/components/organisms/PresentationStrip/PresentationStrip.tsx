@@ -4,7 +4,10 @@ import * as React from 'react';
 import { cn } from '@/lib/cn.js';
 import { Callout } from '@/components/molecules/Callout/Callout.js';
 import { Text } from '@/components/atoms/Text/Text.js';
-import { FitContain } from '@/components/molecules/FitContain/FitContain.js';
+import {
+  containCenter16x9,
+  FitContain,
+} from '@/components/molecules/FitContain/FitContain.js';
 
 /** Thumbnail display width (height follows natural aspect of the slide board). */
 const THUMB_W = 220;
@@ -163,11 +166,15 @@ export function PresentationStrip({
 }: PresentationStripProps) {
   const titleId = React.useId();
   const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const viewportRef = React.useRef<HTMLDivElement>(null);
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
   /** Which fullscreen edge nav is hovered / keyboard-focused. */
   const [edgeNav, setEdgeNav] = React.useState<'prev' | 'next' | null>(null);
+  const [stageBox, setStageBox] = React.useState(() =>
+    containCenter16x9(1, 1),
+  );
   const total = slides.length;
   const current = slides[index] ?? slides[0];
 
@@ -214,6 +221,29 @@ export function PresentationStrip({
     else d.removeAttribute('open');
     setDialogOpen(false);
   }, []);
+
+  const measureStage = React.useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const vw = el.clientWidth;
+    const vh = el.clientHeight;
+    if (vw < 1 || vh < 1) return;
+    setStageBox(containCenter16x9(vw, vh));
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!dialogOpen) return;
+    measureStage();
+    const el = viewportRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measureStage());
+    ro.observe(el);
+    window.addEventListener('resize', measureStage);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measureStage);
+    };
+  }, [dialogOpen, measureStage]);
 
   React.useEffect(() => {
     const d = dialogRef.current;
@@ -369,172 +399,181 @@ export function PresentationStrip({
         className={cn(
           'fixed inset-0 z-[80] m-0 h-full max-h-none w-full max-w-none',
           'border-0 bg-[var(--bg-color)] p-0 text-[var(--text-color)]',
-          'open:flex open:flex-col',
         )}
         onClick={(e) => {
           if (e.target === dialogRef.current) close();
         }}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border-color)] px-3 py-2 sm:px-5">
-          <div className="min-w-0">
-            <p
-              id={titleId}
-              className="truncate text-sm font-semibold tracking-tight text-[var(--strong-text-color)]"
-            >
-              {dialogHeading}
-            </p>
-            <p className="text-xs text-[var(--secondary-text-color)]">
-              <span className="tabular-nums">
-                {current.num}/{slides[total - 1]?.num ?? total}
-              </span>{' '}
-              · {current.label}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              data-testid="presentation-dialog-prev"
-              onClick={prev}
-              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-              aria-label={prevAria}
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              data-testid="presentation-dialog-next"
-              onClick={next}
-              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
-              aria-label={nextAria}
-            >
-              →
-            </button>
-            <button
-              type="button"
-              data-testid="presentation-dialog-close"
-              onClick={close}
-              className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium text-[var(--text-color)]"
-            >
-              {closeLabel}
-            </button>
-          </div>
-        </div>
-
         <div
-          className="relative min-h-0 flex-1 p-2 sm:p-4"
+          ref={viewportRef}
+          className="relative h-full w-full"
           onClick={(e) => e.stopPropagation()}
         >
-          <FitContain
-            active={dialogOpen}
-            naturalW={slideNaturalW}
-            naturalH={slideNaturalH}
-            className="h-full w-full"
+          <div
+            data-testid="presentation-16x9-stage"
+            data-present-aspect="16/9"
+            className="absolute flex flex-col overflow-hidden bg-[var(--bg-color)]"
+            style={{
+              left: stageBox.x,
+              top: stageBox.y,
+              width: stageBox.width,
+              height: stageBox.height,
+              aspectRatio: '16 / 9',
+            }}
           >
-            {renderSlide(index, current)}
-          </FitContain>
+            <div className="flex shrink-0 items-center justify-between gap-3 px-3 py-2 sm:px-5">
+              <div className="min-w-0">
+                <p
+                  id={titleId}
+                  className="truncate text-sm font-semibold tracking-tight text-[var(--strong-text-color)]"
+                >
+                  {dialogHeading}
+                </p>
+                <p className="text-xs text-[var(--secondary-text-color)]">
+                  <span className="tabular-nums">
+                    {current.num}/{slides[total - 1]?.num ?? total}
+                  </span>{' '}
+                  · {current.label}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="presentation-dialog-prev"
+                  onClick={prev}
+                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
+                  aria-label={prevAria}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  data-testid="presentation-dialog-next"
+                  onClick={next}
+                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium"
+                  aria-label={nextAria}
+                >
+                  →
+                </button>
+                <button
+                  type="button"
+                  data-testid="presentation-dialog-close"
+                  onClick={close}
+                  className="rounded-full border border-[var(--border-color)] bg-[var(--card-bg-color)] px-3 py-1.5 text-sm font-medium text-[var(--text-color)]"
+                >
+                  {closeLabel}
+                </button>
+              </div>
+            </div>
 
-          {/*
-            Edge hover zones: translucent prev/next appear when the pointer is
-            near the left or right edge (full-height hit target, center slide
-            stays free for in-board controls). Inline width/opacity so the
-            portal Tailwind scan cannot drop package-only utilities.
-          */}
-          <button
-            type="button"
-            data-testid="presentation-edge-prev"
-            aria-label={prevAria}
-            onClick={prev}
-            onMouseEnter={() => setEdgeNav('prev')}
-            onMouseLeave={() =>
-              setEdgeNav((cur) => (cur === 'prev' ? null : cur))
-            }
-            onFocus={() => setEdgeNav('prev')}
-            onBlur={() => setEdgeNav((cur) => (cur === 'prev' ? null : cur))}
-            className="absolute inset-y-0 left-0 z-10 flex cursor-w-resize items-center justify-start border-0 bg-transparent p-0 pl-3 outline-none focus-visible:outline-none"
-            style={{ width: 'min(7.5rem, 14%)' }}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                opacity: edgeNav === 'prev' ? 1 : 0,
-                transition: 'opacity 180ms ease',
-                background:
-                  'linear-gradient(to right, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
-              }}
-            />
-            <span
-              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
-              style={{
-                opacity: edgeNav === 'prev' ? 1 : 0,
-                transition: 'opacity 180ms ease',
-                backgroundColor:
-                  'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-              }}
-            >
-              ←
-            </span>
-          </button>
-          <button
-            type="button"
-            data-testid="presentation-edge-next"
-            aria-label={nextAria}
-            onClick={next}
-            onMouseEnter={() => setEdgeNav('next')}
-            onMouseLeave={() =>
-              setEdgeNav((cur) => (cur === 'next' ? null : cur))
-            }
-            onFocus={() => setEdgeNav('next')}
-            onBlur={() => setEdgeNav((cur) => (cur === 'next' ? null : cur))}
-            className="absolute inset-y-0 right-0 z-10 flex cursor-e-resize items-center justify-end border-0 bg-transparent p-0 pr-3 outline-none focus-visible:outline-none"
-            style={{ width: 'min(7.5rem, 14%)' }}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                opacity: edgeNav === 'next' ? 1 : 0,
-                transition: 'opacity 180ms ease',
-                background:
-                  'linear-gradient(to left, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
-              }}
-            />
-            <span
-              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
-              style={{
-                opacity: edgeNav === 'next' ? 1 : 0,
-                transition: 'opacity 180ms ease',
-                backgroundColor:
-                  'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-              }}
-            >
-              →
-            </span>
-          </button>
-        </div>
-
-        {/* Thumbnail rail in present mode */}
-        <div className="shrink-0 border-t border-[var(--border-color)] bg-[var(--bg-color)]/80 px-3 py-2 sm:px-4">
-          <div className="flex gap-2 overflow-x-auto [scrollbar-width:thin]">
-            {slides.map((slide, i) => (
-              <button
-                key={slide.id}
-                type="button"
-                onClick={() => setIndex(i)}
-                className={cn(
-                  'shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-medium tabular-nums transition',
-                  i === index
-                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/15 text-[var(--strong-text-color)]'
-                    : 'border-[var(--border-color)] text-[var(--secondary-text-color)] hover:border-[var(--brand-primary)]/40',
-                )}
+            <div className="relative min-h-0 flex-1">
+              <FitContain
+                active={dialogOpen}
+                naturalW={slideNaturalW}
+                naturalH={slideNaturalH}
+                pad={0}
+                className="h-full w-full"
               >
-                {slide.num} {slide.label}
-              </button>
-            ))}
+                {renderSlide(index, current)}
+              </FitContain>
+
+            <button
+              type="button"
+              data-testid="presentation-edge-prev"
+              aria-label={prevAria}
+              onClick={prev}
+              onMouseEnter={() => setEdgeNav('prev')}
+              onMouseLeave={() =>
+                setEdgeNav((cur) => (cur === 'prev' ? null : cur))
+              }
+              onFocus={() => setEdgeNav('prev')}
+              onBlur={() => setEdgeNav((cur) => (cur === 'prev' ? null : cur))}
+              className="absolute inset-y-0 left-0 z-10 flex cursor-w-resize items-center justify-start border-0 bg-transparent p-0 pl-3 outline-none focus-visible:outline-none"
+              style={{ width: 'min(7.5rem, 14%)' }}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  opacity: edgeNav === 'prev' ? 1 : 0,
+                  transition: 'opacity 180ms ease',
+                  background:
+                    'linear-gradient(to right, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
+                }}
+              />
+              <span
+                className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
+                style={{
+                  opacity: edgeNav === 'prev' ? 1 : 0,
+                  transition: 'opacity 180ms ease',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                }}
+              >
+                ←
+              </span>
+            </button>
+            <button
+              type="button"
+              data-testid="presentation-edge-next"
+              aria-label={nextAria}
+              onClick={next}
+              onMouseEnter={() => setEdgeNav('next')}
+              onMouseLeave={() =>
+                setEdgeNav((cur) => (cur === 'next' ? null : cur))
+              }
+              onFocus={() => setEdgeNav('next')}
+              onBlur={() => setEdgeNav((cur) => (cur === 'next' ? null : cur))}
+              className="absolute inset-y-0 right-0 z-10 flex cursor-e-resize items-center justify-end border-0 bg-transparent p-0 pr-3 outline-none focus-visible:outline-none"
+              style={{ width: 'min(7.5rem, 14%)' }}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  opacity: edgeNav === 'next' ? 1 : 0,
+                  transition: 'opacity 180ms ease',
+                  background:
+                    'linear-gradient(to left, color-mix(in srgb, var(--bg-color) 55%, transparent), transparent)',
+                }}
+              />
+              <span
+                className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-color)] text-lg font-semibold text-[var(--strong-text-color)] shadow-md"
+                style={{
+                  opacity: edgeNav === 'next' ? 1 : 0,
+                  transition: 'opacity 180ms ease',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--card-bg-color) 55%, transparent)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                }}
+              >
+                →
+              </span>
+            </button>
+            </div>
+
+            <div className="shrink-0 px-3 py-2 sm:px-4">
+              <div className="flex gap-2 overflow-x-auto [scrollbar-width:thin]">
+                {slides.map((slide, i) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    onClick={() => setIndex(i)}
+                    className={cn(
+                      'shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-medium tabular-nums transition',
+                      i === index
+                        ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/15 text-[var(--strong-text-color)]'
+                        : 'border-[var(--border-color)] text-[var(--secondary-text-color)] hover:border-[var(--brand-primary)]/40',
+                    )}
+                  >
+                    {slide.num} {slide.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </dialog>

@@ -3,6 +3,13 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
 
+export {
+  containCenter16x9,
+  PRESENT_ASPECT_H,
+  PRESENT_ASPECT_W,
+  type ContainCenterBox,
+} from './containCenter16x9.js';
+
 export interface FitContainProps {
   children: React.ReactNode;
   className?: string;

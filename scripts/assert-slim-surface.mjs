@@ -41,6 +41,7 @@ const REQUIRED = [
   'FeedbackLoopsDiagram',
   'FigureDataTableToggle',
   'FitContain',
+  'containCenter16x9',
   'FullBleedFigure',
   'Grid',
   'H2',
