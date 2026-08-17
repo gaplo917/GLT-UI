@@ -67,7 +67,7 @@ export function PresentationSlideFrame({
           <div className="min-w-0">
             {kicker != null && (
               <p
-                className="m-0 text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--secondary-text-color)]"
+                className="m-0 text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--brand-primary)]"
                 style={{
                   fontFamily: 'var(--font-body, var(--font-family), system-ui, sans-serif)',
                 }}
@@ -89,7 +89,7 @@ export function PresentationSlideFrame({
           </div>
           {brandMeta != null && (
             <div
-              className="m-0 shrink-0 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--secondary-text-color)]"
+              className="m-0 shrink-0 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--brand-primary)]"
               style={{
                 fontFamily: 'var(--font-body, var(--font-family), system-ui, sans-serif)',
               }}
