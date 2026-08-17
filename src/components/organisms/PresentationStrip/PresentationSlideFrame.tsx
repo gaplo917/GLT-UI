@@ -63,21 +63,37 @@ export function PresentationSlideFrame({
       {...props}
     >
       {showHeader ? (
-        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-[var(--border-color)] bg-[var(--bg-color)]/50 px-5 py-2.5">
+        <header className="flex shrink-0 items-start justify-between gap-4 px-6 pb-1 pt-4">
           <div className="min-w-0">
             {kicker != null && (
-              <p className="m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-primary)]">
+              <p
+                className="m-0 text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--secondary-text-color)]"
+                style={{
+                  fontFamily: 'var(--font-body, var(--font-family), system-ui, sans-serif)',
+                }}
+              >
                 {kicker}
               </p>
             )}
             {title != null && (
-              <h2 className="m-0 mt-0.5 text-[17px] font-bold leading-tight tracking-tight text-[var(--strong-text-color)]">
+              <h2
+                className="m-0 mt-1 text-[22px] font-normal leading-[1.2] tracking-tight text-[var(--strong-text-color)]"
+                style={{
+                  fontFamily:
+                    'var(--font-display, "Times New Roman", serif)',
+                }}
+              >
                 {title}
               </h2>
             )}
           </div>
           {brandMeta != null && (
-            <div className="m-0 shrink-0 text-right text-[10px] font-medium uppercase tracking-wide text-[var(--secondary-text-color)]">
+            <div
+              className="m-0 shrink-0 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--secondary-text-color)]"
+              style={{
+                fontFamily: 'var(--font-body, var(--font-family), system-ui, sans-serif)',
+              }}
+            >
               {brandMeta}
             </div>
           )}
