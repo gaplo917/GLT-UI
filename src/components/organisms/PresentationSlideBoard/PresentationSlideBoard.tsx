@@ -3,7 +3,10 @@ import { PresentationSlideFrame } from '@/components/organisms/PresentationStrip
 import { PresentationTitlePage } from '@/components/molecules/PresentationTitlePage/PresentationTitlePage.js';
 import { PresentationProseColumns } from '@/components/molecules/PresentationProseColumns/PresentationProseColumns.js';
 import { PresentationFigureKeypoints } from '@/components/molecules/PresentationFigureKeypoints/PresentationFigureKeypoints.js';
-import { PresentationMythGrid } from '@/components/molecules/PresentationMythGrid/PresentationMythGrid.js';
+import {
+  PresentationMythGrid,
+  type PresentationMythCard,
+} from '@/components/molecules/PresentationMythGrid/PresentationMythGrid.js';
 
 export type PresentationSlideBoardLayout =
   | 'title'
@@ -37,7 +40,7 @@ export interface PresentationSlideBoardProps {
   figure?: React.ReactNode;
   figureCaption?: string;
   /** Cards layout (fills the board) / close-layout myth cards. */
-  cards?: readonly { title: string; body: string }[];
+  cards?: readonly PresentationMythCard[];
   className?: string;
 }
 

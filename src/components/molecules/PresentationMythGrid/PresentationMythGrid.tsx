@@ -1,9 +1,12 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn.js';
+import { PresentationBulletList } from '@/components/molecules/PresentationBulletList/PresentationBulletList.js';
 
 export type PresentationMythCard = {
   title: string;
-  body: string;
+  /** @deprecated Prefer `bullets`. Used as a single list item when bullets are omitted. */
+  body?: string;
+  bullets?: readonly React.ReactNode[];
 };
 
 export interface PresentationMythGridProps
@@ -14,8 +17,8 @@ export interface PresentationMythGridProps
 
 /**
  * Two-column card grid for presentation myth / watch / open-question cards.
- * Host supplies all titles and bodies. When the parent gives the grid a
- * height (flex-1), rows stretch so 4–6 cards fill the board.
+ * Host supplies titles and bullets. When the parent gives the grid a height,
+ * rows stretch so 4–6 cards fill the board.
  */
 export function PresentationMythGrid({
   cards,
@@ -39,19 +42,27 @@ export function PresentationMythGrid({
       }}
       {...props}
     >
-      {cards.map((c) => (
-        <div
-          key={c.title}
-          className="flex min-h-0 flex-col rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/50 px-4 py-3.5"
-        >
-          <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--brand-primary)]">
-            {c.title}
-          </p>
-          <p className="m-0 mt-2 text-[16px] leading-[1.35] text-[var(--text-color)] [&_strong]:font-semibold [&_strong]:text-[var(--strong-text-color)]">
-            {c.body}
-          </p>
-        </div>
-      ))}
+      {cards.map((c) => {
+        const items =
+          c.bullets && c.bullets.length > 0
+            ? c.bullets
+            : c.body
+              ? [c.body]
+              : [];
+        return (
+          <div
+            key={c.title}
+            className="flex min-h-0 flex-col rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)]/50 px-4 py-3.5"
+          >
+            <p className="m-0 text-[16px] font-bold leading-[1.15] text-[var(--strong-text-color)]">
+              {c.title}
+            </p>
+            {items.length > 0 ? (
+              <PresentationBulletList className="min-h-0" items={items} />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

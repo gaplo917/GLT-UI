@@ -3840,19 +3840,19 @@ export const slimSection: DocSection = {
   cards={[
     {
       title: 'Myth · speed alone',
-      body: 'Faster models do not fix a slow review gate.',
+      bullets: ['Faster models do not fix a slow review gate.'],
     },
     {
       title: 'Watch · shadow work',
-      body: 'Unowned review queues hide the real cycle cost.',
+      bullets: ['Unowned review queues hide the real cycle cost.'],
     },
     {
       title: 'Debt · status theater',
-      body: 'Meetings without a metric drift into noise.',
+      bullets: ['Meetings without a metric drift into noise.'],
     },
     {
       title: 'Watch · thin harness',
-      body: 'Evals and hooks land before the agent fleet grows.',
+      bullets: ['Evals and hooks land before the agent fleet grows.'],
     },
   ]}
 />`,
@@ -3861,19 +3861,19 @@ export const slimSection: DocSection = {
               cards={[
                 {
                   title: 'Myth · speed alone',
-                  body: 'Faster models do not fix a slow review gate.',
+                  bullets: ['Faster models do not fix a slow review gate.'],
                 },
                 {
                   title: 'Watch · shadow work',
-                  body: 'Unowned review queues hide the real cycle cost.',
+                  bullets: ['Unowned review queues hide the real cycle cost.'],
                 },
                 {
                   title: 'Debt · status theater',
-                  body: 'Meetings without a metric drift into noise.',
+                  bullets: ['Meetings without a metric drift into noise.'],
                 },
                 {
                   title: 'Watch · thin harness',
-                  body: 'Evals and hooks land before the agent fleet grows.',
+                  bullets: ['Evals and hooks land before the agent fleet grows.'],
                 },
               ]}
             />
