@@ -36,7 +36,7 @@ export interface PresentationSlideBoardProps {
   bullets?: readonly React.ReactNode[];
   figure?: React.ReactNode;
   figureCaption?: string;
-  /** Cards layout / close layout myth / watch cards. */
+  /** Cards layout (fills the board) / close-layout myth cards. */
   cards?: readonly { title: string; body: string }[];
   className?: string;
 }
@@ -110,12 +110,9 @@ export function PresentationSlideBoard({
       ) : null}
 
       {layout === 'cards' ? (
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2.5">
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
           {cards && cards.length > 0 ? (
-            <PresentationMythGrid
-              className="min-h-0 flex-1 content-start"
-              cards={cards}
-            />
+            <PresentationMythGrid className="h-full min-h-0" cards={cards} />
           ) : null}
         </div>
       ) : null}
