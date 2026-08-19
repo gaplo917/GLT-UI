@@ -41,7 +41,7 @@ export type PresentationStripProps = {
   slides: readonly PresentationThumb[];
   /** Render full slide body for index (host supplies content). */
   renderSlide: (index: number, slide: PresentationThumb) => React.ReactNode;
-  /** Callout overline. Default "Presentation". */
+  /** Optional callout overline. Omitted when the host supplies only a title. */
   label?: React.ReactNode;
   /** Callout title. */
   title?: React.ReactNode;
@@ -155,7 +155,7 @@ function ThumbnailCard({
 export function PresentationStrip({
   slides,
   renderSlide,
-  label = 'Presentation',
+  label,
   title,
   description,
   dialogTitle,
