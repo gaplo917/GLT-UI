@@ -11,8 +11,8 @@ import {
 
 /** Thumbnail display width (height follows natural aspect of the slide board). */
 const THUMB_W = 220;
-/** Present-mode push duration (PowerPoint / Google Slides–style slide). */
-const SLIDE_TRANSITION_MS = 400;
+/** Present-mode fade-up / staggered rise (covers last child delay + duration). */
+const SLIDE_TRANSITION_MS = 720;
 const SLIDE_TRANSITION_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 function usePrefersReducedMotion(): boolean {
@@ -186,7 +186,6 @@ export function PresentationStrip({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
   const [outgoingIndex, setOutgoingIndex] = React.useState<number | null>(null);
-  const [slideDir, setSlideDir] = React.useState<1 | -1>(1);
   const [slidePhase, setSlidePhase] = React.useState<'idle' | 'from' | 'to'>(
     'idle',
   );
@@ -214,13 +213,12 @@ export function PresentationStrip({
   const closeLabel = chrome?.close ?? 'Close';
 
   const go = React.useCallback(
-    (next: number, move: 1 | -1) => {
+    (next: number, _move: 1 | -1) => {
       if (total < 1) return;
       const to = ((next % total) + total) % total;
       if (to === index) return;
       if (dialogOpen && !reducedMotion) {
         setOutgoingIndex(index);
-        setSlideDir(move);
         setSlidePhase('from');
       }
       setIndex(to);
@@ -493,20 +491,24 @@ export function PresentationStrip({
               outgoingIndex !== index &&
               slides[outgoingIndex] != null ? (
                 <div
-                  className="absolute inset-0"
+                  className="absolute inset-0 z-[1]"
                   style={{
+                    opacity: slidePhase === 'to' ? 0 : 1,
                     transform:
-                      slidePhase === 'to'
-                        ? `translateX(${slideDir === 1 ? '-100%' : '100%'})`
-                        : 'translateX(0)',
+                      slidePhase === 'to' ? 'translateY(-10px)' : 'translateY(0)',
                     transition:
                       slidePhase === 'to'
-                        ? `transform ${SLIDE_TRANSITION_MS}ms ${SLIDE_TRANSITION_EASE}`
+                        ? `opacity 280ms ${SLIDE_TRANSITION_EASE}, transform 280ms ${SLIDE_TRANSITION_EASE}`
                         : 'none',
                     pointerEvents: 'none',
-                    willChange: 'transform',
+                    willChange: 'opacity, transform',
                   }}
                   aria-hidden
+                  onTransitionEnd={(e) => {
+                    if (e.target !== e.currentTarget) return;
+                    if (e.propertyName !== 'opacity') return;
+                    endSlideTransition();
+                  }}
                 >
                   <FitContain
                     active={dialogOpen}
@@ -520,23 +522,10 @@ export function PresentationStrip({
                 </div>
               ) : null}
               <div
-                className="absolute inset-0"
-                style={{
-                  transform:
-                    slidePhase === 'from'
-                      ? `translateX(${slideDir === 1 ? '100%' : '-100%'})`
-                      : 'translateX(0)',
-                  transition:
-                    slidePhase === 'to'
-                      ? `transform ${SLIDE_TRANSITION_MS}ms ${SLIDE_TRANSITION_EASE}`
-                      : 'none',
-                  willChange: slidePhase === 'idle' ? undefined : 'transform',
-                }}
-                onTransitionEnd={(e) => {
-                  if (e.propertyName !== 'transform') return;
-                  if (e.target !== e.currentTarget) return;
-                  endSlideTransition();
-                }}
+                className="absolute inset-0 z-0"
+                data-glt-slide-enter={
+                  slidePhase === 'idle' ? undefined : slidePhase
+                }
               >
                 <FitContain
                   active={dialogOpen}
