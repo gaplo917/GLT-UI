@@ -11,6 +11,21 @@ import {
 
 /** Thumbnail display width (height follows natural aspect of the slide board). */
 const THUMB_W = 220;
+/** Present-mode push duration (PowerPoint / Google Slides–style slide). */
+const SLIDE_TRANSITION_MS = 400;
+const SLIDE_TRANSITION_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReduced(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+  return reduced;
+}
 
 export type PresentationThumb = {
   id: string;
@@ -170,6 +185,12 @@ export function PresentationStrip({
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [index, setIndex] = React.useState(0);
+  const [outgoingIndex, setOutgoingIndex] = React.useState<number | null>(null);
+  const [slideDir, setSlideDir] = React.useState<1 | -1>(1);
+  const [slidePhase, setSlidePhase] = React.useState<'idle' | 'from' | 'to'>(
+    'idle',
+  );
+  const reducedMotion = usePrefersReducedMotion();
   /** Which fullscreen edge nav is hovered / keyboard-focused. */
   const [edgeNav, setEdgeNav] = React.useState<'prev' | 'next' | null>(null);
   const [stageBox, setStageBox] = React.useState(() =>
@@ -193,15 +214,41 @@ export function PresentationStrip({
   const closeLabel = chrome?.close ?? 'Close';
 
   const go = React.useCallback(
-    (next: number) => {
+    (next: number, move: 1 | -1) => {
       if (total < 1) return;
-      setIndex(((next % total) + total) % total);
+      const to = ((next % total) + total) % total;
+      if (to === index) return;
+      if (dialogOpen && !reducedMotion) {
+        setOutgoingIndex(index);
+        setSlideDir(move);
+        setSlidePhase('from');
+      }
+      setIndex(to);
     },
-    [total],
+    [dialogOpen, index, reducedMotion, total],
   );
 
-  const prev = React.useCallback(() => go(index - 1), [go, index]);
-  const next = React.useCallback(() => go(index + 1), [go, index]);
+  const prev = React.useCallback(() => go(index - 1, -1), [go, index]);
+  const next = React.useCallback(() => go(index + 1, 1), [go, index]);
+
+  const endSlideTransition = React.useCallback(() => {
+    setSlidePhase('idle');
+    setOutgoingIndex(null);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (slidePhase !== 'from') return;
+    const id = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => setSlidePhase('to'));
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [slidePhase]);
+
+  React.useEffect(() => {
+    if (slidePhase !== 'to') return;
+    const t = window.setTimeout(endSlideTransition, SLIDE_TRANSITION_MS + 80);
+    return () => window.clearTimeout(t);
+  }, [endSlideTransition, slidePhase]);
 
   const openAt = React.useCallback((i: number) => {
     setIndex(i);
@@ -220,6 +267,8 @@ export function PresentationStrip({
     if (typeof d.close === 'function') d.close();
     else d.removeAttribute('open');
     setDialogOpen(false);
+    setSlidePhase('idle');
+    setOutgoingIndex(null);
   }, []);
 
   const measureStage = React.useCallback(() => {
@@ -266,10 +315,10 @@ export function PresentationStrip({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
         e.preventDefault();
-        go(index - 1);
+        go(index - 1, -1);
       } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
         e.preventDefault();
-        go(index + 1);
+        go(index + 1, 1);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -377,7 +426,7 @@ export function PresentationStrip({
               slide={slide}
               index={i}
               selected={i === index}
-              onSelect={() => setIndex(i)}
+              onSelect={() => go(i, i >= index ? 1 : -1)}
               onOpen={() => openAt(i)}
               renderSlide={renderSlide}
               naturalW={slideNaturalW}
@@ -439,15 +488,67 @@ export function PresentationStrip({
             >
               {closeLabel}
             </button>
-            <FitContain
-              active={dialogOpen}
-              naturalW={slideNaturalW}
-              naturalH={slideNaturalH}
-              pad={0}
-              className="h-full w-full"
-            >
-              {renderSlide(index, current)}
-            </FitContain>
+            <div className="relative h-full w-full overflow-hidden">
+              {outgoingIndex != null &&
+              outgoingIndex !== index &&
+              slides[outgoingIndex] != null ? (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    transform:
+                      slidePhase === 'to'
+                        ? `translateX(${slideDir === 1 ? '-100%' : '100%'})`
+                        : 'translateX(0)',
+                    transition:
+                      slidePhase === 'to'
+                        ? `transform ${SLIDE_TRANSITION_MS}ms ${SLIDE_TRANSITION_EASE}`
+                        : 'none',
+                    pointerEvents: 'none',
+                    willChange: 'transform',
+                  }}
+                  aria-hidden
+                >
+                  <FitContain
+                    active={dialogOpen}
+                    naturalW={slideNaturalW}
+                    naturalH={slideNaturalH}
+                    pad={0}
+                    className="h-full w-full"
+                  >
+                    {renderSlide(outgoingIndex, slides[outgoingIndex])}
+                  </FitContain>
+                </div>
+              ) : null}
+              <div
+                className="absolute inset-0"
+                style={{
+                  transform:
+                    slidePhase === 'from'
+                      ? `translateX(${slideDir === 1 ? '100%' : '-100%'})`
+                      : 'translateX(0)',
+                  transition:
+                    slidePhase === 'to'
+                      ? `transform ${SLIDE_TRANSITION_MS}ms ${SLIDE_TRANSITION_EASE}`
+                      : 'none',
+                  willChange: slidePhase === 'idle' ? undefined : 'transform',
+                }}
+                onTransitionEnd={(e) => {
+                  if (e.propertyName !== 'transform') return;
+                  if (e.target !== e.currentTarget) return;
+                  endSlideTransition();
+                }}
+              >
+                <FitContain
+                  active={dialogOpen}
+                  naturalW={slideNaturalW}
+                  naturalH={slideNaturalH}
+                  pad={0}
+                  className="h-full w-full"
+                >
+                  {renderSlide(index, current)}
+                </FitContain>
+              </div>
+            </div>
 
             <button
               type="button"
