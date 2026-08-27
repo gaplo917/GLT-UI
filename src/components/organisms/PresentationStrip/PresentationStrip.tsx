@@ -11,9 +11,9 @@ import {
 
 /** Thumbnail display width (height follows natural aspect of the slide board). */
 const THUMB_W = 220;
-/** Present-mode fade-up / staggered rise (covers last child delay + duration). */
-const SLIDE_TRANSITION_MS = 720;
-const SLIDE_TRANSITION_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+/** Present-mode fade-up / staggered rise (last child delay + duration). */
+const SLIDE_TRANSITION_MS = 640;
+const SLIDE_TRANSITION_EASE = 'cubic-bezier(0.33, 0.1, 0.2, 1)';
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = React.useState(false);
@@ -507,7 +507,7 @@ export function PresentationStrip({
                   onTransitionEnd={(e) => {
                     if (e.target !== e.currentTarget) return;
                     if (e.propertyName !== 'opacity') return;
-                    endSlideTransition();
+                    setOutgoingIndex(null);
                   }}
                 >
                   <FitContain
