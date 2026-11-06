@@ -55,6 +55,7 @@ import {
   SiteHeader,
   Spinner,
   StepLoopFlow,
+  VerticalTimeline,
   SvgRefCite,
   Table,
   TableBody,
@@ -3621,6 +3622,83 @@ export const slimSection: DocSection = {
                 { n: '04', label: 'Check', detail: 'Verify', tone: 'brand' },
                 { n: '05', label: 'Ship', detail: 'Merge' },
                 { n: '06', label: 'Owner', detail: 'Exceptions', tone: 'brand' },
+              ]}
+            />
+          ),
+        },
+      ],
+    },
+    {
+    {
+      id: 'vertical-timeline',
+      name: 'VerticalTimeline',
+      description:
+        'Animated vertical milestone timeline. Day deltas are node callouts and stagger timing, not a plotted Y-axis.',
+      importLine: "import { VerticalTimeline } from 'glt-ui';",
+      examples: [
+        {
+          title: 'Sample adoption spine',
+          code: `<VerticalTimeline
+  title="Sample adoption spine"
+  description="Fictional six-waypoint timeline for the design-system demo."
+  items={[
+    { id: 'a', dayLabel: '+0d', title: 'Launch', detail: 'Vendor A · Day 0', tone: 'brand', daysAfter: 0 },
+    { id: 'b', dayLabel: '+9d', title: 'Open pattern', detail: 'Vendor B · Day 9', daysAfter: 9 },
+    { id: 'c', dayLabel: '+16d', title: 'Open weights', detail: 'Vendor C · Day 16', daysAfter: 16 },
+    { id: 'd', dayLabel: '+24d', title: 'Hosted preview', detail: 'Vendor D · Day 24', daysAfter: 24 },
+    { id: 'e', dayLabel: '+28d', title: 'Public index', detail: 'Vendor E · Day 28', daysAfter: 28 },
+    { id: 'f', dayLabel: '+37d', title: 'GA API', detail: 'Vendor F · Day 37', tone: 'brand', daysAfter: 37 },
+  ]}
+/>`,
+          render: (
+            <VerticalTimeline
+              title="Sample adoption spine"
+              description="Fictional six-waypoint timeline for the design-system demo."
+              items={[
+                {
+                  id: 'a',
+                  dayLabel: '+0d',
+                  title: 'Launch',
+                  detail: 'Vendor A · Day 0',
+                  tone: 'brand',
+                  daysAfter: 0,
+                },
+                {
+                  id: 'b',
+                  dayLabel: '+9d',
+                  title: 'Open pattern',
+                  detail: 'Vendor B · Day 9',
+                  daysAfter: 9,
+                },
+                {
+                  id: 'c',
+                  dayLabel: '+16d',
+                  title: 'Open weights',
+                  detail: 'Vendor C · Day 16',
+                  daysAfter: 16,
+                },
+                {
+                  id: 'd',
+                  dayLabel: '+24d',
+                  title: 'Hosted preview',
+                  detail: 'Vendor D · Day 24',
+                  daysAfter: 24,
+                },
+                {
+                  id: 'e',
+                  dayLabel: '+28d',
+                  title: 'Public index',
+                  detail: 'Vendor E · Day 28',
+                  daysAfter: 28,
+                },
+                {
+                  id: 'f',
+                  dayLabel: '+37d',
+                  title: 'GA API',
+                  detail: 'Vendor F · Day 37',
+                  tone: 'brand',
+                  daysAfter: 37,
+                },
               ]}
             />
           ),
