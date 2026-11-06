@@ -84,6 +84,7 @@ const REQUIRED = [
   'SiteHeader',
   'Spinner',
   'StepLoopFlow',
+  'VerticalTimeline',
   'SvgRefCite',
   'Table',
   'TableBody',

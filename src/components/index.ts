@@ -73,4 +73,5 @@ export * from './organisms/ResolveRateTrend/ResolveRateTrend.js';
 export * from './organisms/SiteFooter/SiteFooter.js';
 export * from './organisms/SiteHeader/SiteHeader.js';
 export * from './organisms/StepLoopFlow/StepLoopFlow.js';
+export * from './organisms/VerticalTimeline/VerticalTimeline.js';
 export * from './organisms/Table/Table.js';
