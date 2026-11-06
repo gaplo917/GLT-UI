@@ -3629,7 +3629,6 @@ export const slimSection: DocSection = {
       ],
     },
     {
-    {
       id: 'vertical-timeline',
       name: 'VerticalTimeline',
       description:
